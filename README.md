@@ -128,6 +128,7 @@ python -B scripts/doctor.py --install-hook --root .
 ```
 
 The hook runs structural validation, Tier-A routing, and secret scanning. It never commits or pushes.
+On Linux and macOS, hook installation also marks `.git/hooks/pre-commit` executable; Windows does not expose POSIX execute bits.
 
 ## Use in a game project
 

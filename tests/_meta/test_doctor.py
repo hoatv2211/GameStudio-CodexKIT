@@ -3,6 +3,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import stat
 import subprocess
 import sys
 import unittest
@@ -60,6 +61,8 @@ class DoctorTests(unittest.TestCase):
             install_hook(root, python_executable=sys.executable)
             hook = root / ".git" / "hooks" / "pre-commit"
             self.assertTrue(hook.exists())
+            if os.name != "nt":
+                self.assertTrue(hook.stat().st_mode & stat.S_IXUSR)
             self.assertIn('[sys.executable, "-B",', hook.read_text(encoding="utf-8"))
             subprocess.run(["git", "add", "."], cwd=root, check=True)
             result = subprocess.run(

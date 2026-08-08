@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
+import stat
 import subprocess
 import sys
 from pathlib import Path
@@ -51,6 +53,8 @@ def install_hook(root: Path | str, python_executable: str = sys.executable) -> P
     if hook_path.exists() and HOOK_MARKER not in hook_path.read_text(encoding="utf-8", errors="replace"):
         raise RuntimeError(f"refusing to overwrite unmanaged hook: {hook_path}")
     hook_path.write_text(hook_text(python_executable), encoding="utf-8", newline="\n")
+    if os.name != "nt":
+        hook_path.chmod(hook_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     return hook_path
 
 
