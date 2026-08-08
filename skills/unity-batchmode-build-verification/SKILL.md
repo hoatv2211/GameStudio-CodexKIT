@@ -75,4 +75,4 @@ Record the failing command, first actionable log error, Unity/package snapshot, 
 - [ ] Limitations are explicit.
 
 ## References and scripts
-Use the bundled [scripts/build_evidence.py](scripts/build_evidence.py) to validate normalized build evidence and project-native Unity build methods for execution.
+Read [references/commands.md](references/commands.md) before constructing a Unity command. Use the bundled [scripts/build_evidence.py](scripts/build_evidence.py) to validate normalized build evidence and project-native Unity build methods for execution.

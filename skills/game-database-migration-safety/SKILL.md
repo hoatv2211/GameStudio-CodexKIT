@@ -77,4 +77,4 @@ Record target, schema evidence, migration hash, backup and restore paths, dry-ru
 - [ ] Reviewer and human approval are explicit before apply.
 
 ## References and scripts
-Use the bundled [scripts/db_safety.py](scripts/db_safety.py) for no-write planning. Real DB commands remain project-specific and require explicit approval.
+Read [references/commands.md](references/commands.md) for credential-safe inspection, backup, and restore patterns. Use the bundled [scripts/db_safety.py](scripts/db_safety.py) for no-write planning. Real DB commands remain project-specific and require explicit approval.

@@ -75,4 +75,4 @@ Record build/dump paths, signature, first application frame, symbol gaps, attemp
 - [ ] Next action is safe and bounded.
 
 ## References and scripts
-Use the bundled [scripts/crash_triage.py](scripts/crash_triage.py) for normalized fixtures and project-specific debugger tooling for authorized dump inspection.
+Read [references/commands.md](references/commands.md) for Windows and Linux symbolization commands. Use the bundled [scripts/crash_triage.py](scripts/crash_triage.py) for normalized fixtures and project-specific debugger tooling for authorized dump inspection.

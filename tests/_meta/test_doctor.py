@@ -18,8 +18,14 @@ class DoctorTests(unittest.TestCase):
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             root = Path(temp)
+            ignore_generated = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
             for directory in ("scripts", "skills", "registry", "personas", "evals"):
-                shutil.copytree(source_root / directory, root / directory)
+                shutil.copytree(
+                    source_root / directory,
+                    root / directory,
+                    ignore=ignore_generated,
+                )
+            self.assertEqual([], list(root.rglob("__pycache__")))
             write_plugin_package(root)
             subprocess.run(["git", "init", "-q"], cwd=root, check=True)
 

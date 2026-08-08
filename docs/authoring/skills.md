@@ -11,8 +11,9 @@ Use `skill-authoring-and-audit` in `author` mode before creating or changing a c
 5. Include required body sections and a completion criterion for every workflow step.
 6. Add at least 3 positive, 2 negative with owner, and 1 collision routing case; root skills are exempt and require `Negative scope`.
 7. If the skill uses a deterministic helper, update the canonical root script and `registry/skill-resources.yaml`, then run `scripts/sync_skill_resources.py`; never patch `skills/*/scripts/` by hand.
-8. Validate repository-root discovery for Codex and per-skill copying for Hermes Agent, then regenerate only the packs or adapter exports being distributed.
-9. Run structural validation, routing, secret, policy, cross-agent packaging, and full unittest discovery.
+8. For execution-heavy workflows, add a progressively loaded `references/commands.md` with platform-specific commands, evidence fields, and mutation boundaries.
+9. Validate repository-root discovery for Codex and per-skill copying for Hermes Agent, then regenerate only the packs or adapter exports being distributed.
+10. Run structural validation, routing, external-catalog collision, secret, policy, cross-agent packaging, and full unittest discovery.
 
 ## Trigger quality
 
@@ -35,6 +36,7 @@ python -B scripts/sync_skill_resources.py . --check
 python -B -m unittest discover -s tests -p "test_*.py"
 python -B scripts/validate.py .
 python -B scripts/route_eval.py .
+python -B scripts/external_collision_eval.py .
 python -B scripts/secret_scan.py .
 python -B scripts/policy_check.py .
 python "$HOME/.codex/skills/.system/plugin-creator/scripts/validate_plugin.py" .

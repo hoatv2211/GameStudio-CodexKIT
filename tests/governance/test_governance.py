@@ -48,6 +48,23 @@ class GovernanceTests(unittest.TestCase):
         path.write_text(json.dumps({"entries": entries}), encoding="utf-8")
         return path
 
+    def write_dogfood_summary(self, path: Path, workflow: str, *, complete: bool = True) -> None:
+        payload = {"label": "Verified", "exit_code": 0, "workflow": workflow}
+        if complete:
+            payload.update(
+                {
+                    "case_id": f"{workflow}-case",
+                    "command": "hermes run governed-dogfood",
+                    "artifacts": [{"kind": "verdict", "path": "artifacts/verdict.json"}],
+                    "project_snapshot": "game@abc123",
+                    "reviewer": "QA Lead",
+                    "timestamp": "2026-08-08T12:00:00+07:00",
+                    "unauthorized_write": False,
+                    "restore": "No mutation performed",
+                }
+            )
+        path.write_text(json.dumps(payload), encoding="utf-8")
+
     def test_originality_requires_declared_provenance_for_high_overlap(self) -> None:
         from scripts.check_originality import scan_originality
 
@@ -297,10 +314,7 @@ class GovernanceTests(unittest.TestCase):
             self.write_runner_status(evidence, "tier-b", ["alpha-skill", "beta-skill"])
             self.write_runner_status(evidence, "behavior", ["alpha-skill", "beta-skill"])
             self.write_runner_status(evidence, "pressure", ["alpha-skill", "beta-skill"])
-            (evidence / "dogfood-summary.json").write_text(
-                json.dumps({"label": "Verified", "exit_code": 0, "workflow": "alpha-skill"}),
-                encoding="utf-8",
-            )
+            self.write_dogfood_summary(evidence / "dogfood-summary.json", "alpha-skill")
             history = self.write_history(
                 root,
                 [
@@ -319,6 +333,40 @@ class GovernanceTests(unittest.TestCase):
             report = audit_catalog(root, history_path=history)
 
             self.assertEqual(["alpha-skill"], report["promotion_ready"])
+
+    def test_catalog_rejects_bare_verified_dogfood_summary(self) -> None:
+        from scripts.catalog_audit import audit_catalog
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            write_skill(root, "alpha-skill", description="Use when alpha unique routing behavior is required.")
+            write_registries(root, ["alpha-skill"])
+            write_plugin_package(root)
+            write_routing_file(
+                root,
+                "alpha-skill",
+                [
+                    {"prompt": "alpha one", "expected_skill": "alpha-skill", "type": "positive"},
+                    {"prompt": "alpha two", "expected_skill": "alpha-skill", "type": "positive"},
+                    {"prompt": "alpha three", "expected_skill": "alpha-skill", "type": "positive"},
+                    {"prompt": "alpha owner one", "expected_skill": "alpha-skill", "type": "negative", "owner": "alpha-skill"},
+                    {"prompt": "alpha owner two", "expected_skill": "alpha-skill", "type": "negative", "owner": "alpha-skill"},
+                    {"prompt": "alpha collision", "expected_skill": "alpha-skill", "type": "collision"},
+                ],
+            )
+            evidence = root / "evidence" / "run"
+            evidence.mkdir(parents=True)
+            for kind in ("tier-b", "behavior", "pressure"):
+                self.write_runner_status(evidence, kind, ["alpha-skill"])
+            (evidence / "dogfood-summary.json").write_text(
+                json.dumps({"label": "Verified", "exit_code": 0, "workflow": "alpha-skill"}),
+                encoding="utf-8",
+            )
+
+            report = audit_catalog(root)
+
+            self.assertEqual([], report["promotion_ready"])
+            self.assertEqual([], report["verified_dogfood_summaries"])
 
     def test_catalog_history_detects_repeated_manual_work_and_retry_violations(self) -> None:
         from scripts.catalog_audit import audit_session_history

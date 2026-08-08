@@ -75,4 +75,4 @@ Record service topology, commands used, process IDs only when necessary and sani
 - [ ] Mutating next steps are BLOCKED pending approval.
 
 ## References and scripts
-Use the bundled [scripts/environment_doctor.py](scripts/environment_doctor.py) for static topology and project-native read-only process/port commands for live snapshots.
+Read [references/commands.md](references/commands.md) for read-only Windows and Linux snapshots. Use the bundled [scripts/environment_doctor.py](scripts/environment_doctor.py) for static topology and project-native read-only process/port commands for live snapshots.

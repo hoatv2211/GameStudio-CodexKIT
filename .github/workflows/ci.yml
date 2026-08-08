@@ -6,28 +6,38 @@ name: deterministic-gates
 
 jobs:
   verify:
-    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
         with:
           python-version: '3.11'
-          cache: pip
       - name: Install dependencies
         run: python -m pip install PyYAML jsonschema
       - name: Compile
         run: python -m compileall -q scripts tests
       - name: Unit tests
         run: python -B -m unittest discover -s tests -p "test_*.py"
+      - name: Skill resource synchronization
+        run: python -B scripts/sync_skill_resources.py . --check
       - name: Structural and provenance gate
         run: python -B scripts/validate.py .
       - name: Tier-A routing gate
         run: python -B scripts/route_eval.py .
       - name: Secret gate
         run: python -B scripts/secret_scan.py .
+      - name: External catalog collision gate
+        run: python -B scripts/external_collision_eval.py .
       - name: Network and package policy
         run: python -B scripts/policy_check.py .
+      - name: Repository doctor
+        run: python -B scripts/doctor.py --check --root .
       - name: Originality and provenance overlap
+        shell: bash
         run: |
           status=0
           python -B scripts/check_originality.py . || status=$?

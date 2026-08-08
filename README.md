@@ -70,11 +70,13 @@ Repository governance tools such as the catalog validator, originality audit, an
 
 - 33 canonical skills, including one root entry router and 32 routed domain skills.
 - 192/192 deterministic Tier-A routing cases.
+- 10 external-catalog collision cases against six generic neighboring skills.
+- 10 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
 - Four installable packs and six thin personas.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
 - Seventeen standalone domain skills with 19 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
 - Optional generated exports for manual Hermes, Codex, pack, and project-local `.agents/` workflows.
-- Structural, provenance, secret, network/package, safety, behavior, pressure, and lifecycle gates.
+- Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
 - All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
@@ -109,7 +111,14 @@ python -B scripts/validate.py .
 python -B scripts/route_eval.py .
 python -B scripts/secret_scan.py .
 python -B scripts/policy_check.py .
+python -B scripts/external_collision_eval.py .
 python -B scripts/doctor.py --check --root .
+```
+
+To compare against an installed Codex/Hermes catalog as well as the checked-in generic snapshot, repeat `--external-root` for each catalog root:
+
+```bash
+python -B scripts/external_collision_eval.py . --external-root /path/to/installed/skills
 ```
 
 Install the managed pre-commit hook:
@@ -180,7 +189,19 @@ python -B scripts/pressure_eval.py . --export evidence/local/pressure-cases.json
 python -B scripts/pressure_eval.py . --status evidence/local/pressure-status.json
 python -B scripts/tier_b_eval.py . --export evidence/local/tier-b-cases.jsonl
 python -B scripts/tier_b_eval.py . --status evidence/local/tier-b-status.json
+python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl
+python -B scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json
 ```
+
+The dogfood pack contains ten real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, and project intake. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
+
+After a governed runner produces the complete result array, validate it and generate promotion-eligible summaries:
+
+```bash
+python -B scripts/dogfood_eval.py . --results evidence/local/dogfood-results.json --summary-dir evidence/local/dogfood
+```
+
+The evaluator rejects bare PASS labels, missing artifact paths, non-zero exits, missing reviewers or project snapshots, unauthorized writes, and incomplete case coverage. See `docs/authoring/dogfood.md` for the runner contract.
 
 When a runner, live project, engine, service, or permission is unavailable, the correct verdict is `BLOCKED`, never a fabricated PASS.
 
@@ -206,7 +227,7 @@ personas/     thin role lenses and routes
 workflows/    human-facing entry workflows
 scripts/      deterministic helpers, generators, and gates
 tests/        unittest regression and governance coverage
-evals/        routing, behavior, pressure, and schema fixtures
+evals/        routing, external-catalog, dogfood, behavior, pressure, and schema fixtures
 adapters/     ignored local Hermes and Codex export output
 evidence/     reusable example; local runner output is ignored
 .archive/     ignored local planning history, never distributed or active policy

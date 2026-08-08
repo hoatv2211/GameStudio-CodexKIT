@@ -27,6 +27,10 @@ jobs:
         run: python scripts/tier_b_eval.py . --export tier-b-cases.jsonl
       - name: Record explicit BLOCKED status without Hermes judge
         run: python scripts/tier_b_eval.py . --status tier-b-status.json
+      - name: Export real-project dogfood cases
+        run: python scripts/dogfood_eval.py . --export dogfood-cases.jsonl
+      - name: Record dogfood BLOCKED status without a live project runner
+        run: python scripts/dogfood_eval.py . --status dogfood-status.json
       - uses: actions/upload-artifact@v4
         with:
           name: governed-runner-preflight
@@ -37,6 +41,8 @@ jobs:
             pressure-status.json
             tier-b-cases.jsonl
             tier-b-status.json
+            dogfood-cases.jsonl
+            dogfood-status.json
 
   tier-b-contract:
     if: ${{ false }} # Enable only on a self-hosted runner with an authenticated Hermes model judge.

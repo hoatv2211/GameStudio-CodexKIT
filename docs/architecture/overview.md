@@ -15,7 +15,7 @@ The catalog contains 33 canonical skills: 13 in `studio-core`, 6 in `unity`, 9 i
 3. Workflow orchestration: design, planning, debugging, review, mutation, and handoff skills.
 4. Domain execution: Unity, C++, Lua, MMORPG, database, production, release, and liveops skills plus pure helpers.
 5. Evidence adapters: reports, verdicts, summaries, manifests, and handoffs.
-6. Quality: validator, routing, behavior, pressure, safety, secret, policy, and originality gates.
+6. Quality: validator, routing, external-catalog collision, behavior, pressure, safety, secret, policy, and originality gates.
 7. Governance: provenance, maturity, lifecycle promotion, session history, and observed KPIs.
 
 ## Skill and persona boundary
@@ -24,7 +24,7 @@ Skills own reusable procedures and output contracts. Personas are thin lenses th
 
 ## Evaluation model
 
-Tier-A routing is deterministic and covers 32 routed skills with 192 cases. Behavior, pressure, and Tier-B are runner-backed: export is deterministic, but PASS requires a governed result artifact with exact case coverage and evidence fields.
+Tier-A routing is deterministic and covers 32 routed skills with 192 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, and real-project dogfood are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
 
 Without a model runner or live project, the correct status is `BLOCKED`. Keyword routing proves catalog separation, not real model behavior.
 

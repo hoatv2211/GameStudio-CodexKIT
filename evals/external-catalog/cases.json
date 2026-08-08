@@ -1,0 +1,22 @@
+{
+  "external_skills": [
+    {"id": "generic-unity-builder", "description": "Use when building Unity scenes, prefabs, scripts, and player projects."},
+    {"id": "generic-database-admin", "description": "Use when managing database tables, queries, schemas, backups, and indexes."},
+    {"id": "generic-crash-debugger", "description": "Use when debugging crashes, logs, stack traces, symbols, and runtime failures."},
+    {"id": "generic-port-doctor", "description": "Use when diagnosing ports, processes, services, and local environment issues."},
+    {"id": "generic-release-manager", "description": "Use when preparing a software release, checklist, approvals, rollback, and monitoring."},
+    {"id": "generic-code-reviewer", "description": "Use when reviewing code changes, tests, regressions, and maintainability."}
+  ],
+  "cases": [
+    {"id": "unity-batchmode-vs-generic-build", "prompt": "Verify Unity batchmode BuildPipeline Editor.log and generated player artifact with exit code.", "expected_skill": "unity-batchmode-build-verification", "must_beat": ["generic-unity-builder", "generic-code-reviewer"]},
+    {"id": "mysql-migration-vs-generic-database", "prompt": "Plan a MySQL 3307 schema migration with recognized schema version, mysqldump backup, restore and human approval.", "expected_skill": "game-database-migration-safety", "must_beat": ["generic-database-admin"]},
+    {"id": "cpp-crash-vs-generic-debugger", "prompt": "Triage a C++ game server access violation dump with symbols, stack trace and exact build identity.", "expected_skill": "cpp-server-crash-triage", "must_beat": ["generic-crash-debugger"]},
+    {"id": "ports-vs-generic-environment", "prompt": "Diagnose MU local service port 3306 conflict using process listeners, configured ports and cross-project isolation.", "expected_skill": "multi-service-local-environment-doctor", "must_beat": ["generic-port-doctor"]},
+    {"id": "offline-bootstrap-vs-generic-unity", "prompt": "Trace Unity client offline gameplay bootstrap, disconnected login fallback, local mock data and scene startup.", "expected_skill": "unity-client-offline-debugging", "must_beat": ["generic-unity-builder"]},
+    {"id": "lua-contract-vs-generic-code", "prompt": "Audit Lua client/server RPC packet contract opcode request-response fields types ordering and source authority.", "expected_skill": "lua-client-server-contract-audit", "must_beat": ["generic-code-reviewer"]},
+    {"id": "release-rc-vs-generic-release", "prompt": "Make a release candidate go/no-go decision from required artifacts, test summary, compatibility, monitoring, rollback and approvals.", "expected_skill": "release-candidate-preflight", "must_beat": ["generic-release-manager"]},
+    {"id": "incident-vs-generic-release", "prompt": "Contain a live production game outage with incident commander, service mitigation, player communications, recovery timeline and postmortem.", "expected_skill": "liveops-incident-response", "must_beat": ["generic-release-manager", "generic-port-doctor"]},
+    {"id": "safe-mutation-vs-generic-code", "prompt": "Change scoped project files using dry-run, exact scope, backup manifest, apply verification and tested restore path.", "expected_skill": "safe-project-mutation", "must_beat": ["generic-code-reviewer"]},
+    {"id": "telemetry-contract-vs-generic-code", "prompt": "Review game telemetry event IDs, required properties, types, versions, privacy classes and backward compatibility.", "expected_skill": "telemetry-event-contract-review", "must_beat": ["generic-code-reviewer"]}
+  ]
+}

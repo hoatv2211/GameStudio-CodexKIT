@@ -80,7 +80,8 @@ python -B scripts/validate.py .
 python -B scripts/route_eval.py .
 python -B scripts/secret_scan.py .
 python -B scripts/policy_check.py .
+python -B scripts/external_collision_eval.py .
 python -B scripts/doctor.py --check --root .
 ```
 
-Run `scripts/check_originality.py` and `scripts/catalog_audit.py` as lifecycle audits. Their honest result may be `BLOCKED` when upstream content, governed runners, session history, or verified dogfood evidence is unavailable.
+Run `scripts/check_originality.py` and `scripts/catalog_audit.py` as lifecycle audits. Run `scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl` and `scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json` when preparing a governed dogfood session. Their honest result may be `BLOCKED` when upstream content, governed runners, session history, live projects, or verified dogfood evidence is unavailable.
