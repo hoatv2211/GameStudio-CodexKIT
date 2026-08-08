@@ -1,0 +1,8 @@
+{"target_skill":"skill-authoring-and-audit","cases":[
+  {"prompt":"Author or audit a skill with update-first preflight trigger overlap provenance and session history gaps","expected_skill":"skill-authoring-and-audit","type":"positive"},
+  {"prompt":"Audit catalog skill trùng trigger stale và thiếu eval rồi update-first","expected_skill":"skill-authoring-and-audit","type":"positive"},
+  {"prompt":"create governed SKILL.md schema routing cases provenance lifecycle audit","expected_skill":"skill-authoring-and-audit","type":"positive"},
+  {"prompt":"split product feature into file ownership work packets","expected_skill":"feature-to-work-packets","type":"negative","owner":"feature-to-work-packets"},
+  {"prompt":"phân rã approved spec thành work packet exact files ownership dependencies checks","expected_skill":"feature-to-work-packets","type":"negative","owner":"feature-to-work-packets"},
+  {"prompt":"audit stale duplicate skill descriptions and routing collisions before authoring new skill","expected_skill":"skill-authoring-and-audit","type":"collision"}
+]}

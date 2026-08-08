@@ -1,0 +1,8 @@
+{"target_skill":"bug-hunt-swarm","cases":[
+  {"prompt":"Hunt an unknown bug using read-only lanes ranked hypotheses repro packets and suspect paths","expected_skill":"bug-hunt-swarm","type":"positive"},
+  {"prompt":"Bug hunt swarm điều tra lỗi khó với hypotheses và repro độc lập","expected_skill":"bug-hunt-swarm","type":"positive"},
+  {"prompt":"parallel failure investigation read-only ranked root cause suspects","expected_skill":"bug-hunt-swarm","type":"positive"},
+  {"prompt":"review a known patch for code architecture tests and verdict","expected_skill":"review-swarm","type":"negative","owner":"review-swarm"},
+  {"prompt":"review changes đã có bằng lane read-only","expected_skill":"review-swarm","type":"negative","owner":"review-swarm"},
+  {"prompt":"investigate unknown runtime failure with hypothesis lanes not patch review","expected_skill":"bug-hunt-swarm","type":"collision"}
+]}

@@ -1,0 +1,8 @@
+{"target_skill":"feature-to-work-packets","cases":[
+  {"prompt":"Decompose an approved feature spec into work packets with objective files ownership dependencies and checks","expected_skill":"feature-to-work-packets","type":"positive"},
+  {"prompt":"Tách approved spec thành implementation work packet exact files ownership dependencies checks","expected_skill":"feature-to-work-packets","type":"positive"},
+  {"prompt":"implementation packets exact write scopes sequencing test commands","expected_skill":"feature-to-work-packets","type":"positive"},
+  {"prompt":"write feature purpose inputs outputs edge cases tuning playtest specification","expected_skill":"game-feature-to-spec","type":"negative","owner":"game-feature-to-spec"},
+  {"prompt":"hoàn thiện feature spec trước khi chia task","expected_skill":"game-feature-to-spec","type":"negative","owner":"game-feature-to-spec"},
+  {"prompt":"decompose approved spec into disjoint file ownership work packets","expected_skill":"feature-to-work-packets","type":"collision"}
+]}

@@ -1,0 +1,8 @@
+{"target_skill":"lua-client-server-contract-audit","cases":[
+  {"prompt":"Audit Lua client server packet RPC opcode fields and contract mismatches","expected_skill":"lua-client-server-contract-audit","type":"positive"},
+  {"prompt":"Kiểm tra Lua packet client server lệch field opcode RPC","expected_skill":"lua-client-server-contract-audit","type":"positive"},
+  {"prompt":"Lua protocol contract request response field mismatch MMORPG","expected_skill":"lua-client-server-contract-audit","type":"positive"},
+  {"prompt":"audit localization source authority translation keys generated copies","expected_skill":"localization-authority-audit","type":"negative","owner":"localization-authority-audit"},
+  {"prompt":"kiểm tra text dịch và mojibake","expected_skill":"localization-authority-audit","type":"negative","owner":"localization-authority-audit"},
+  {"prompt":"Lua client server packet field mismatch not translated text authority","expected_skill":"lua-client-server-contract-audit","type":"collision"}
+]}

@@ -1,0 +1,45 @@
+name: behavioral-and-tier-b-preflight
+
+'on':
+  workflow_dispatch:
+  schedule:
+    - cron: '17 19 * * *'
+
+jobs:
+  offline-evals:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: python -m pip install PyYAML jsonschema
+      - name: Export behavioral cases
+        run: python scripts/behavior_eval.py . --export behavior-cases.jsonl
+      - name: Record behavioral BLOCKED status without governed runner results
+        run: python scripts/behavior_eval.py . --status behavior-status.json
+      - name: Export pressure cases
+        run: python scripts/pressure_eval.py . --export pressure-cases.jsonl
+      - name: Record pressure BLOCKED status without governed runner results
+        run: python scripts/pressure_eval.py . --status pressure-status.json
+      - name: Export Tier-B cases
+        run: python scripts/tier_b_eval.py . --export tier-b-cases.jsonl
+      - name: Record explicit BLOCKED status without Hermes judge
+        run: python scripts/tier_b_eval.py . --status tier-b-status.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: governed-runner-preflight
+          path: |
+            behavior-cases.jsonl
+            behavior-status.json
+            pressure-cases.jsonl
+            pressure-status.json
+            tier-b-cases.jsonl
+            tier-b-status.json
+
+  tier-b-contract:
+    if: ${{ false }} # Enable only on a self-hosted runner with an authenticated Hermes model judge.
+    runs-on: self-hosted
+    steps:
+      - run: echo 'BLOCKED until a governed Hermes judge command is configured; never fabricate PASS.'

@@ -1,0 +1,8 @@
+{"target_skill":"playtest-evidence","cases":[
+  {"prompt":"Structure playtest sessions with participants scenarios observations issues and evidence-backed conclusions","expected_skill":"playtest-evidence","type":"positive"},
+  {"prompt":"tổng hợp playtest evidence, không biến ý kiến người chơi thành metric observed giả","expected_skill":"playtest-evidence","type":"positive"},
+  {"prompt":"capture game usability playtest notes with severity reproduction and limitations","expected_skill":"playtest-evidence","type":"positive"},
+  {"prompt":"brainstorm three mechanic options before choosing a design","expected_skill":"game-feature-brainstorming","type":"negative","owner":"game-feature-brainstorming"},
+  {"prompt":"verify a release build command exit code and artifact","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"playtest observations need structured evidence and explicit unverified conclusions","expected_skill":"playtest-evidence","type":"collision"}
+]}

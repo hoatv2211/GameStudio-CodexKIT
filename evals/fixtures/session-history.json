@@ -1,0 +1,13 @@
+{
+  "entries": [
+    {
+      "timestamp": "2026-08-08T12:00:00+07:00",
+      "workflow": "studio-project-intake",
+      "outcome": "PASS",
+      "evidence_label": "Verified",
+      "retry_count": 0,
+      "unauthorized_write": false,
+      "manual_pattern": ""
+    }
+  ]
+}

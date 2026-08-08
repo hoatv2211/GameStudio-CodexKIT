@@ -1,0 +1,38 @@
+{
+  "name": "game-studio-codex-kit",
+  "version": "1.2.0",
+  "description": "Evidence-first game studio workflows for Codex across Unity, C++, Lua, MMORPG services, release, and live operations.",
+  "author": {
+    "name": "hoatv2211",
+    "url": "https://github.com/hoatv2211"
+  },
+  "homepage": "https://github.com/hoatv2211/GameStudio-CodexKIT",
+  "repository": "https://github.com/hoatv2211/GameStudio-CodexKIT",
+  "license": "MIT",
+  "keywords": [
+    "codex",
+    "game-development",
+    "unity",
+    "mmorpg",
+    "liveops"
+  ],
+  "skills": "./skills/",
+  "interface": {
+    "displayName": "GameStudio Codex Kit",
+    "shortDescription": "Evidence-first workflows for game studios",
+    "longDescription": "Plan, build, review, ship, and operate game projects with routed Codex skills for Unity, C++, Lua, MMORPG services, release, and live operations.",
+    "developerName": "HoaTV Studio",
+    "category": "Productivity",
+    "capabilities": [
+      "Read",
+      "Write"
+    ],
+    "websiteURL": "https://github.com/hoatv2211/GameStudio-CodexKIT",
+    "defaultPrompt": [
+      "Audit this game project and route the work to the right studio skills.",
+      "Turn this game feature idea into a verified implementation plan.",
+      "Review this release candidate using evidence-first studio gates."
+    ],
+    "brandColor": "#C4552D"
+  }
+}

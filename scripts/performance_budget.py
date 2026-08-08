@@ -1,0 +1,27 @@
+from __future__ import annotations
+
+from typing import Any
+
+
+def evaluate_performance_budget(
+    observed: dict[str, float], budgets: dict[str, float]
+) -> dict[str, Any]:
+    metrics: dict[str, dict[str, float]] = {}
+    violations: list[str] = []
+    missing: list[str] = []
+    for name, budget in sorted(budgets.items()):
+        value = observed.get(name)
+        if not isinstance(value, (int, float)):
+            missing.append(name)
+            continue
+        delta = round(float(value) - float(budget), 6)
+        metrics[name] = {"observed": float(value), "budget": float(budget), "delta": delta}
+        if delta > 0:
+            violations.append(name)
+    status = "BLOCKED" if missing else "FAIL" if violations else "PASS"
+    return {
+        "status": status,
+        "metrics": metrics,
+        "violations": violations,
+        "missing_metrics": missing,
+    }

@@ -1,0 +1,20 @@
+from __future__ import annotations
+
+from typing import Any
+
+
+def review_authority(actions: list[dict[str, Any]]) -> dict[str, Any]:
+    findings: list[dict[str, Any]] = []
+    for action in actions:
+        name = str(action.get("name", "<unnamed>"))
+        if action.get("sensitive") is True and action.get("authoritative_side") == "client":
+            findings.append({"action": name, "kind": "client-authority"})
+        if action.get("sensitive") is True and action.get("server_validation") is not True:
+            findings.append({"action": name, "kind": "missing-server-validation"})
+        if action.get("sensitive") is True and action.get("rate_limit") is not True:
+            findings.append({"action": name, "kind": "missing-rate-limit"})
+    return {
+        "status": "FAIL" if findings else "PASS",
+        "findings": findings,
+        "limitations": ["Static contract review only; no exploit traffic was sent."],
+    }

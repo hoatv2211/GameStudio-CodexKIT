@@ -1,0 +1,8 @@
+{"target_skill":"game-feature-to-spec","cases":[
+  {"prompt":"Turn the selected gameplay option into a specification with inputs outputs edge cases tuning levers and playtest criteria","expected_skill":"game-feature-to-spec","type":"positive"},
+  {"prompt":"Viết feature spec gồm purpose I/O edge cases tuning và playtest","expected_skill":"game-feature-to-spec","type":"positive"},
+  {"prompt":"approved mechanic design spec acceptance criteria state transitions","expected_skill":"game-feature-to-spec","type":"positive"},
+  {"prompt":"brainstorm several gameplay options and trade-offs","expected_skill":"game-feature-brainstorming","type":"negative","owner":"game-feature-brainstorming"},
+  {"prompt":"khám phá phương án mechanic chưa chốt","expected_skill":"game-feature-brainstorming","type":"negative","owner":"game-feature-brainstorming"},
+  {"prompt":"convert the chosen brainstorm option into a testable feature specification","expected_skill":"game-feature-to-spec","type":"collision"}
+]}

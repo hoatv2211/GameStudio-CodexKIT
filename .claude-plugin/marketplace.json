@@ -1,0 +1,21 @@
+{
+  "name": "gamestudio-codex-kit",
+  "interface": {
+    "displayName": "GameStudio Codex Kit"
+  },
+  "plugins": [
+    {
+      "name": "game-studio-codex-kit",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/hoatv2211/GameStudio-CodexKIT.git",
+        "ref": "main"
+      },
+      "policy": {
+        "installation": "AVAILABLE",
+        "authentication": "ON_INSTALL"
+      },
+      "category": "Productivity"
+    }
+  ]
+}

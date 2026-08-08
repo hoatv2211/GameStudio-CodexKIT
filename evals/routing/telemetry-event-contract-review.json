@@ -1,0 +1,8 @@
+{"target_skill":"telemetry-event-contract-review","cases":[
+  {"prompt":"Review telemetry event IDs required properties types versioning privacy and producer consumer compatibility","expected_skill":"telemetry-event-contract-review","type":"positive"},
+  {"prompt":"audit analytics event contract bị duplicate id và property type drift","expected_skill":"telemetry-event-contract-review","type":"positive"},
+  {"prompt":"game telemetry schema review must flag removed required property and PII risk","expected_skill":"telemetry-event-contract-review","type":"positive"},
+  {"prompt":"define product telemetry expectations inside a new feature specification","expected_skill":"game-feature-to-spec","type":"negative","owner":"game-feature-to-spec"},
+  {"prompt":"compare Lua packet fields and opcodes","expected_skill":"lua-client-server-contract-audit","type":"negative","owner":"lua-client-server-contract-audit"},
+  {"prompt":"analytics event duration changed from integer to string across producers","expected_skill":"telemetry-event-contract-review","type":"collision"}
+]}

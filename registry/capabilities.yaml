@@ -1,0 +1,233 @@
+schema_version: 1
+capabilities:
+  - id: using-game-studio-skills
+    path: skills/using-game-studio-skills/SKILL.md
+    type: root
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: []
+  - id: studio-project-intake
+    path: skills/studio-project-intake/SKILL.md
+    type: router
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [using-game-studio-skills]
+  - id: safe-project-mutation
+    path: skills/safe-project-mutation/SKILL.md
+    type: safety
+    packs: [studio-core]
+    risk_level: medium
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: build-and-runtime-verification
+    path: skills/build-and-runtime-verification/SKILL.md
+    type: gate
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: evidence-first-debugging
+    path: skills/evidence-first-debugging/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: low
+    maturity: experimental
+    depends_on: [studio-project-intake, build-and-runtime-verification]
+  - id: studio-handoff
+    path: skills/studio-handoff/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: low
+    maturity: experimental
+    depends_on: [build-and-runtime-verification]
+  - id: review-swarm
+    path: skills/review-swarm/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: bug-hunt-swarm
+    path: skills/bug-hunt-swarm/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: game-feature-brainstorming
+    path: skills/game-feature-brainstorming/SKILL.md
+    type: interactive
+    packs: [studio-core]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: game-feature-to-spec
+    path: skills/game-feature-to-spec/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: low
+    maturity: experimental
+    depends_on: [game-feature-brainstorming]
+  - id: feature-to-work-packets
+    path: skills/feature-to-work-packets/SKILL.md
+    type: workflow
+    packs: [studio-core]
+    risk_level: low
+    maturity: experimental
+    depends_on: [game-feature-to-spec]
+  - id: skill-authoring-and-audit
+    path: skills/skill-authoring-and-audit/SKILL.md
+    type: governance
+    packs: [studio-core]
+    risk_level: low
+    maturity: experimental
+    depends_on: [review-swarm]
+  - id: studio-project-scaffold
+    path: skills/studio-project-scaffold/SKILL.md
+    type: workflow
+    packs: [studio-core, unity, cpp-lua-mmorpg]
+    risk_level: medium
+    maturity: experimental
+    depends_on: [studio-project-intake, safe-project-mutation]
+  - id: multi-service-local-environment-doctor
+    path: skills/multi-service-local-environment-doctor/SKILL.md
+    type: diagnostic
+    packs: [cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [studio-project-intake]
+  - id: game-database-migration-safety
+    path: skills/game-database-migration-safety/SKILL.md
+    type: safety
+    packs: [cpp-lua-mmorpg]
+    risk_level: high
+    maturity: experimental
+    depends_on: [multi-service-local-environment-doctor, safe-project-mutation]
+  - id: unity-client-offline-debugging
+    path: skills/unity-client-offline-debugging/SKILL.md
+    type: diagnostic
+    packs: [unity]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: unity-ui-rendering-debugging
+    path: skills/unity-ui-rendering-debugging/SKILL.md
+    type: diagnostic
+    packs: [unity]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: lua-client-server-contract-audit
+    path: skills/lua-client-server-contract-audit/SKILL.md
+    type: diagnostic
+    packs: [cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: localization-authority-audit
+    path: skills/localization-authority-audit/SKILL.md
+    type: diagnostic
+    packs: [unity, cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: unity-asset-guid-meta-audit
+    path: skills/unity-asset-guid-meta-audit/SKILL.md
+    type: diagnostic
+    packs: [unity]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: unity-batchmode-build-verification
+    path: skills/unity-batchmode-build-verification/SKILL.md
+    type: gate
+    packs: [unity]
+    risk_level: low
+    maturity: experimental
+    depends_on: [build-and-runtime-verification]
+  - id: cpp-server-crash-triage
+    path: skills/cpp-server-crash-triage/SKILL.md
+    type: diagnostic
+    packs: [cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [evidence-first-debugging]
+  - id: mmorpg-packet-protocol-review
+    path: skills/mmorpg-packet-protocol-review/SKILL.md
+    type: diagnostic
+    packs: [cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [lua-client-server-contract-audit]
+  - id: network-authority-and-exploit-review
+    path: skills/network-authority-and-exploit-review/SKILL.md
+    type: diagnostic
+    packs: [cpp-lua-mmorpg]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [review-swarm]
+  - id: save-data-schema-migration
+    path: skills/save-data-schema-migration/SKILL.md
+    type: safety
+    packs: [cpp-lua-mmorpg]
+    risk_level: high
+    maturity: experimental
+    depends_on: [safe-project-mutation]
+  - id: playtest-evidence
+    path: skills/playtest-evidence/SKILL.md
+    type: workflow
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [game-feature-to-spec]
+  - id: game-performance-budget
+    path: skills/game-performance-budget/SKILL.md
+    type: gate
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [build-and-runtime-verification]
+  - id: economy-source-sink-model
+    path: skills/economy-source-sink-model/SKILL.md
+    type: workflow
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [game-feature-to-spec]
+  - id: balance-data-change-review
+    path: skills/balance-data-change-review/SKILL.md
+    type: workflow
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [review-swarm]
+  - id: release-candidate-preflight
+    path: skills/release-candidate-preflight/SKILL.md
+    type: gate
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [build-and-runtime-verification, studio-handoff]
+  - id: store-submission-checklist
+    path: skills/store-submission-checklist/SKILL.md
+    type: gate
+    packs: [production-design-liveops]
+    risk_level: high
+    maturity: experimental
+    depends_on: [release-candidate-preflight]
+  - id: liveops-incident-response
+    path: skills/liveops-incident-response/SKILL.md
+    type: workflow
+    packs: [production-design-liveops]
+    risk_level: high
+    maturity: experimental
+    depends_on: [studio-handoff]
+  - id: telemetry-event-contract-review
+    path: skills/telemetry-event-contract-review/SKILL.md
+    type: diagnostic
+    packs: [production-design-liveops]
+    risk_level: read-only
+    maturity: experimental
+    depends_on: [game-feature-to-spec]

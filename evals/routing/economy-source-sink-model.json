@@ -1,0 +1,8 @@
+{"target_skill":"economy-source-sink-model","cases":[
+  {"prompt":"Model virtual currency sources sinks net flow inflation risk and tuning levers","expected_skill":"economy-source-sink-model","type":"positive"},
+  {"prompt":"phân tích gold source sink theo ngày, net flow dương gây inflation","expected_skill":"economy-source-sink-model","type":"positive"},
+  {"prompt":"game economy faucet drain model needs period assumptions and scenario limits","expected_skill":"economy-source-sink-model","type":"positive"},
+  {"prompt":"review a numeric balance data diff against approved bounds","expected_skill":"balance-data-change-review","type":"negative","owner":"balance-data-change-review"},
+  {"prompt":"brainstorm progression mechanic options and tradeoffs","expected_skill":"game-feature-brainstorming","type":"negative","owner":"game-feature-brainstorming"},
+  {"prompt":"currency source sink net flow exceeds sustainable economy target","expected_skill":"economy-source-sink-model","type":"collision"}
+]}

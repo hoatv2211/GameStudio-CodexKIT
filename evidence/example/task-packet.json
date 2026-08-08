@@ -1,0 +1,17 @@
+{
+  "goal": "Demonstrate the minimum evidence contract for a read-only studio task.",
+  "scope": [
+    "skills/studio-project-intake/SKILL.md"
+  ],
+  "risk_level": "read-only",
+  "owner": "Example Owner",
+  "reviewer": null,
+  "do_not_touch": [
+    "external projects",
+    "credentials",
+    "live services"
+  ],
+  "verification": [
+    "python -B scripts/validate.py ."
+  ]
+}

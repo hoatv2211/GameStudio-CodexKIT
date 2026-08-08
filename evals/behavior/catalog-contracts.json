@@ -1,0 +1,116 @@
+{
+  "cases": [
+    {
+      "id": "review-swarm-read-only",
+      "prompt": "Review this known change set through independent lanes without editing any file.",
+      "target_skill": "review-swarm",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["findings", "integrator_verdict"]
+    },
+    {
+      "id": "bug-hunt-read-only",
+      "prompt": "Investigate an unknown intermittent crash with ranked read-only hypotheses.",
+      "target_skill": "bug-hunt-swarm",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["ranked_hypotheses", "next_experiment"]
+    },
+    {
+      "id": "mutation-restorable",
+      "prompt": "Prepare a report-only mutation plan with manifest and restore information.",
+      "target_skill": "safe-project-mutation",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["manifest", "restore"]
+    },
+    {
+      "id": "handoff-labels",
+      "prompt": "Create a durable handoff that separates verified facts, snapshots, hypotheses, and blockers.",
+      "target_skill": "studio-handoff",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["verified", "snapshot", "unverified", "blocked", "reactivation_prompt"]
+    },
+    {
+      "id": "unity-guid-meta-read-only",
+      "prompt": "Audit Unity asset GUID and meta integrity without modifying assets or generated metadata.",
+      "target_skill": "unity-asset-guid-meta-audit",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["duplicate_guids", "missing_meta", "broken_references", "limitations"]
+    },
+    {
+      "id": "unity-build-bound-evidence",
+      "prompt": "Verify Unity batchmode output with command, exit code, editor log, build identity, and expected artifact.",
+      "target_skill": "unity-batchmode-build-verification",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["command", "exit_code", "build_id", "artifact", "verdict"]
+    },
+    {
+      "id": "cpp-crash-stable-signature",
+      "prompt": "Normalize a C++ server crash into a build-bound signature and ranked hypotheses without service control.",
+      "target_skill": "cpp-server-crash-triage",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["build_id", "signature", "frames", "hypotheses"]
+    },
+    {
+      "id": "packet-protocol-contract",
+      "prompt": "Review packet IDs, versions, direction, fields, authority, and request response pairing from static contracts.",
+      "target_skill": "mmorpg-packet-protocol-review",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["packet_findings", "compatibility", "authority", "limitations"]
+    },
+    {
+      "id": "playtest-observation-separation",
+      "prompt": "Structure playtest evidence while separating observation, quote, interpretation, and proposed fix.",
+      "target_skill": "playtest-evidence",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["scenarios", "observations", "issues", "limitations"]
+    },
+    {
+      "id": "performance-budget-measurements",
+      "prompt": "Compare captured percentile and peak metrics with explicit target hardware budgets.",
+      "target_skill": "game-performance-budget",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["hardware", "targets", "observations", "deltas", "verdict"]
+    },
+    {
+      "id": "economy-source-sink-assumptions",
+      "prompt": "Model currency sources and sinks by player segment while separating observed inputs from forecasts.",
+      "target_skill": "economy-source-sink-model",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["currencies", "segments", "flows", "risks", "assumptions"]
+    },
+    {
+      "id": "balance-data-bounds",
+      "prompt": "Review balance table deltas against declared bounds, dependencies, evidence, and rollback data.",
+      "target_skill": "balance-data-change-review",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["source", "deltas", "bound_violations", "rollback", "verdict"]
+    },
+    {
+      "id": "release-candidate-build-binding",
+      "prompt": "Assess a release candidate using build-bound test, security, performance, migration, and rollback evidence.",
+      "target_skill": "release-candidate-preflight",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["candidate", "gates", "known_risks", "rollback", "recommendation"]
+    },
+    {
+      "id": "telemetry-compatible-contract",
+      "prompt": "Review telemetry schema compatibility, producers, consumers, privacy, and rollout without transmitting events.",
+      "target_skill": "telemetry-event-contract-review",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schemas", "compatibility", "consumers", "privacy", "verdict"]
+    }
+  ]
+}

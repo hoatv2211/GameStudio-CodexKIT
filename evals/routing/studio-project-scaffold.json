@@ -1,0 +1,8 @@
+{"target_skill":"studio-project-scaffold","cases":[
+  {"prompt":"Bootstrap a new game repository with AGENTS .agents CONTRACT HANDOFF and subsystem registry","expected_skill":"studio-project-scaffold","type":"positive"},
+  {"prompt":"Scaffold project game mới sinh governance .agents và HANDOFF","expected_skill":"studio-project-scaffold","type":"positive"},
+  {"prompt":"detect Unity Lua server DB subsystems and create AGENTS HANDOFF CONTRACT registry project scaffold","expected_skill":"studio-project-scaffold","type":"positive"},
+  {"prompt":"collect project goal scope risk engine version intake only","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"tạo task packet chưa sinh file governance","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"after intake bootstrap governance files AGENTS CONTRACT HANDOFF for the new repo","expected_skill":"studio-project-scaffold","type":"collision"}
+]}

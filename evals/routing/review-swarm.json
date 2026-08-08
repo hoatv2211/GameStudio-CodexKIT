@@ -1,0 +1,8 @@
+{"target_skill":"review-swarm","cases":[
+  {"prompt":"Run parallel read-only review lanes for code architecture tests and an integrator verdict","expected_skill":"review-swarm","type":"positive"},
+  {"prompt":"Review swarm nhiều lane chỉ đọc rồi integrator tổng hợp verdict","expected_skill":"review-swarm","type":"positive"},
+  {"prompt":"read-only reviewers inspect independent concerns without writing files","expected_skill":"review-swarm","type":"positive"},
+  {"prompt":"hunt an unknown bug with ranked hypotheses repro packets and suspects","expected_skill":"bug-hunt-swarm","type":"negative","owner":"bug-hunt-swarm"},
+  {"prompt":"đi săn bug chưa rõ nguyên nhân bằng hypothesis lanes","expected_skill":"bug-hunt-swarm","type":"negative","owner":"bug-hunt-swarm"},
+  {"prompt":"review proposed changes in read-only lanes for a final integrator verdict","expected_skill":"review-swarm","type":"collision"}
+]}

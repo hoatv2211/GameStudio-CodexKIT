@@ -1,0 +1,26 @@
+schema_version: 1
+personas:
+  - id: game-designer
+    path: personas/game-designer/PERSONA.md
+    description: Player experience, mechanic clarity, tuning, and playtest lens.
+    routes: [game-feature-brainstorming, game-feature-to-spec, localization-authority-audit, playtest-evidence, economy-source-sink-model, balance-data-change-review]
+  - id: gameplay-engineer
+    path: personas/gameplay-engineer/PERSONA.md
+    description: Runtime behavior, state, contracts, implementation risk, and verification lens.
+    routes: [studio-project-intake, evidence-first-debugging, build-and-runtime-verification, lua-client-server-contract-audit, unity-client-offline-debugging, unity-batchmode-build-verification, game-performance-budget, telemetry-event-contract-review]
+  - id: technical-artist
+    path: personas/technical-artist/PERSONA.md
+    description: Asset, rendering, UI, content pipeline, and generated-source lens.
+    routes: [unity-ui-rendering-debugging, localization-authority-audit, unity-asset-guid-meta-audit, unity-batchmode-build-verification, game-performance-budget]
+  - id: network-backend
+    path: personas/network-backend/PERSONA.md
+    description: Services, ports, database isolation, protocol authority, and exploit-risk lens.
+    routes: [multi-service-local-environment-doctor, game-database-migration-safety, lua-client-server-contract-audit, cpp-server-crash-triage, mmorpg-packet-protocol-review, network-authority-and-exploit-review, save-data-schema-migration, telemetry-event-contract-review, review-swarm]
+  - id: qa-lead
+    path: personas/qa-lead/PERSONA.md
+    description: Reproduction, coverage, negative invariants, evidence, and release-risk lens.
+    routes: [build-and-runtime-verification, review-swarm, bug-hunt-swarm, playtest-evidence, game-performance-budget, release-candidate-preflight, store-submission-checklist, studio-handoff]
+  - id: producer
+    path: personas/producer/PERSONA.md
+    description: Scope, ownership, dependency, risk, milestone, and handoff lens.
+    routes: [studio-project-intake, feature-to-work-packets, studio-handoff, game-feature-brainstorming, release-candidate-preflight, store-submission-checklist, liveops-incident-response]

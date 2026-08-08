@@ -1,0 +1,49 @@
+schema_version: 1
+bundled:
+  balance-data-change-review:
+    - balance_review.py
+  cpp-server-crash-triage:
+    - crash_triage.py
+  economy-source-sink-model:
+    - economy_model.py
+  game-database-migration-safety:
+    - db_safety.py
+  game-performance-budget:
+    - performance_budget.py
+  localization-authority-audit:
+    - localization_audit.py
+  lua-client-server-contract-audit:
+    - lua_contract_audit.py
+  mmorpg-packet-protocol-review:
+    - lua_contract_audit.py
+    - protocol_review.py
+  multi-service-local-environment-doctor:
+    - environment_doctor.py
+  network-authority-and-exploit-review:
+    - authority_review.py
+  release-candidate-preflight:
+    - release_preflight.py
+  safe-project-mutation:
+    - safe_mutation.py
+  save-data-schema-migration:
+    - save_migration.py
+  studio-project-scaffold:
+    - project_scaffold.py
+    - safe_mutation.py
+  telemetry-event-contract-review:
+    - telemetry_contract.py
+  unity-asset-guid-meta-audit:
+    - unity_guid_audit.py
+  unity-batchmode-build-verification:
+    - build_evidence.py
+repository_only:
+  review-swarm:
+    - secret_scan.py
+    - validate.py
+  skill-authoring-and-audit:
+    - catalog_audit.py
+    - check_originality.py
+    - route_eval.py
+    - validate.py
+  using-game-studio-skills:
+    - doctor.py

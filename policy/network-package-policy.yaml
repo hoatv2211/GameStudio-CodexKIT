@@ -1,0 +1,3 @@
+allowed_third_party_modules:
+  - yaml
+network_access: {}

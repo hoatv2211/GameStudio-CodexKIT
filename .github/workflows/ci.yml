@@ -1,0 +1,40 @@
+name: deterministic-gates
+
+'on':
+  push:
+  pull_request:
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          cache: pip
+      - name: Install dependencies
+        run: python -m pip install PyYAML jsonschema
+      - name: Compile
+        run: python -m compileall -q scripts tests
+      - name: Unit tests
+        run: python -B -m unittest discover -s tests -p "test_*.py"
+      - name: Structural and provenance gate
+        run: python -B scripts/validate.py .
+      - name: Tier-A routing gate
+        run: python -B scripts/route_eval.py .
+      - name: Secret gate
+        run: python -B scripts/secret_scan.py .
+      - name: Network and package policy
+        run: python -B scripts/policy_check.py .
+      - name: Originality and provenance overlap
+        run: |
+          status=0
+          python -B scripts/check_originality.py . || status=$?
+          if [ "$status" -eq 2 ]; then
+            echo 'Originality content scan is BLOCKED until upstream snapshots are restored.'
+            exit 0
+          fi
+          exit "$status"
+      - name: Diff whitespace
+        run: git diff --check

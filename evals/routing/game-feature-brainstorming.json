@@ -1,0 +1,8 @@
+{"target_skill":"game-feature-brainstorming","cases":[
+  {"prompt":"Explore three gameplay mechanic options with player experience trade-offs before implementation","expected_skill":"game-feature-brainstorming","type":"positive"},
+  {"prompt":"Brainstorm feature game với 2-3 phương án và trade-off","expected_skill":"game-feature-brainstorming","type":"positive"},
+  {"prompt":"ideate two or three combat mechanic options with player experience trade-offs before code","expected_skill":"game-feature-brainstorming","type":"positive"},
+  {"prompt":"write approved feature specification inputs outputs edge cases tuning levers playtest criteria","expected_skill":"game-feature-to-spec","type":"negative","owner":"game-feature-to-spec"},
+  {"prompt":"chuyển ý tưởng đã chọn thành spec đầy đủ","expected_skill":"game-feature-to-spec","type":"negative","owner":"game-feature-to-spec"},
+  {"prompt":"explore three mechanic options and trade-offs before choosing one for a spec","expected_skill":"game-feature-brainstorming","type":"collision"}
+]}

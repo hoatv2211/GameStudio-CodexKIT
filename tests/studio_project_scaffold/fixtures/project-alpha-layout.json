@@ -1,0 +1,7 @@
+{
+  "label": "Snapshot",
+  "source_path": "fixtures/project-alpha",
+  "commit": "fixture-project-alpha-v1",
+  "observed_governance": ["AGENTS.md", "HANDOFF.md", ".agents/CONTRACT.md", ".agents/skills/"],
+  "patterns": ["single-writer ownership", "session lock", "Verified/Snapshot/Unverified handoff", "source-to-generated boundaries"]
+}

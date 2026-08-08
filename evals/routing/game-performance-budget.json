@@ -1,0 +1,8 @@
+{"target_skill":"game-performance-budget","cases":[
+  {"prompt":"Compare measured frame time memory CPU and GPU values against an explicit game performance budget","expected_skill":"game-performance-budget","type":"positive"},
+  {"prompt":"đánh giá frame_ms_p95 vượt budget và ghi baseline hardware scenario","expected_skill":"game-performance-budget","type":"positive"},
+  {"prompt":"performance regression budget review with observed target delta and limitations","expected_skill":"game-performance-budget","type":"positive"},
+  {"prompt":"run a build and verify its output artifact exists","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"Unity UI item invisible due to clipping and draw order","expected_skill":"unity-ui-rendering-debugging","type":"negative","owner":"unity-ui-rendering-debugging"},
+  {"prompt":"profile result exceeds frame and memory budget on named hardware","expected_skill":"game-performance-budget","type":"collision"}
+]}

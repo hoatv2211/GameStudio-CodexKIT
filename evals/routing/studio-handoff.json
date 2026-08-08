@@ -1,0 +1,8 @@
+{"target_skill":"studio-handoff","cases":[
+  {"prompt":"Write a handoff with branch goal scope files commands verified snapshot unverified next actions and reactivation prompt","expected_skill":"studio-handoff","type":"positive"},
+  {"prompt":"Tạo HANDOFF ghi files touched tests Verified Snapshot Unverified blockers next actions","expected_skill":"studio-handoff","type":"positive"},
+  {"prompt":"session handoff repository branch decisions failures next 5 actions reactivation","expected_skill":"studio-handoff","type":"positive"},
+  {"prompt":"split approved feature into objective files ownership dependencies checks work packets","expected_skill":"feature-to-work-packets","type":"negative","owner":"feature-to-work-packets"},
+  {"prompt":"phân rã spec thành work packet theo file owner","expected_skill":"feature-to-work-packets","type":"negative","owner":"feature-to-work-packets"},
+  {"prompt":"handoff current session files tests verified results and next actions not new work packets","expected_skill":"studio-handoff","type":"collision"}
+]}

@@ -1,0 +1,8 @@
+{"target_skill":"store-submission-checklist","cases":[
+  {"prompt":"Prepare a game store submission checklist for metadata assets privacy compliance and human publish approval","expected_skill":"store-submission-checklist","type":"positive"},
+  {"prompt":"chuẩn bị Steam App Store Google Play submission nhưng không auto publish","expected_skill":"store-submission-checklist","type":"positive"},
+  {"prompt":"store review package needs screenshots age rating declarations and explicit submit approval","expected_skill":"store-submission-checklist","type":"positive"},
+  {"prompt":"verify internal release candidate tests builds and rollback","expected_skill":"release-candidate-preflight","type":"negative","owner":"release-candidate-preflight"},
+  {"prompt":"respond to a live production incident and coordinate recovery","expected_skill":"liveops-incident-response","type":"negative","owner":"liveops-incident-response"},
+  {"prompt":"release is ready internally, now validate storefront assets compliance and publish gate","expected_skill":"store-submission-checklist","type":"collision"}
+]}

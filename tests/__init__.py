@@ -1,0 +1,1 @@
+"""GameStudio-CodexKIT test suite."""

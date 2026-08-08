@@ -1,0 +1,7 @@
+{
+  "label": "Snapshot",
+  "source_path": "fixtures/project-beta",
+  "commit": "fixture-project-beta-v1",
+  "observed_governance": ["AGENTS.md", "PROJECT_STRUCTURE.md", "RUN_GUIDE.md", ".agents/skills/"],
+  "patterns": ["Lua copy synchronization", "binary and vendor no-touch", "nested ignore hygiene", "multi-service port map"]
+}

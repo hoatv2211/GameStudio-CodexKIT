@@ -1,0 +1,8 @@
+{"target_skill":"build-and-runtime-verification","cases":[
+  {"prompt":"Verify build and runtime commands with exit code artifact path and verdict","expected_skill":"build-and-runtime-verification","type":"positive"},
+  {"prompt":"Chạy build test runtime ghi command exit code artifact và verdict","expected_skill":"build-and-runtime-verification","type":"positive"},
+  {"prompt":"build verification executable command output PASS evidence","expected_skill":"build-and-runtime-verification","type":"positive"},
+  {"prompt":"reproduce bug rank hypotheses instrument fix regression proof","expected_skill":"evidence-first-debugging","type":"negative","owner":"evidence-first-debugging"},
+  {"prompt":"debug crash bằng repro và giả thuyết có bằng chứng","expected_skill":"evidence-first-debugging","type":"negative","owner":"evidence-first-debugging"},
+  {"prompt":"after the fix run build runtime command and record exit code evidence","expected_skill":"build-and-runtime-verification","type":"collision"}
+]}

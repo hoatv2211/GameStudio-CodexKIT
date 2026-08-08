@@ -1,0 +1,8 @@
+{"target_skill":"safe-project-mutation","cases":[
+  {"prompt":"Plan a dry-run file mutation with backup manifest apply verify restore rollback","expected_skill":"safe-project-mutation","type":"positive"},
+  {"prompt":"Cần sửa file an toàn report-only rồi backup manifest và restore","expected_skill":"safe-project-mutation","type":"positive"},
+  {"prompt":"change project files safely dry run backup manifest apply rollback","expected_skill":"safe-project-mutation","type":"positive"},
+  {"prompt":"collect project goal scope engine version intake packet","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"xác định risk tier và do-not-touch trước công việc","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"mutate scoped files after intake using dry-run backup manifest restore","expected_skill":"safe-project-mutation","type":"collision"}
+]}

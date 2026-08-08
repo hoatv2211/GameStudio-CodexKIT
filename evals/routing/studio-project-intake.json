@@ -1,0 +1,8 @@
+{"target_skill":"studio-project-intake","cases":[
+  {"prompt":"Create a project intake task packet with goal scope risk engine version and do-not-touch paths","expected_skill":"studio-project-intake","type":"positive"},
+  {"prompt":"Thu thập mục tiêu phạm vi risk tier phiên bản engine và vùng không được sửa","expected_skill":"studio-project-intake","type":"positive"},
+  {"prompt":"intake project Unity goal scope constraints owner do-not-touch trước khi làm","expected_skill":"studio-project-intake","type":"positive"},
+  {"prompt":"run build runtime command capture exit code artifact verdict","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"verify build compile test launch runtime command exit code artifact verdict","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"before debugging collect project goal scope engine version intake","expected_skill":"studio-project-intake","type":"collision"}
+]}

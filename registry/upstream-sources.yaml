@@ -1,0 +1,68 @@
+schema_version: 1
+observed_at: 2026-08-08
+restore_root: .research/repos
+sources:
+  - id: addyosmani-agent-skills
+    remote: https://github.com/addyosmani/agent-skills.git
+    commit: d2478bf0c73a6357df39a3ed6aff16acaa218843
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/addyosmani__agent-skills
+    snapshot_clean: true
+    provenance_use: Pattern reference for evidence-first-debugging evaluation fixtures; no undeclared copied text.
+  - id: affaan-m-ecc
+    remote: https://github.com/affaan-m/ECC.git
+    commit: 9aac8585ab887d9c51252730240b25d9cca180da
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/affaan-m__ECC
+    snapshot_clean: true
+    provenance_use: Governance and hook-policy research only; no copied skill workflow.
+  - id: deanpeters-product-manager-skills
+    remote: https://github.com/deanpeters/Product-Manager-Skills.git
+    commit: 99710188c134acf590a02c0e4ee1f431e60004cf
+    license: CC-BY-NC-SA-4.0
+    license_path: LICENSE
+    restore_path: .research/repos/deanpeters__Product-Manager-Skills
+    snapshot_clean: true
+    provenance_use: Pattern-only reference for game-feature-to-spec; copied content is prohibited.
+  - id: dimillian-skills
+    remote: https://github.com/Dimillian/Skills.git
+    commit: 05ba982bfeb0d77d3c97d4542b0ee15034d05f84
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/Dimillian__Skills
+    snapshot_clean: true
+    provenance_use: Declared source for review-swarm, bug-hunt-swarm, and skill-authoring-and-audit.
+  - id: k-dense-ai-scientific-agent-skills
+    remote: https://github.com/K-Dense-AI/scientific-agent-skills.git
+    commit: d767725c6e93b1d02a220e6be75b261a9833ede5
+    license: MIT
+    license_path: LICENSE.md
+    restore_path: .research/repos/K-Dense-AI__scientific-agent-skills
+    snapshot_clean: true
+    provenance_use: Catalog layout and registry research only; no undeclared copied text.
+  - id: mattpocock-skills
+    remote: https://github.com/mattpocock/skills.git
+    commit: 84fdeffd12f2ee307994d1eb6feb48173b6e0502
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/mattpocock__skills
+    snapshot_clean: true
+    provenance_use: Declared source for evidence-first-debugging and studio-handoff.
+  - id: msitarzewski-agency-agents
+    remote: https://github.com/msitarzewski/agency-agents.git
+    commit: ebe9c99acb5c96f9468de368d8bead775387d1a7
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/msitarzewski__agency-agents
+    snapshot_clean: true
+    provenance_use: Persona-lens research only; workflows were written independently.
+  - id: vibeforge1111-keep-codex-fast
+    remote: https://github.com/vibeforge1111/keep-codex-fast.git
+    commit: e74c4496aca550c54228740fcc144372308da529
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/vibeforge1111__keep-codex-fast
+    snapshot_clean: true
+    provenance_use: Declared source for safe-project-mutation.

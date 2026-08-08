@@ -1,0 +1,8 @@
+{"target_skill":"mmorpg-packet-protocol-review","cases":[
+  {"prompt":"Review MMORPG packet protocol versions opcodes direction typed fields and response pairing","expected_skill":"mmorpg-packet-protocol-review","type":"positive"},
+  {"prompt":"audit packet client server bị lệch opcode version và field order","expected_skill":"mmorpg-packet-protocol-review","type":"positive"},
+  {"prompt":"check protocol manifest drift across C++ server and Unity client","expected_skill":"mmorpg-packet-protocol-review","type":"positive"},
+  {"prompt":"compare normalized Lua RPC copies only and identify generated source authority","expected_skill":"lua-client-server-contract-audit","type":"negative","owner":"lua-client-server-contract-audit"},
+  {"prompt":"review whether the server validates sensitive client actions","expected_skill":"network-authority-and-exploit-review","type":"negative","owner":"network-authority-and-exploit-review"},
+  {"prompt":"packet opcode and typed field drift with request response mismatch","expected_skill":"mmorpg-packet-protocol-review","type":"collision"}
+]}

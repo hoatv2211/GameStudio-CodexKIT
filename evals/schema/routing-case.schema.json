@@ -1,0 +1,31 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/routing-case.schema.json",
+  "title": "GameStudio-CodexKIT Tier-A routing cases",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["target_skill", "cases"],
+  "properties": {
+    "target_skill": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "cases": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["prompt", "expected_skill", "type"],
+        "properties": {
+          "prompt": {"type": "string", "minLength": 1},
+          "expected_skill": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "type": {"enum": ["positive", "negative", "collision"]},
+          "owner": {"type": "string", "pattern": "^[a-z0-9-]+$"}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"type": {"const": "negative"}}},
+            "then": {"required": ["owner"]}
+          }
+        ]
+      }
+    }
+  }
+}

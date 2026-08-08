@@ -1,0 +1,8 @@
+{"target_skill":"unity-asset-guid-meta-audit","cases":[
+  {"prompt":"Audit Unity Assets for duplicate GUIDs, missing .meta files, and stale prefab references","expected_skill":"unity-asset-guid-meta-audit","type":"positive"},
+  {"prompt":"kiểm tra GUID meta Unity bị trùng và asset reference bị mất","expected_skill":"unity-asset-guid-meta-audit","type":"positive"},
+  {"prompt":"scene import lỗi vì missing meta, audit asset GUID read-only","expected_skill":"unity-asset-guid-meta-audit","type":"positive"},
+  {"prompt":"UI NGUI item tồn tại nhưng bị sai depth và clipping","expected_skill":"unity-ui-rendering-debugging","type":"negative","owner":"unity-ui-rendering-debugging"},
+  {"prompt":"Unity client không vào được offline scene do bootstrap login","expected_skill":"unity-client-offline-debugging","type":"negative","owner":"unity-client-offline-debugging"},
+  {"prompt":"Unity prefab reference mất vì GUID meta drift, chưa được sửa asset","expected_skill":"unity-asset-guid-meta-audit","type":"collision"}
+]}

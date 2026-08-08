@@ -1,0 +1,8 @@
+{"target_skill":"save-data-schema-migration","cases":[
+  {"prompt":"Plan a versioned player save migration with fixture proof rollback and unknown-version gate","expected_skill":"save-data-schema-migration","type":"positive"},
+  {"prompt":"migrate save schema v1 sang v2, giữ rollback và không đụng save thật","expected_skill":"save-data-schema-migration","type":"positive"},
+  {"prompt":"player save compatibility migration needs recognized chain and backup evidence","expected_skill":"save-data-schema-migration","type":"positive"},
+  {"prompt":"apply a MySQL game database schema migration on port 3307","expected_skill":"game-database-migration-safety","type":"negative","owner":"game-database-migration-safety"},
+  {"prompt":"change ordinary project files with manifest and restore","expected_skill":"safe-project-mutation","type":"negative","owner":"safe-project-mutation"},
+  {"prompt":"unknown player save version must block migration and preserve rollback snapshot","expected_skill":"save-data-schema-migration","type":"collision"}
+]}

@@ -1,0 +1,8 @@
+{"target_skill":"balance-data-change-review","cases":[
+  {"prompt":"Review tuning and balance data changes against declared bounds and gameplay risks","expected_skill":"balance-data-change-review","type":"positive"},
+  {"prompt":"review sword damage và potion price diff vượt max delta đã duyệt","expected_skill":"balance-data-change-review","type":"positive"},
+  {"prompt":"check balance table before after deltas ownership and rollback evidence","expected_skill":"balance-data-change-review","type":"positive"},
+  {"prompt":"model long-term currency sources sinks and inflation","expected_skill":"economy-source-sink-model","type":"negative","owner":"economy-source-sink-model"},
+  {"prompt":"review an arbitrary code patch through architecture and test lanes","expected_skill":"review-swarm","type":"negative","owner":"review-swarm"},
+  {"prompt":"numeric tuning diff exceeds approved bounds and needs gameplay risk review","expected_skill":"balance-data-change-review","type":"collision"}
+]}

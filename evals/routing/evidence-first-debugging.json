@@ -1,0 +1,8 @@
+{"target_skill":"evidence-first-debugging","cases":[
+  {"prompt":"Reproduce the bug rank hypotheses instrument the system fix and prove regression","expected_skill":"evidence-first-debugging","type":"positive"},
+  {"prompt":"Debug lỗi bằng repro giả thuyết log instrument fix và regression proof","expected_skill":"evidence-first-debugging","type":"positive"},
+  {"prompt":"crash triage evidence hypotheses instrumentation root cause regression test","expected_skill":"evidence-first-debugging","type":"positive"},
+  {"prompt":"run build command capture exit code artifact verdict","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"verify runtime executable only","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
+  {"prompt":"single investigator debug with reproduction instrumentation minimal fix and regression proof before build verification","expected_skill":"evidence-first-debugging","type":"collision"}
+]}
