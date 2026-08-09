@@ -4,6 +4,21 @@ Native Codex plugin and Hermes Agent skill kit for game studios working across U
 
 The kit is workflow-first, evidence-first, and safety-first. Canonical skills contain executable procedures; personas provide thin review lenses; registries drive routing, packs, and generated adapters.
 
+## Field evidence
+
+The kit's operating model has been dogfooded on a live Unity 6 WebGL MMORPG client (Lua gameplay layer, workbench localization pipeline, ~10 concurrent agent-session lock namespaces). A skill-routed Codex run reviewed and fixed mixed-Chinese player-facing text with evidence labels on every claim:
+
+| Gate | Result |
+|---|---|
+| Config-gap batch (32 IDs) | PASS with hash-verified artifacts; catalog `25,609 → 25,641` |
+| Sanitizer RED test | GREEN (`10/10` focused, `34/34` combined) |
+| Overflow string | Fixed via signature-preserving `%.0s`, edit-mode verified (`150 px` in `160 px`) |
+| Strict doctor | `BLOCKED` (stale artifact outside approved lock scope) — not faked |
+| Play-mode re-audit | `BLOCKED` (editor instance lost mid-run) — not faked |
+| Collateral damage | None: 0 foreign locks touched, 0 commits, unrelated work preserved |
+
+Two runs, three real fixes shipped through owning pipelines, two blockers left standing because the evidence to close them did not exist. The full narrative, including real runner failures and the human approval gate, is in [`docs/case-studies/unity-mmorpg-global-localization.md`](docs/case-studies/unity-mmorpg-global-localization.md).
+
 ## Quick install
 
 Choose one primary runtime. A repository clone is not required for normal use.
@@ -77,7 +92,7 @@ Repository governance tools such as the catalog validator, originality audit, an
 - Seventeen standalone domain skills with 19 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
 - Optional generated exports for manual Hermes, Codex, pack, and project-local `.agents/` workflows.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
-- All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist.
+- All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist. First dogfood evidence: the localization case study above.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
 
