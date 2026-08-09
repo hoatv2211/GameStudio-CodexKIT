@@ -1,0 +1,78 @@
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GameStudio-CodexKIT — Agent skills for operating live game projects">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#0b1220"/>
+      <stop offset="55%" stop-color="#0e1729"/>
+      <stop offset="100%" stop-color="#101c33"/>
+    </linearGradient>
+    <linearGradient id="title" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#e8f6ff"/>
+      <stop offset="60%" stop-color="#7dd3fc"/>
+      <stop offset="100%" stop-color="#2dd4bf"/>
+    </linearGradient>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0H0V44" fill="none" stroke="#1e293b" stroke-width="1" opacity="0.5"/>
+    </pattern>
+  </defs>
+
+  <!-- background -->
+  <rect width="1280" height="320" fill="url(#bg)"/>
+  <rect width="1280" height="320" fill="url(#grid)"/>
+
+  <!-- routing lines (left, subtle) -->
+  <g stroke="#164e63" stroke-width="2" fill="none" opacity="0.8">
+    <path d="M60 160 H150 Q170 160 178 143 L196 108 Q204 92 224 92 H300"/>
+    <path d="M60 160 H150 Q170 160 178 177 L196 212 Q204 228 224 228 H300"/>
+    <path d="M60 160 H300" opacity="0.6"/>
+  </g>
+  <circle cx="60" cy="160" r="7" fill="#22d3ee"/>
+  <circle cx="300" cy="92" r="5" fill="#34d399"/>
+  <circle cx="300" cy="160" r="5" fill="#34d399"/>
+  <circle cx="300" cy="228" r="5" fill="#fbbf24"/>
+
+  <!-- title -->
+  <text x="640" y="128" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="1" fill="url(#title)">GameStudio-CodexKIT</text>
+  <text x="640" y="172" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#94a3b8">Agent skills for operating live game projects — not writing new ones</text>
+
+  <!-- stat chips -->
+  <g font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="15" font-weight="600">
+    <g>
+      <rect x="330" y="206" width="170" height="34" rx="17" fill="#0f2536" stroke="#155e75" stroke-width="1.5"/>
+      <text x="415" y="228" text-anchor="middle" fill="#67e8f9">33 skills + router</text>
+    </g>
+    <g>
+      <rect x="516" y="206" width="190" height="34" rx="17" fill="#0f2b22" stroke="#166534" stroke-width="1.5"/>
+      <text x="611" y="228" text-anchor="middle" fill="#6ee7b7">routing eval 192/192</text>
+    </g>
+    <g>
+      <rect x="722" y="206" width="228" height="34" rx="17" fill="#2b2410" stroke="#854d0e" stroke-width="1.5"/>
+      <text x="836" y="228" text-anchor="middle" fill="#fcd34d">BLOCKED &#8800; PASS, ever</text>
+    </g>
+  </g>
+
+  <!-- evidence terminal card (right) -->
+  <g transform="translate(985,54)">
+    <rect x="0" y="0" width="240" height="130" rx="10" fill="#0a0f1a" stroke="#1e3a5f" stroke-width="1.5"/>
+    <circle cx="18" cy="18" r="4" fill="#ef4444"/>
+    <circle cx="34" cy="18" r="4" fill="#f59e0b"/>
+    <circle cx="50" cy="18" r="4" fill="#22c55e"/>
+    <g font-family="Consolas, Menlo, monospace" font-size="13">
+      <text x="16" y="48" fill="#4ade80">&#10003; Verified  exit 0</text>
+      <text x="16" y="72" fill="#4ade80">&#10003; Verified  32/32 IDs</text>
+      <text x="16" y="96" fill="#fbbf24">&#9888; BLOCKED  not faked</text>
+      <text x="16" y="118" fill="#64748b">$ evidence &gt; confidence</text>
+    </g>
+  </g>
+
+  <!-- pixel controller (bottom left corner accent) -->
+  <g transform="translate(40,246)" fill="#1d4ed8" opacity="0.9">
+    <rect x="0" y="8" width="52" height="24" rx="8" fill="#173764"/>
+    <rect x="8" y="14" width="12" height="4" fill="#38bdf8"/>
+    <rect x="12" y="10" width="4" height="12" fill="#38bdf8"/>
+    <circle cx="38" cy="14" r="2.6" fill="#f472b6"/>
+    <circle cx="44" cy="20" r="2.6" fill="#34d399"/>
+  </g>
+
+  <!-- bottom accent line -->
+  <rect x="0" y="314" width="1280" height="6" fill="#0891b2" opacity="0.7"/>
+</svg>

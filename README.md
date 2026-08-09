@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="docs/assets/banner.svg" alt="GameStudio-CodexKIT — Agent skills for operating live game projects" width="100%">
+</p>
+
 # GameStudio-CodexKIT
 
 **Agent skills for operating live game projects — not writing new ones.**
