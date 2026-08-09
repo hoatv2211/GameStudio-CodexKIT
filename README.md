@@ -1,10 +1,33 @@
 # GameStudio-CodexKIT
 
-Native Codex plugin and Hermes Agent skill kit for game studios working across Unity, C++, Lua, MMORPG services, databases, production, release, and live operations.
+**Agent skills for operating live game projects — not writing new ones.**
 
-The kit is workflow-first, evidence-first, and safety-first. Canonical skills contain executable procedures; personas provide thin review lenses; registries drive routing, packs, and generated adapters.
+[![Skills](https://img.shields.io/badge/skills-33%20%2B%20router-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-192%2F192-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-106%20cases-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
-## Field evidence
+Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
+
+```text
+you:    "Client can't enter the game offline. Fix it."
+
+agent:  → routes to unity-client-offline-debugging (read-only diagnosis first)
+        → traces offline flag through bootstrap, finds stale generated Lua mirror
+        → Verified: regenerated via owner pipeline, exit 0, artifact path attached
+        → BLOCKED: play-mode re-audit — editor lost mid-run. Not faked as PASS.
+```
+
+That last line is the point. Every claim carries one of four labels — `Verified` / `Snapshot` / `Unverified` / `BLOCKED` — and **an unavailable runner is BLOCKED, never PASS**. Your agent's report becomes trustworthy precisely because it is allowed to say "I couldn't verify this."
+
+## Why this kit is different
+
+| | Typical skill packs | GameStudio-CodexKIT |
+|---|---|---|
+| Target | Writing new code | Operating a live, fragile, revenue-bearing game |
+| Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
+| Mutations | Agent edits freely | 4-tier risk gates: read-only → low → medium (reviewer+backup) → high (human approval + dry-run) |
+| Multi-agent | Single session | One-writer-per-file ownership, lock protocol, handoff contracts, review/bug-hunt swarms |
+| Routing quality | Hope the description matches | 192 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
+
+## Field evidence — real run on a live MMORPG
 
 The kit's operating model has been dogfooded on a live Unity 6 WebGL MMORPG client (Lua gameplay layer, workbench localization pipeline, ~10 concurrent agent-session lock namespaces). A skill-routed Codex run reviewed and fixed mixed-Chinese player-facing text with evidence labels on every claim:
 
@@ -29,6 +52,24 @@ Choose one primary runtime. A repository clone is not required for normal use.
 | Hermes Agent | `npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y` |
 
 Start a new Codex or Hermes session after installation, then ask for the outcome directly. The root router selects the smallest matching studio workflow.
+
+## What you can ask
+
+No slash commands, no skill names required — describe the problem and the router picks the workflow:
+
+| You say | Routed skill |
+|---|---|
+| "Audit this game project and route the work to the right studio skills" | `studio-project-intake` (start here on any new repo) |
+| "Server crashed, here's the stack trace" | `cpp-server-crash-triage` |
+| "Client can't enter offline mode" | `unity-client-offline-debugging` |
+| "This UI item doesn't render / wrong draw order" | `unity-ui-rendering-debugging` |
+| "I need to change the items table schema" | `game-database-migration-safety` (dry-run gated) |
+| "Is this Lua field actually validated server-side?" | `lua-client-server-contract-audit` |
+| "Players found a dupe exploit, live incident" | `liveops-incident-response` |
+| "Ship-readiness check before the store build" | `release-candidate-preflight` |
+| "Write a handoff so the next session can continue" | `studio-handoff` |
+
+Add "evidence labels mandatory" to any request when you want the strict verification contract enforced end-to-end.
 
 ## Install in Codex
 
