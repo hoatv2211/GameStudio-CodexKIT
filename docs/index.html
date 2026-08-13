@@ -1,0 +1,554 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#08111f">
+  <meta name="description" content="GameStudio-CodexKIT — evidence-first agent skills for operating live Unity, C++, Lua, MMORPG, release, and liveops projects.">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="GameStudio-CodexKIT — Operate live games">
+  <meta property="og:description" content="A routed skill catalog for fragile, shipped, revenue-bearing game projects. Evidence over confidence.">
+  <meta property="og:url" content="https://hoatv2211.github.io/GameStudio-CodexKIT/">
+  <meta property="og:image" content="https://hoatv2211.github.io/GameStudio-CodexKIT/assets/banner.svg">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="canonical" href="https://hoatv2211.github.io/GameStudio-CodexKIT/">
+  <link rel="icon" href="assets/banner.svg" type="image/svg+xml">
+  <title>GameStudio-CodexKIT · Operate live games</title>
+  <style>
+    :root {
+      --bg: #08111f;
+      --bg-deep: #050b14;
+      --surface: #0d1929;
+      --surface-2: #102238;
+      --surface-3: #132b43;
+      --line: rgba(142, 205, 232, .16);
+      --line-strong: rgba(142, 205, 232, .28);
+      --ink: #effaff;
+      --muted: #91a9bb;
+      --faint: #60788c;
+      --cyan: #67e8f9;
+      --mint: #74f2bd;
+      --amber: #ffd27c;
+      --coral: #ff9b87;
+      --violet: #b8a4ff;
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 22px;
+      --max: 1180px;
+      --mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+      --sans: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      --ease: cubic-bezier(.22, 1, .36, 1);
+    }
+
+    *, *::before, *::after { box-sizing: border-box; }
+    html { scroll-behavior: smooth; scroll-padding-top: 82px; }
+    body {
+      margin: 0;
+      color: var(--ink);
+      background:
+        radial-gradient(circle at 78% 3%, rgba(28, 115, 151, .16), transparent 32rem),
+        radial-gradient(circle at 5% 40%, rgba(41, 85, 124, .10), transparent 28rem),
+        var(--bg);
+      font-family: var(--sans);
+      line-height: 1.55;
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: .24;
+      background-image: linear-gradient(rgba(124, 196, 221, .06) 1px, transparent 1px), linear-gradient(90deg, rgba(124, 196, 221, .06) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: linear-gradient(to bottom, black, transparent 70%);
+    }
+    a { color: inherit; text-decoration: none; }
+    button, input { font: inherit; }
+    button { cursor: pointer; }
+    img, svg { display: block; max-width: 100%; }
+    ::selection { color: #031018; background: var(--cyan); }
+    .container { width: min(var(--max), calc(100% - 40px)); margin-inline: auto; }
+    .mono { font-family: var(--mono); }
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 9px;
+      color: var(--cyan);
+      font: 500 11px/1.2 var(--mono);
+      letter-spacing: .13em;
+      text-transform: uppercase;
+    }
+    .eyebrow::before { content: ""; width: 22px; height: 1px; background: currentColor; box-shadow: 0 0 12px currentColor; }
+    .muted { color: var(--muted); }
+    .faint { color: var(--faint); }
+    .skip-link { position: absolute; left: 16px; top: -60px; z-index: 100; padding: 10px 14px; background: var(--cyan); color: #031018; border-radius: 8px; }
+    .skip-link:focus { top: 16px; }
+
+    .site-header {
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      border-bottom: 1px solid rgba(142, 205, 232, .13);
+      background: rgba(8, 17, 31, .84);
+      backdrop-filter: blur(18px);
+    }
+    .nav {
+      min-height: 68px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 20px;
+    }
+    .brand { display: inline-flex; align-items: center; gap: 11px; min-width: max-content; }
+    .brand-mark {
+      width: 30px; height: 30px; display: grid; place-items: center;
+      border: 1px solid rgba(103, 232, 249, .46); border-radius: 9px;
+      color: var(--cyan); background: rgba(103, 232, 249, .08); box-shadow: 0 0 24px rgba(103, 232, 249, .12);
+    }
+    .brand-name { font-size: 14px; font-weight: 650; letter-spacing: -.02em; }
+    .brand-dim { color: var(--muted); font-weight: 450; }
+    .nav-links { display: flex; align-items: center; gap: 25px; color: var(--muted); font-size: 13px; }
+    .nav-links a { transition: color .2s var(--ease); }
+    .nav-links a:hover, .nav-links a:focus-visible { color: var(--ink); }
+    .nav-actions { display: flex; align-items: center; gap: 9px; }
+    .nav-github, .button {
+      display: inline-flex; align-items: center; justify-content: center; gap: 9px; min-height: 40px; padding: 0 15px;
+      border: 1px solid var(--line-strong); border-radius: 9px; color: var(--ink); background: rgba(13, 25, 41, .72);
+      font-size: 13px; font-weight: 600; transition: transform .2s var(--ease), border-color .2s var(--ease), background .2s var(--ease), color .2s var(--ease);
+    }
+    .nav-github:hover, .button:hover { transform: translateY(-2px); border-color: var(--cyan); background: var(--surface-2); }
+    .button-primary { border-color: transparent; color: #031018; background: var(--cyan); box-shadow: 0 0 26px rgba(103, 232, 249, .16); }
+    .button-primary:hover { color: #031018; background: #a2f3ff; border-color: transparent; }
+    .button-quiet { color: var(--muted); }
+    .menu-button { display: none; border: 0; background: transparent; color: var(--ink); padding: 8px; }
+
+    .hero { padding: clamp(76px, 11vw, 142px) 0 70px; position: relative; }
+    .hero-grid { display: grid; grid-template-columns: minmax(0, 1.02fr) minmax(360px, .98fr); align-items: center; gap: clamp(45px, 8vw, 110px); }
+    .hero h1 { max-width: 700px; margin: 20px 0 22px; font-size: clamp(3.2rem, 7.2vw, 6.8rem); line-height: .94; letter-spacing: -.075em; font-weight: 680; overflow-wrap: anywhere; }
+    .hero h1 .accent { color: var(--cyan); text-shadow: 0 0 35px rgba(103, 232, 249, .2); }
+    .hero-lede { max-width: 610px; color: var(--muted); font-size: clamp(1rem, 1.65vw, 1.18rem); line-height: 1.7; }
+    .hero-lede strong { color: var(--ink); font-weight: 550; }
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+    .hero-note { display: flex; align-items: center; gap: 9px; margin-top: 22px; color: var(--faint); font: 11px var(--mono); }
+    .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--mint); box-shadow: 0 0 0 5px rgba(116, 242, 189, .10), 0 0 14px var(--mint); }
+
+    .terminal {
+      min-width: 0;
+      position: relative; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: rgba(7, 15, 27, .78); overflow: hidden;
+      box-shadow: 0 26px 80px rgba(0, 0, 0, .26), 0 0 0 1px rgba(103, 232, 249, .04) inset;
+    }
+    .terminal::after { content: ""; position: absolute; width: 250px; height: 250px; right: -120px; top: -150px; border-radius: 50%; background: rgba(103, 232, 249, .12); filter: blur(35px); pointer-events: none; }
+    .terminal-bar { display: flex; align-items: center; justify-content: space-between; padding: 13px 16px; border-bottom: 1px solid var(--line); background: rgba(13, 25, 41, .65); }
+    .traffic { display: flex; gap: 6px; }
+    .traffic i { width: 8px; height: 8px; border-radius: 50%; background: #eb756a; }
+    .traffic i:nth-child(2) { background: #efbe65; } .traffic i:nth-child(3) { background: #60d394; }
+    .terminal-label { color: var(--faint); font: 10px var(--mono); letter-spacing: .12em; text-transform: uppercase; }
+    .terminal-body { padding: 24px; font: 12px/1.9 var(--mono); }
+    .terminal-line { min-width: 0; display: flex; gap: 11px; }
+    .terminal-line span:last-child { min-width: 0; overflow-wrap: anywhere; }
+    .terminal-line + .terminal-line { margin-top: 8px; }
+    .prompt { color: var(--cyan); user-select: none; }
+    .comment { color: #6e899d; }
+    .green { color: var(--mint); } .yellow { color: var(--amber); } .pink { color: var(--coral); }
+    .route-box { margin: 18px 0 4px 23px; padding: 15px 16px; border: 1px dashed rgba(103, 232, 249, .28); border-radius: 10px; background: rgba(103, 232, 249, .035); }
+    .route-row { display: grid; grid-template-columns: 52px minmax(0, 1fr); gap: 15px; }
+    .route-row span:last-child { overflow-wrap: anywhere; text-align: right; }
+    .route-row + .route-row { margin-top: 8px; }
+    .route-arrow { color: var(--faint); }
+
+    .stat-band { border-block: 1px solid var(--line); background: rgba(13, 25, 41, .40); }
+    .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stat { padding: 23px 18px; border-right: 1px solid var(--line); }
+    .stat:first-child { padding-left: 0; } .stat:last-child { border-right: 0; }
+    .stat-value { display: block; color: var(--ink); font-size: 1.45rem; font-weight: 650; letter-spacing: -.04em; }
+    .stat-value.cyan { color: var(--cyan); } .stat-value.mint { color: var(--mint); } .stat-value.amber { color: var(--amber); }
+    .stat-label { display: block; margin-top: 5px; color: var(--faint); font: 10px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+
+    .section { padding: clamp(74px, 10vw, 130px) 0; }
+    .section-heading { display: flex; align-items: end; justify-content: space-between; gap: 30px; margin-bottom: 34px; }
+    .section-title { max-width: 680px; margin-top: 17px; font-size: clamp(2rem, 4vw, 3.45rem); line-height: 1.01; letter-spacing: -.065em; }
+    .section-intro { max-width: 420px; color: var(--muted); font-size: 14px; line-height: 1.7; }
+
+    .packs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; }
+    .pack-card { min-height: 248px; display: flex; flex-direction: column; padding: 21px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(13, 25, 41, .62); transition: transform .25s var(--ease), border-color .25s var(--ease), background .25s var(--ease); }
+    .pack-card:hover { transform: translateY(-5px); border-color: var(--pack-color, var(--cyan)); background: var(--surface); }
+    .pack-index { display: flex; justify-content: space-between; color: var(--faint); font: 10px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
+    .pack-icon { width: 42px; height: 42px; display: grid; place-items: center; margin: 32px 0 19px; border: 1px solid color-mix(in srgb, var(--pack-color) 45%, transparent); border-radius: 12px; color: var(--pack-color); background: color-mix(in srgb, var(--pack-color) 10%, transparent); font: 16px var(--mono); }
+    .pack-card h3 { font-size: 17px; letter-spacing: -.03em; }
+    .pack-card p { margin-top: 9px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .pack-count { margin-top: auto; padding-top: 18px; color: var(--pack-color); font: 11px var(--mono); }
+
+    .catalog-section { padding-top: 25px; }
+    .catalog-toolbar { position: sticky; top: 68px; z-index: 20; padding: 16px 0 18px; background: linear-gradient(var(--bg) 70%, transparent); }
+    .toolbar-row { display: flex; align-items: center; gap: 12px; }
+    .search { position: relative; flex: 1; }
+    .search-icon { position: absolute; left: 15px; top: 13px; color: var(--faint); pointer-events: none; }
+    #skill-search { width: 100%; height: 46px; padding: 0 42px; border: 1px solid var(--line-strong); border-radius: 10px; outline: 0; color: var(--ink); background: rgba(13, 25, 41, .8); font-size: 13px; transition: border-color .2s var(--ease), background .2s var(--ease); }
+    #skill-search::placeholder { color: var(--faint); } #skill-search:focus { border-color: var(--cyan); background: var(--surface); }
+    .search-kbd { position: absolute; right: 13px; top: 12px; padding: 3px 6px; border: 1px solid var(--line); border-radius: 5px; color: var(--faint); font: 10px var(--mono); }
+    .result-count { min-width: 115px; color: var(--faint); font: 11px var(--mono); text-align: right; }
+    .filters { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 12px; }
+    .filter { min-height: 32px; padding: 0 11px; border: 1px solid var(--line); border-radius: 999px; color: var(--muted); background: rgba(13, 25, 41, .52); font-size: 11px; transition: color .2s, border-color .2s, background .2s; }
+    .filter:hover, .filter[aria-selected="true"] { color: var(--ink); border-color: var(--filter-color, var(--cyan)); background: color-mix(in srgb, var(--filter-color, var(--cyan)) 12%, transparent); }
+    .filter-dot { display: inline-block; width: 6px; height: 6px; margin-right: 6px; border-radius: 50%; background: var(--filter-color, var(--cyan)); }
+    .skills-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+    .skill-card { position: relative; min-height: 214px; display: flex; flex-direction: column; padding: 18px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(13, 25, 41, .54); transition: transform .22s var(--ease), border-color .22s var(--ease), background .22s var(--ease); }
+    .skill-card:hover { transform: translateY(-4px); border-color: var(--card-color, var(--cyan)); background: var(--surface); }
+    .skill-card.is-hidden { display: none; }
+    .skill-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+    .skill-phase { color: var(--card-color, var(--cyan)); font: 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .risk { padding: 4px 7px; border: 1px solid rgba(142, 205, 232, .18); border-radius: 5px; color: var(--faint); font: 9px var(--mono); text-transform: uppercase; }
+    .risk.high { color: var(--coral); border-color: rgba(255, 155, 135, .35); background: rgba(255, 155, 135, .06); }
+    .risk.medium { color: var(--amber); border-color: rgba(255, 210, 124, .35); background: rgba(255, 210, 124, .06); }
+    .skill-card h3 { margin-top: 18px; color: var(--ink); font: 600 15px/1.25 var(--mono); letter-spacing: -.03em; }
+    .skill-card p { margin-top: 9px; color: var(--muted); font-size: 12px; line-height: 1.55; }
+    .skill-foot { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: auto; padding-top: 16px; }
+    .pack-tag { color: var(--faint); font: 10px var(--mono); }
+    .skill-link { color: var(--card-color, var(--cyan)); font: 11px var(--mono); opacity: .85; }
+    .no-results { display: none; padding: 45px 20px; border: 1px dashed var(--line-strong); border-radius: var(--radius-md); color: var(--muted); text-align: center; }
+    .no-results.visible { display: block; }
+
+    .evidence-section { border-block: 1px solid var(--line); background: rgba(5, 11, 20, .42); }
+    .evidence-layout { display: grid; grid-template-columns: .8fr 1.2fr; gap: 72px; align-items: start; }
+    .evidence-copy p { max-width: 430px; margin-top: 19px; color: var(--muted); font-size: 15px; line-height: 1.75; }
+    .ledger { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .ledger-item { min-height: 145px; padding: 19px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(13, 25, 41, .68); }
+    .ledger-item h3 { display: flex; align-items: center; gap: 9px; font: 600 13px var(--mono); }
+    .ledger-item h3::before { content: ""; width: 8px; height: 8px; border-radius: 50%; background: var(--ledger-color, var(--cyan)); box-shadow: 0 0 12px var(--ledger-color, var(--cyan)); }
+    .ledger-item p { margin-top: 15px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .ledger-item.verified { --ledger-color: var(--mint); } .ledger-item.snapshot { --ledger-color: var(--cyan); }
+    .ledger-item.unverified { --ledger-color: var(--amber); } .ledger-item.blocked { --ledger-color: var(--coral); border-color: rgba(255, 155, 135, .28); }
+    .rule { grid-column: 1 / -1; padding: 15px 18px; border: 1px solid rgba(255, 210, 124, .26); border-radius: var(--radius-md); color: var(--amber); background: rgba(255, 210, 124, .06); font: 12px var(--mono); }
+
+    .flow { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: rgba(13, 25, 41, .58); }
+    .flow-step { position: relative; min-height: 198px; padding: 23px; border-right: 1px solid var(--line); }
+    .flow-step:last-child { border-right: 0; }
+    .flow-step::after { content: "→"; position: absolute; right: -10px; top: 25px; z-index: 1; width: 20px; height: 20px; color: var(--cyan); background: var(--surface); font: 15px var(--mono); text-align: center; }
+    .flow-step:last-child::after { display: none; }
+    .flow-number { color: var(--cyan); font: 11px var(--mono); }
+    .flow-step h3 { margin-top: 42px; font-size: 17px; }
+    .flow-step p { margin-top: 9px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+
+    .install-section { padding-bottom: 105px; }
+    .install-panel { min-width: 0; display: grid; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); gap: 32px; align-items: center; padding: clamp(25px, 5vw, 54px); border: 1px solid rgba(103, 232, 249, .3); border-radius: var(--radius-lg); background: linear-gradient(120deg, rgba(13, 49, 67, .72), rgba(13, 25, 41, .72)); box-shadow: 0 0 80px rgba(103, 232, 249, .07); }
+    .install-panel > * { min-width: 0; }
+    .install-panel h2 { margin-top: 15px; font-size: clamp(2rem, 4vw, 3.2rem); line-height: 1; letter-spacing: -.06em; }
+    .install-panel p { margin-top: 14px; color: var(--muted); font-size: 14px; }
+    .commands { min-width: 0; display: grid; gap: 10px; }
+    .command { min-width: 0; display: flex; align-items: center; gap: 10px; min-height: 53px; padding: 7px 8px 7px 15px; border: 1px solid var(--line-strong); border-radius: 10px; background: rgba(5, 11, 20, .6); }
+    .command-label { width: 57px; flex: none; color: var(--cyan); font: 10px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .command code { min-width: 0; flex: 1; overflow-x: auto; color: var(--ink); font: 11px var(--mono); white-space: nowrap; scrollbar-width: none; }
+    .copy-button { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border: 1px solid transparent; border-radius: 7px; color: var(--muted); background: transparent; }
+    .copy-button:hover { border-color: var(--line-strong); color: var(--cyan); background: var(--surface-2); }
+    .copy-button.copied { color: var(--mint); }
+
+    footer { border-top: 1px solid var(--line); padding: 28px 0 42px; color: var(--faint); font-size: 12px; }
+    .footer-inner { display: flex; align-items: center; justify-content: space-between; gap: 20px; }
+    .footer-links { display: flex; gap: 18px; }
+    .footer-links a:hover { color: var(--ink); }
+    .reveal { opacity: 1; transform: none; }
+
+    @media (max-width: 900px) {
+      .hero-grid, .evidence-layout, .install-panel { grid-template-columns: 1fr; }
+      .hero-grid { gap: 48px; }
+      .packs-grid { grid-template-columns: repeat(2, 1fr); }
+      .skills-grid { grid-template-columns: repeat(2, 1fr); }
+      .flow { grid-template-columns: repeat(2, 1fr); }
+      .flow-step:nth-child(2) { border-right: 0; } .flow-step:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
+      .flow-step:nth-child(2)::after, .flow-step:nth-child(4)::after { display: none; }
+      .flow-step:nth-child(1)::after, .flow-step:nth-child(3)::after { display: block; }
+    }
+    @media (max-width: 680px) {
+      .container { width: min(var(--max), calc(100% - 28px)); }
+      .nav-links, .nav-actions .button-quiet, .nav-actions .button-primary { display: none; }
+      .menu-button { display: block; }
+      .nav.is-open { flex-wrap: wrap; padding-block: 13px; }
+      .nav.is-open .nav-links { display: flex; order: 3; width: 100%; flex-direction: column; align-items: flex-start; gap: 14px; padding: 10px 0 4px; }
+      .nav.is-open .nav-actions .button-quiet { display: inline-flex; }
+      .stats { grid-template-columns: repeat(2, 1fr); }
+      .stat, .stat:first-child { padding: 18px 12px; border-bottom: 1px solid var(--line); }
+      .stat:nth-child(2) { border-right: 0; } .stat:nth-child(3), .stat:nth-child(4) { border-bottom: 0; }
+      .hero { padding-top: 68px; }
+      .hero-grid { min-width: 0; }
+      .hero h1 { font-size: clamp(2.85rem, 14vw, 4.8rem); }
+      .hero-lede { max-width: 100%; overflow-wrap: anywhere; }
+      .terminal-body { padding: 20px 16px; }
+      .route-box { margin-left: 0; padding: 13px; }
+      .section-heading { display: block; }
+      .section-intro { margin-top: 17px; }
+      .packs-grid, .skills-grid, .ledger { grid-template-columns: 1fr; }
+      .pack-card { min-height: 210px; }
+      .pack-icon { margin-top: 24px; }
+      .toolbar-row { display: block; } .result-count { margin-top: 9px; text-align: left; }
+      .catalog-toolbar { top: 68px; }
+      .flow { grid-template-columns: 1fr; }
+      .flow-step, .flow-step:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--line); }
+      .flow-step:last-child { border-bottom: 0; }
+      .flow-step::after, .flow-step:nth-child(1)::after, .flow-step:nth-child(3)::after { display: none; }
+      .flow-step h3 { margin-top: 26px; }
+      .footer-inner { align-items: flex-start; flex-direction: column; }
+      .footer-links { flex-wrap: wrap; }
+    }
+    @media (prefers-reduced-motion: reduce) { .reveal { opacity: 1; transform: none; } }
+  </style>
+</head>
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+  <header class="site-header">
+    <div class="container nav" id="nav">
+      <a class="brand" href="#top" aria-label="GameStudio-CodexKIT home">
+        <span class="brand-mark" aria-hidden="true">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none"><path d="M5 8.2 12 4l7 4.2v7.6L12 20l-7-4.2V8.2Z" stroke="currentColor" stroke-width="1.35"/><path d="M12 4v16M5 8.2l7 4.1 7-4.1" stroke="currentColor" stroke-width="1.1" opacity=".55"/></svg>
+        </span>
+        <span class="brand-name">GameStudio<span class="brand-dim">-CodexKIT</span></span>
+      </a>
+      <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#catalog">Catalog</a>
+        <a href="#evidence">Evidence model</a>
+        <a href="#install">Install</a>
+      </nav>
+      <div class="nav-actions">
+        <a class="nav-github button-quiet" href="https://github.com/hoatv2211/GameStudio-CodexKIT" target="_blank" rel="noopener">GitHub <span aria-hidden="true">↗</span></a>
+        <a class="nav-github button-primary" href="#install">Get started</a>
+        <button class="menu-button" type="button" aria-label="Toggle navigation" aria-expanded="false" aria-controls="nav">☰</button>
+      </div>
+    </div>
+  </header>
+
+  <main id="main">
+    <section class="hero" id="top">
+      <div class="container hero-grid">
+        <div class="reveal">
+          <span class="eyebrow">Open-source game operations kit</span>
+          <h1>Keep shipped games <span class="accent">alive.</span></h1>
+          <p class="hero-lede">GameStudio-CodexKIT gives Codex and Hermes an evidence-first operating layer for <strong>fragile, live, revenue-bearing game projects</strong> — from Unity clients and C++ servers to Lua contracts, player saves, release gates, and liveops incidents.</p>
+          <div class="hero-actions">
+            <a class="button button-primary" href="#install">Install the kit <span aria-hidden="true">↓</span></a>
+            <a class="button" href="#catalog">Explore 33 skills <span aria-hidden="true">→</span></a>
+          </div>
+          <p class="hero-note"><span class="pulse" aria-hidden="true"></span>Evidence over confidence · BLOCKED is never PASS</p>
+        </div>
+        <div class="terminal reveal" aria-label="Example routed workflow">
+          <div class="terminal-bar"><span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-label">studio session / route.log</span></div>
+          <div class="terminal-body">
+            <div class="terminal-line"><span class="prompt">you $</span><span>client can't enter the game offline</span></div>
+            <div class="terminal-line comment"><span class="prompt">→</span><span>reading project context + risk boundary</span></div>
+            <div class="route-box">
+              <div class="route-row"><span class="comment">route</span><span class="green">unity-client-offline-debugging</span></div>
+              <div class="route-row"><span class="comment">mode</span><span class="yellow">read-only diagnosis first</span></div>
+              <div class="route-row"><span class="comment">scope</span><span>bootstrap / fallback / scene startup</span></div>
+            </div>
+            <div class="terminal-line"><span class="prompt">✓</span><span class="green">Verified: artifact attached, exit 0</span></div>
+            <div class="terminal-line"><span class="prompt">!</span><span class="pink">BLOCKED: editor unavailable — not faked</span></div>
+            <div class="terminal-line comment"><span class="prompt">$</span><span>evidence &gt; confidence</span></div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="stat-band" aria-label="Project statistics">
+      <div class="container stats">
+        <div class="stat"><span class="stat-value cyan">33</span><span class="stat-label">canonical skills</span></div>
+        <div class="stat"><span class="stat-value mint">4</span><span class="stat-label">installable packs</span></div>
+        <div class="stat"><span class="stat-value">192/192</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat"><span class="stat-value amber">≠ PASS</span><span class="stat-label">BLOCKED contract</span></div>
+      </div>
+    </section>
+
+    <section class="section" id="packs">
+      <div class="container">
+        <div class="section-heading reveal">
+          <div><span class="eyebrow">The catalog</span><h2 class="section-title">One operating model.<br>Four studio lanes.</h2></div>
+          <p class="section-intro">The router starts with the smallest matching workflow. Packs give teams a clean way to install only the surface they need.</p>
+        </div>
+        <div class="packs-grid">
+          <article class="pack-card reveal" style="--pack-color: var(--cyan)"><div class="pack-index"><span>01 / core</span><span>engine-agnostic</span></div><div class="pack-icon">⌁</div><h3>Studio Core</h3><p>Intake, safety, evidence, collaboration, design, and governance for every project.</p><span class="pack-count">13 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--mint)"><div class="pack-index"><span>02 / client</span><span>unity</span></div><div class="pack-icon">◈</div><h3>Unity</h3><p>Offline debugging, UI rendering, localization, asset integrity, batch builds, and scaffolding.</p><span class="pack-count">6 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--amber)"><div class="pack-index"><span>03 / backend</span><span>mmorpg</span></div><div class="pack-icon">⌘</div><h3>C++ / Lua MMORPG</h3><p>Services, MySQL, protocol contracts, crash triage, authority review, and save migrations.</p><span class="pack-count">9 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--coral)"><div class="pack-index"><span>04 / production</span><span>liveops</span></div><div class="pack-icon">✦</div><h3>Production / LiveOps</h3><p>Playtests, performance, economy, balance, release, stores, incidents, and telemetry.</p><span class="pack-count">8 workflows</span></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section catalog-section" id="catalog">
+      <div class="container">
+        <div class="section-heading reveal">
+          <div><span class="eyebrow">Browse the workflows</span><h2 class="section-title">Ask for the outcome.<br>Find the right route.</h2></div>
+          <p class="section-intro">No slash commands or skill names required. Search by the failure, system, or gate you need to handle.</p>
+        </div>
+        <div class="catalog-toolbar">
+          <div class="toolbar-row">
+            <label class="search" for="skill-search">
+              <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.3" stroke="currentColor" stroke-width="1.2"/><path d="m10.4 10.4 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
+              <input id="skill-search" type="search" placeholder="Search skills, systems, or outcomes…" autocomplete="off">
+              <span class="search-kbd" aria-hidden="true">/</span>
+            </label>
+            <span class="result-count" id="result-count" aria-live="polite">33 skills</span>
+          </div>
+          <div class="filters" role="tablist" aria-label="Filter skills by pack">
+            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">33</span></button>
+            <button class="filter" type="button" data-filter="studio-core" aria-selected="false" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>Studio Core</button>
+            <button class="filter" type="button" data-filter="unity" aria-selected="false" style="--filter-color: var(--mint)"><span class="filter-dot"></span>Unity</button>
+            <button class="filter" type="button" data-filter="cpp-lua-mmorpg" aria-selected="false" style="--filter-color: var(--amber)"><span class="filter-dot"></span>C++ / Lua MMORPG</button>
+            <button class="filter" type="button" data-filter="production-design-liveops" aria-selected="false" style="--filter-color: var(--coral)"><span class="filter-dot"></span>Production / LiveOps</button>
+          </div>
+        </div>
+        <div class="skills-grid" id="skills-grid"></div>
+        <div class="no-results" id="no-results">No workflow matches that search. Try a system name such as <span class="mono">Unity</span>, <span class="mono">Lua</span>, <span class="mono">MySQL</span>, or <span class="mono">release</span>.</div>
+      </div>
+    </section>
+
+    <section class="section evidence-section" id="evidence">
+      <div class="container evidence-layout">
+        <div class="evidence-copy reveal"><span class="eyebrow">The trust contract</span><h2 class="section-title">Trust is a data model, not a tone of voice.</h2><p>Every meaningful claim carries a label. The kit makes it structurally difficult for an agent to turn missing evidence into a confident success report.</p></div>
+        <div class="ledger reveal">
+          <article class="ledger-item verified"><h3>Verified</h3><p>An observed command, test, build, primary source, or artifact supports the claim.</p></article>
+          <article class="ledger-item snapshot"><h3>Snapshot</h3><p>True for a named commit, version, configuration, or environment snapshot.</p></article>
+          <article class="ledger-item unverified"><h3>Unverified</h3><p>A hypothesis or forecast that still needs evidence before it becomes a result.</p></article>
+          <article class="ledger-item blocked"><h3>BLOCKED</h3><p>A runner, dependency, permission, live project, or required proof is unavailable.</p></article>
+          <div class="rule">CORE RULE · BLOCKED is never converted into PASS.</div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="workflow">
+      <div class="container">
+        <div class="section-heading reveal"><div><span class="eyebrow">How a task moves</span><h2 class="section-title">From vague failure<br>to bounded action.</h2></div><p class="section-intro">A small request can still touch a large, fragile system. The workflow keeps discovery, mutation, ownership, and proof in the right order.</p></div>
+        <div class="flow">
+          <article class="flow-step reveal"><span class="flow-number">01 / INTAKE</span><h3>Read the room</h3><p>Capture the goal, project snapshot, risk tier, ownership, constraints, and do-not-touch paths.</p></article>
+          <article class="flow-step reveal"><span class="flow-number">02 / ROUTE</span><h3>Pick the smallest skill</h3><p>Route the natural-language request to one focused diagnostic, gate, or production workflow.</p></article>
+          <article class="flow-step reveal"><span class="flow-number">03 / ACT</span><h3>Mutate with gates</h3><p>Keep read-only work automatic. Escalate medium and high-risk changes with scope, backup, review, or approval.</p></article>
+          <article class="flow-step reveal"><span class="flow-number">04 / VERIFY</span><h3>Return proof or blocker</h3><p>Attach commands, exit codes, artifacts, limitations, and the honest verdict — including BLOCKED.</p></article>
+        </div>
+      </div>
+    </section>
+
+    <section class="section install-section" id="install">
+      <div class="container">
+        <div class="install-panel reveal">
+          <div><span class="eyebrow">Start with one command</span><h2>Install once.<br>Ask for the outcome.</h2><p>Choose your primary runtime, start a new session, and describe the studio problem directly.</p></div>
+          <div class="commands">
+            <div class="command"><span class="command-label">Hermes</span><code>npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y</code><button class="copy-button" type="button" aria-label="Copy Hermes install command" data-copy="npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y">⧉</button></div>
+            <div class="command"><span class="command-label">Codex</span><code>codex plugin marketplace add hoatv2211/GameStudio-CodexKIT</code><button class="copy-button" type="button" aria-label="Copy Codex install command" data-copy="codex plugin marketplace add hoatv2211/GameStudio-CodexKIT">⧉</button></div>
+            <div class="command"><span class="command-label">Ask</span><code>Audit this game project and route the work to the right studio skills.</code><button class="copy-button" type="button" aria-label="Copy example prompt" data-copy="Audit this game project and route the work to the right studio skills.">⧉</button></div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footer-inner">
+      <span>GameStudio-CodexKIT · MIT licensed · Evidence over confidence.</span>
+      <nav class="footer-links" aria-label="Footer navigation"><a href="https://github.com/hoatv2211/GameStudio-CodexKIT" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT#readme">README</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/architecture/overview.md">Architecture</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/authoring/dogfood.md">Dogfood contract</a></nav>
+    </div>
+  </footer>
+
+  <script>
+    const packs = {
+      "studio-core": { label: "Studio Core", short: "core", color: "var(--cyan)" },
+      "unity": { label: "Unity", short: "unity", color: "var(--mint)" },
+      "cpp-lua-mmorpg": { label: "C++ / Lua MMORPG", short: "cpp-lua", color: "var(--amber)" },
+      "production-design-liveops": { label: "Production / LiveOps", short: "liveops", color: "var(--coral)" }
+    };
+    const skills = [
+      ["using-game-studio-skills", "studio-core", "root", "read-only", "Apply the operating contract, choose evidence labels, route work, and prevent unsupported PASS claims."],
+      ["studio-project-intake", "studio-core", "router", "read-only", "Collect the goal, scope, risk tier, engine, ownership, constraints, and do-not-touch paths into an actionable packet."],
+      ["safe-project-mutation", "studio-core", "safety", "medium", "Change project files or generated state with a dry run, exact scope, backup manifest, apply verification, and restore path."],
+      ["build-and-runtime-verification", "studio-core", "gate", "read-only", "Run build, compile, test, launch, or runtime checks tied to commands, exit codes, artifacts, limitations, and fresh evidence."],
+      ["evidence-first-debugging", "studio-core", "workflow", "low", "Debug a crash, lỗi, failing game, tool, build, service, or script through reproduction, root-cause isolation, minimal fix, and regression proof."],
+      ["studio-handoff", "studio-core", "workflow", "low", "Pause or transfer work with a durable handoff covering branch, scope, files, evidence labels, decisions, and next actions."],
+      ["review-swarm", "studio-core", "workflow", "read-only", "Review a known change set through parallel read-only code, architecture, test, safety, or product lanes with one verdict."],
+      ["bug-hunt-swarm", "studio-core", "workflow", "read-only", "Investigate an unknown crash, intermittent failure, or cross-subsystem bug with parallel reproduction lanes and ranked hypotheses."],
+      ["game-feature-brainstorming", "studio-core", "interactive", "read-only", "Explore a game feature, mechanic, player experience, or production approach with options and trade-offs before choosing."],
+      ["game-feature-to-spec", "studio-core", "workflow", "low", "Turn an approved game mechanic into a testable specification with states, criteria, edge cases, tuning, telemetry, and playtest criteria."],
+      ["feature-to-work-packets", "studio-core", "workflow", "low", "Decompose an approved feature into ordered work packets with exact files, ownership, dependencies, risks, and verification."],
+      ["skill-authoring-and-audit", "studio-core", "governance", "low", "Author or audit kit skills with trigger collision checks, provenance, routing evals, pressure evals, and lifecycle rules."],
+      ["studio-project-scaffold", "studio-core", "workflow", "medium", "Bootstrap an adopted game repository with rules, handoff, contracts, subsystem ownership, and preserved local skills.", ["unity", "cpp-lua-mmorpg"]],
+      ["multi-service-local-environment-doctor", "cpp-lua-mmorpg", "diagnostic", "read-only", "Diagnose local game services with ports, listeners, configured dependencies, startup order, and project isolation."],
+      ["game-database-migration-safety", "cpp-lua-mmorpg", "safety", "high", "Plan a MySQL schema or data migration with isolation, dry-run review, backup, restore, approval, and zero credential exposure."],
+      ["lua-client-server-contract-audit", "cpp-lua-mmorpg", "diagnostic", "read-only", "Audit Lua client/server RPC copies or generated protocol tables for opcode, fields, types, ordering, and source authority."],
+      ["localization-authority-audit", "cpp-lua-mmorpg", "diagnostic", "read-only", "Audit localization authority, generated copies, keys, text drift, encoding, mojibake, and client/server consistency.", ["unity"]],
+      ["cpp-server-crash-triage", "cpp-lua-mmorpg", "diagnostic", "read-only", "Triage a C++ game server crash, dump, access violation, stack trace, symbols, or build identity into a ranked root-cause plan."],
+      ["mmorpg-packet-protocol-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Review C++ server and Unity client wire compatibility: versions, opcodes, byte layout, direction, and request-response pairing."],
+      ["network-authority-and-exploit-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Review multiplayer trust boundaries, server authority, replay, abuse, and rate limits without attack traffic."],
+      ["save-data-schema-migration", "cpp-lua-mmorpg", "safety", "high", "Version and convert player saves, profiles, or persistence payloads with fixtures, compatibility checks, and rollback."],
+      ["unity-client-offline-debugging", "unity", "diagnostic", "read-only", "Diagnose Unity offline gameplay failures across login, bootstrap, network fallback, local data, and scene startup."],
+      ["unity-ui-rendering-debugging", "unity", "diagnostic", "read-only", "Find missing, clipped, wrongly sorted, misanchored, or invisible Unity and NGUI content without guessing."],
+      ["unity-asset-guid-meta-audit", "unity", "diagnostic", "read-only", "Audit Unity GUID and meta consistency, duplicate GUIDs, missing metas, stale references, and import failures."],
+      ["unity-batchmode-build-verification", "unity", "gate", "low", "Verify Unity batchmode, BuildPipeline, Editor.log, PlayerSettings, or Unity CI jobs with reproducible evidence."],
+      ["playtest-evidence", "production-design-liveops", "workflow", "read-only", "Plan or review playtests with scenarios, participant context, observations, reproduction evidence, severity, and honest conclusions."],
+      ["game-performance-budget", "production-design-liveops", "gate", "read-only", "Define or review frame-time, memory, loading, network, CPU, GPU, allocation, or thermal budgets against measurements."],
+      ["economy-source-sink-model", "production-design-liveops", "workflow", "read-only", "Model currencies, item faucets, sinks, exchange rates, player segments, inflation risk, and progression affordability."],
+      ["balance-data-change-review", "production-design-liveops", "workflow", "read-only", "Review numeric tuning diffs such as damage, price, cooldown, drop rate, or progression against approved bounds."],
+      ["release-candidate-preflight", "production-design-liveops", "gate", "read-only", "Make a go/no-go release decision across artifacts, tests, issues, approvals, compatibility, monitoring, and rollback."],
+      ["store-submission-checklist", "production-design-liveops", "gate", "high", "Prepare a game for store submission with metadata, compliance, ratings, privacy, package, entitlement, and approval gates."],
+      ["liveops-incident-response", "production-design-liveops", "workflow", "high", "Control a live outage with an incident commander, containment, mitigation, communication, recovery, and postmortem."],
+      ["telemetry-event-contract-review", "production-design-liveops", "diagnostic", "read-only", "Review analytics event names, properties, types, versions, privacy classes, producers, consumers, and compatibility."]
+    ];
+
+    const grid = document.getElementById("skills-grid");
+    const search = document.getElementById("skill-search");
+    const count = document.getElementById("result-count");
+    const empty = document.getElementById("no-results");
+    let activeFilter = "all";
+
+    function esc(value) {
+      return value.replace(/[&<>"']/g, ch => ({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[ch]));
+    }
+    function renderSkills() {
+      const query = search.value.trim().toLowerCase();
+      const visible = skills.filter(([id, pack, type, risk, description, extraPacks = []]) => {
+        const inPack = activeFilter === "all" || pack === activeFilter || extraPacks.includes(activeFilter);
+        const haystack = skills.find(item => item[0] === id).join(" ").toLowerCase();
+        return inPack && (!query || haystack.includes(query));
+      });
+      grid.innerHTML = visible.map(([id, pack, type, risk, description]) => {
+        const meta = packs[pack];
+        const riskClass = risk === "high" || risk === "medium" ? risk : "";
+        return `<article class="skill-card reveal in" style="--card-color: ${meta.color}" data-pack="${pack}">
+          <div class="skill-top"><span class="skill-phase">${esc(type)}</span><span class="risk ${riskClass}">${esc(risk)}</span></div>
+          <h3>${esc(id)}</h3><p>${esc(description)}</p>
+          <div class="skill-foot"><span class="pack-tag">${esc(meta.short)} / ${id === "using-game-studio-skills" ? "root route" : "workflow"}</span><a class="skill-link" href="https://github.com/hoatv2211/GameStudio-CodexKIT/tree/main/skills/${encodeURIComponent(id)}" target="_blank" rel="noopener" aria-label="Open ${esc(id)} on GitHub">source ↗</a></div>
+        </article>`;
+      }).join("");
+      count.textContent = visible.length === skills.length ? `${skills.length} skills` : `${visible.length} of ${skills.length} skills`;
+      empty.classList.toggle("visible", visible.length === 0);
+    }
+    renderSkills();
+
+    document.querySelectorAll(".filter").forEach(button => button.addEventListener("click", () => {
+      document.querySelectorAll(".filter").forEach(item => item.setAttribute("aria-selected", "false"));
+      button.setAttribute("aria-selected", "true");
+      activeFilter = button.dataset.filter;
+      renderSkills();
+    }));
+    search.addEventListener("input", renderSkills);
+    document.addEventListener("keydown", event => {
+      if (event.key === "/" && document.activeElement !== search) { event.preventDefault(); search.focus(); }
+      if (event.key === "Escape" && document.activeElement === search) { search.value = ""; renderSkills(); search.blur(); }
+    });
+
+    document.querySelectorAll("[data-copy]").forEach(button => button.addEventListener("click", async () => {
+      const value = button.dataset.copy;
+      try { await navigator.clipboard.writeText(value); }
+      catch {
+        const area = document.createElement("textarea"); area.value = value; document.body.appendChild(area); area.select(); document.execCommand("copy"); area.remove();
+      }
+      button.classList.add("copied"); button.textContent = "✓"; setTimeout(() => { button.classList.remove("copied"); button.textContent = "⧉"; }, 1500);
+    }));
+
+    const nav = document.getElementById("nav");
+    const menuButton = document.querySelector(".menu-button");
+    menuButton.addEventListener("click", () => { const open = nav.classList.toggle("is-open"); menuButton.setAttribute("aria-expanded", String(open)); });
+    document.querySelectorAll(".nav-links a").forEach(link => link.addEventListener("click", () => { nav.classList.remove("is-open"); menuButton.setAttribute("aria-expanded", "false"); }));
+
+    if ("IntersectionObserver" in window && !window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      const observer = new IntersectionObserver(entries => entries.forEach(entry => { if (entry.isIntersecting) { entry.target.classList.add("in"); observer.unobserve(entry.target); } }), { rootMargin: "0px 0px -8% 0px", threshold: .05 });
+      document.querySelectorAll(".reveal").forEach(item => observer.observe(item));
+    } else document.querySelectorAll(".reveal").forEach(item => item.classList.add("in"));
+  </script>
+</body>
+</html>
