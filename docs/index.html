@@ -1,4 +1,4 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8">
@@ -9,8 +9,14 @@
   <meta property="og:title" content="GameStudio-CodexKIT — Operate live games">
   <meta property="og:description" content="A routed skill catalog for fragile, shipped, revenue-bearing game projects. Evidence over confidence.">
   <meta property="og:url" content="https://hoatv2211.github.io/GameStudio-CodexKIT/">
-  <meta property="og:image" content="https://hoatv2211.github.io/GameStudio-CodexKIT/assets/banner.svg">
+  <meta property="og:image" content="https://hoatv2211.github.io/GameStudio-CodexKIT/assets/showcase-handcrafted/slide-01.webp">
+  <meta property="og:image:type" content="image/webp">
+  <meta property="og:image:width" content="1440">
+  <meta property="og:image:height" content="810">
+  <meta property="og:image:alt" content="GameStudio-CodexKIT connects live game projects to specialist workflows and evidence-backed results.">
   <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:image" content="https://hoatv2211.github.io/GameStudio-CodexKIT/assets/showcase-handcrafted/slide-01.webp">
+  <meta name="twitter:image:alt" content="GameStudio-CodexKIT connects live game projects to specialist workflows and evidence-backed results.">
   <link rel="canonical" href="https://hoatv2211.github.io/GameStudio-CodexKIT/">
   <link rel="icon" href="assets/banner.svg" type="image/svg+xml">
   <title>GameStudio-CodexKIT · Operate live games</title>
@@ -172,6 +178,22 @@
     .section-intro { max-width: 420px; color: var(--muted); font-size: 14px; line-height: 1.7; }
 
     .packs-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 11px; }
+    .showcase-section { border-block: 1px solid var(--line); background: rgba(5, 11, 20, .24); }
+    .showcase-layout { display: grid; grid-template-columns: minmax(0, .78fr) minmax(0, 1.22fr); gap: clamp(24px, 6vw, 72px); align-items: center; }
+    .showcase-copy p { max-width: 470px; margin-top: 18px; color: var(--muted); font-size: 15px; line-height: 1.75; }
+    .showcase-list { display: grid; gap: 10px; margin: 25px 0 0; padding: 0; list-style: none; }
+    .showcase-list li { display: flex; gap: 10px; color: #a8bdcc; font-size: 12px; line-height: 1.5; }
+    .showcase-list li::before { content: "✓"; flex: none; color: var(--mint); font-family: var(--mono); }
+    .showcase-art { margin: 0; padding: 8px; border: 1px solid var(--line-strong); border-radius: var(--radius-lg); background: rgba(13, 25, 41, .68); box-shadow: 0 25px 70px rgba(0, 0, 0, .24); }
+    .showcase-art img { width: 100%; height: auto; border-radius: calc(var(--radius-lg) - 7px); }
+
+    .proof-section { background: rgba(5, 11, 20, .42); }
+    .proof-layout { display: grid; grid-template-columns: minmax(0, 1.18fr) minmax(0, .82fr); gap: clamp(24px, 6vw, 72px); align-items: center; }
+    .proof-art { order: -1; }
+    .proof-copy p { max-width: 460px; margin-top: 18px; color: var(--muted); font-size: 15px; line-height: 1.75; }
+    .proof-callout { margin-top: 22px; padding: 16px 18px; border: 1px solid rgba(255, 155, 135, .28); border-radius: var(--radius-md); color: var(--coral); background: rgba(255, 155, 135, .055); font: 12.5px/1.65 var(--mono); }
+    .proof-link { display: inline-flex; align-items: center; min-height: 44px; margin-top: 20px; padding: 0 16px; border: 1px solid transparent; border-radius: 8px; color: #031018; background: var(--cyan); box-shadow: 0 0 24px rgba(103, 232, 249, .13); font: 600 12.5px var(--mono); transition: transform .2s var(--ease), background .2s; }
+    .proof-link:hover { transform: translateY(-2px); color: #031018; background: #a2f3ff; }
     .pack-card { min-height: 248px; display: flex; flex-direction: column; padding: 21px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(13, 25, 41, .62); transition: transform .25s var(--ease), border-color .25s var(--ease), background .25s var(--ease); }
     .pack-card:hover { transform: translateY(-5px); border-color: var(--pack-color, var(--cyan)); background: var(--surface); }
     .pack-index { display: flex; justify-content: space-between; color: var(--faint); font: 10px var(--mono); letter-spacing: .09em; text-transform: uppercase; }
@@ -222,14 +244,40 @@
     .ledger-item.unverified { --ledger-color: var(--amber); } .ledger-item.blocked { --ledger-color: var(--coral); border-color: rgba(255, 155, 135, .28); }
     .rule { grid-column: 1 / -1; padding: 15px 18px; border: 1px solid rgba(255, 210, 124, .26); border-radius: var(--radius-md); color: var(--amber); background: rgba(255, 210, 124, .06); font: 12px var(--mono); }
 
-    .flow { display: grid; grid-template-columns: repeat(4, 1fr); border: 1px solid var(--line); border-radius: var(--radius-lg); overflow: hidden; background: rgba(13, 25, 41, .58); }
-    .flow-step { position: relative; min-height: 198px; padding: 23px; border-right: 1px solid var(--line); }
-    .flow-step:last-child { border-right: 0; }
-    .flow-step::after { content: "→"; position: absolute; right: -10px; top: 25px; z-index: 1; width: 20px; height: 20px; color: var(--cyan); background: var(--surface); font: 15px var(--mono); text-align: center; }
-    .flow-step:last-child::after { display: none; }
-    .flow-number { color: var(--cyan); font: 11px var(--mono); }
-    .flow-step h3 { margin-top: 42px; font-size: 17px; }
-    .flow-step p { margin-top: 9px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+    .lifecycle-section { border-top: 1px solid var(--line); background: rgba(5, 11, 20, .28); }
+    .lifecycle-map { position: relative; margin: 0; padding: 27px 22px 25px; border: 1px solid var(--line); border-radius: var(--radius-lg); background: rgba(13, 25, 41, .58); overflow: hidden; }
+    .lifecycle-map::before { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(90deg, rgba(103, 232, 249, .035), transparent 35%, rgba(116, 242, 189, .025)); }
+    .lc-track { position: absolute; z-index: 0; top: 85px; left: 7%; right: 7%; height: 1px; background: var(--line-strong); }
+    .lc-track::after { content: ""; position: absolute; inset: -1px 0; background: linear-gradient(90deg, transparent, var(--cyan), var(--mint), var(--amber), var(--coral), transparent); opacity: .55; }
+    .lc-steps { position: relative; z-index: 1; display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; margin: 0; padding: 0; list-style: none; }
+    .lc-step { min-width: 0; display: flex; flex-direction: column; align-items: center; text-align: center; }
+    .lc-phase { color: var(--phase-color, var(--cyan)); font: 500 12px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .lc-node { width: min(100%, 135px); min-height: 80px; display: grid; place-items: center; align-content: center; gap: 5px; margin-top: 18px; padding: 12px 8px; border: 1px solid color-mix(in srgb, var(--phase-color, var(--cyan)) 42%, transparent); border-radius: 11px; background: var(--surface); box-shadow: 0 0 0 5px color-mix(in srgb, var(--phase-color, var(--cyan)) 5%, transparent); }
+    .lc-number { color: var(--phase-color, var(--cyan)); font: 11px var(--mono); }
+    .lc-verb { color: var(--ink); font-size: 14px; font-weight: 650; }
+    .lc-output { margin-top: 11px; color: #a8bdcc; font: 11.5px/1.45 var(--mono); }
+    .lifecycle-scroll-cue { display: none; margin: -16px 0 13px; color: var(--cyan); font: 10px var(--mono); letter-spacing: .04em; }
+    .checkpoint { display: grid; grid-template-columns: repeat(4, 1fr); margin-top: 12px; border: 1px solid var(--line); border-radius: var(--radius-md); overflow: hidden; }
+    .checkpoint-step { min-height: 70px; padding: 13px 15px; border-right: 1px solid var(--line); background: rgba(5, 11, 20, .38); }
+    .checkpoint-step:last-child { border-right: 0; }
+    .checkpoint-step strong { display: block; color: var(--risk-color, var(--muted)); font: 11.5px var(--mono); text-transform: uppercase; }
+    .checkpoint-step span { display: block; margin-top: 6px; color: #a8bdcc; font-size: 12.5px; line-height: 1.45; }
+    .scenario-heading { margin: 54px 0 19px; }
+    .scenario-heading h3 { font-size: 1.35rem; letter-spacing: -.035em; }
+    .scenario-heading p { margin-top: 7px; color: var(--muted); font-size: 14px; }
+    .scenario-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
+    .scenario-card { min-width: 0; padding: 20px; border: 1px solid var(--line); border-radius: var(--radius-md); background: rgba(13, 25, 41, .58); }
+    .scenario-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+    .scenario-type { color: var(--scenario-color, var(--cyan)); font: 11.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .scenario-card h4 { margin: 7px 0 0; font-size: 16px; letter-spacing: -.025em; }
+    .scenario-prompt { flex: 0 1 250px; color: #bed0dc; font: 12.5px/1.5 var(--mono); text-align: right; }
+    .scenario-chain { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 19px; }
+    .scenario-skill { max-width: 100%; padding: 7px 9px; border: 1px solid color-mix(in srgb, var(--scenario-color, var(--cyan)) 34%, transparent); border-radius: 6px; color: var(--ink); background: color-mix(in srgb, var(--scenario-color, var(--cyan)) 7%, transparent); font: 11.5px/1.4 var(--mono); overflow-wrap: anywhere; }
+    .scenario-arrow { color: var(--muted); font: 13px var(--mono); }
+    .scenario-branches { display: grid; gap: 8px; }
+    .scenario-route { display: flex; align-items: center; gap: 7px; }
+    .scenario-route-label { flex: 0 0 62px; color: var(--coral); font: 10.5px var(--mono); letter-spacing: .08em; text-transform: uppercase; }
+    .lifecycle-note { margin-top: 14px; padding: 16px 18px; border: 1px dashed rgba(255, 210, 124, .32); border-radius: var(--radius-md); color: var(--amber); background: rgba(255, 210, 124, .055); font: 12.5px/1.7 var(--mono); }
 
     .install-section { padding-bottom: 105px; }
     .install-panel { min-width: 0; display: grid; grid-template-columns: minmax(0, .88fr) minmax(0, 1.12fr); gap: 32px; align-items: center; padding: clamp(25px, 5vw, 54px); border: 1px solid rgba(103, 232, 249, .3); border-radius: var(--radius-lg); background: linear-gradient(120deg, rgba(13, 49, 67, .72), rgba(13, 25, 41, .72)); box-shadow: 0 0 80px rgba(103, 232, 249, .07); }
@@ -255,10 +303,15 @@
       .hero-grid { gap: 48px; }
       .packs-grid { grid-template-columns: repeat(2, 1fr); }
       .skills-grid { grid-template-columns: repeat(2, 1fr); }
-      .flow { grid-template-columns: repeat(2, 1fr); }
-      .flow-step:nth-child(2) { border-right: 0; } .flow-step:nth-child(-n+2) { border-bottom: 1px solid var(--line); }
-      .flow-step:nth-child(2)::after, .flow-step:nth-child(4)::after { display: none; }
-      .flow-step:nth-child(1)::after, .flow-step:nth-child(3)::after { display: block; }
+      .showcase-layout, .proof-layout { grid-template-columns: 1fr; gap: 34px; }
+      .proof-art { order: 0; }
+      .lifecycle-map { overflow-x: auto; }
+      .lifecycle-scroll-cue { display: block; }
+      .lc-track { left: 54px; right: auto; width: 810px; }
+      .lc-steps { min-width: 860px; scroll-snap-type: x proximity; }
+      .lc-step { scroll-snap-align: start; }
+      .scenario-head { display: block; }
+      .scenario-prompt { margin-top: 10px; text-align: left; }
     }
     @media (max-width: 680px) {
       .container { width: min(var(--max), calc(100% - 28px)); }
@@ -278,16 +331,23 @@
       .route-box { margin-left: 0; padding: 13px; }
       .section-heading { display: block; }
       .section-intro { margin-top: 17px; }
+      .showcase-copy p, .proof-copy p { font-size: 14px; }
+      .showcase-art, .proof-art { padding: 5px; }
+
       .packs-grid, .skills-grid, .ledger { grid-template-columns: 1fr; }
       .pack-card { min-height: 210px; }
       .pack-icon { margin-top: 24px; }
       .toolbar-row { display: block; } .result-count { margin-top: 9px; text-align: left; }
       .catalog-toolbar { top: 68px; }
-      .flow { grid-template-columns: 1fr; }
-      .flow-step, .flow-step:nth-child(2) { border-right: 0; border-bottom: 1px solid var(--line); }
-      .flow-step:last-child { border-bottom: 0; }
-      .flow-step::after, .flow-step:nth-child(1)::after, .flow-step:nth-child(3)::after { display: none; }
-      .flow-step h3 { margin-top: 26px; }
+      .checkpoint, .scenario-grid { grid-template-columns: 1fr; }
+      .checkpoint-step { border-right: 0; border-bottom: 1px solid var(--line); }
+      .checkpoint-step:last-child { border-bottom: 0; }
+      .scenario-chain:not(.scenario-branches) { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); align-items: stretch; }
+      .scenario-chain:not(.scenario-branches) .scenario-arrow { display: none; }
+      .scenario-skill { display: grid; place-items: center; min-height: 48px; text-align: center; }
+      .scenario-route { display: grid; grid-template-columns: 64px repeat(2, minmax(0, 1fr)); align-items: stretch; }
+      .scenario-route .scenario-arrow { display: none; }
+      .scenario-route-label { display: grid; align-items: center; }
       .footer-inner { align-items: flex-start; flex-direction: column; }
       .footer-links { flex-wrap: wrap; }
     }
@@ -305,6 +365,7 @@
         <span class="brand-name">GameStudio<span class="brand-dim">-CodexKIT</span></span>
       </a>
       <nav class="nav-links" aria-label="Primary navigation">
+        <a href="#lifecycle">Lifecycle</a>
         <a href="#catalog">Catalog</a>
         <a href="#evidence">Evidence model</a>
         <a href="#install">Install</a>
@@ -330,7 +391,7 @@
           </div>
           <p class="hero-note"><span class="pulse" aria-hidden="true"></span>Evidence over confidence · BLOCKED is never PASS</p>
         </div>
-        <div class="terminal reveal" aria-label="Example routed workflow">
+        <div class="terminal reveal" role="group" aria-label="Example routed workflow">
           <div class="terminal-bar"><span class="traffic" aria-hidden="true"><i></i><i></i><i></i></span><span class="terminal-label">studio session / route.log</span></div>
           <div class="terminal-body">
             <div class="terminal-line"><span class="prompt">you $</span><span>client can't enter the game offline</span></div>
@@ -357,6 +418,24 @@
       </div>
     </section>
 
+    <section class="section showcase-section" id="why-live-production">
+      <div class="container showcase-layout">
+        <div class="showcase-copy reveal">
+          <span class="eyebrow">Why this exists</span>
+          <h2 class="section-title">Production changes the risk.</h2>
+          <p>Once players and revenue depend on the project, a change can cross fragile clients, services, generated assets, databases, and player data. The kit treats that system as something to operate—not a blank canvas.</p>
+          <ul class="showcase-list">
+            <li>Protect player data and generated outputs.</li>
+            <li>Trace failures across the client, server, and pipeline.</li>
+            <li>Keep unavailable proof explicitly BLOCKED.</li>
+          </ul>
+        </div>
+        <figure class="showcase-art reveal">
+          <img src="assets/showcase-handcrafted/slide-02.webp" alt="A clean greenfield game project contrasted with the complexity of operating a shipped live game." width="1440" height="810" loading="lazy" decoding="async">
+        </figure>
+      </div>
+    </section>
+
     <section class="section" id="packs">
       <div class="container">
         <div class="section-heading reveal">
@@ -380,7 +459,7 @@
         </div>
         <div class="catalog-toolbar">
           <div class="toolbar-row">
-            <label class="search" for="skill-search">
+            <label class="search">
               <svg class="search-icon" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true"><circle cx="7" cy="7" r="4.3" stroke="currentColor" stroke-width="1.2"/><path d="m10.4 10.4 3 3" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/></svg>
               <input id="skill-search" type="search" placeholder="Search skills, systems, or outcomes…" autocomplete="off">
               <span class="search-kbd" aria-hidden="true">/</span>
@@ -413,14 +492,50 @@
       </div>
     </section>
 
-    <section class="section" id="workflow">
+    <section class="section lifecycle-section" id="lifecycle">
       <div class="container">
-        <div class="section-heading reveal"><div><span class="eyebrow">How a task moves</span><h2 class="section-title">From vague failure<br>to bounded action.</h2></div><p class="section-intro">A small request can still touch a large, fragile system. The workflow keeps discovery, mutation, ownership, and proof in the right order.</p></div>
-        <div class="flow">
-          <article class="flow-step reveal"><span class="flow-number">01 / INTAKE</span><h3>Read the room</h3><p>Capture the goal, project snapshot, risk tier, ownership, constraints, and do-not-touch paths.</p></article>
-          <article class="flow-step reveal"><span class="flow-number">02 / ROUTE</span><h3>Pick the smallest skill</h3><p>Route the natural-language request to one focused diagnostic, gate, or production workflow.</p></article>
-          <article class="flow-step reveal"><span class="flow-number">03 / ACT</span><h3>Mutate with gates</h3><p>Keep read-only work automatic. Escalate medium and high-risk changes with scope, backup, review, or approval.</p></article>
-          <article class="flow-step reveal"><span class="flow-number">04 / VERIFY</span><h3>Return proof or blocker</h3><p>Attach commands, exit codes, artifacts, limitations, and the honest verdict — including BLOCKED.</p></article>
+        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 33 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
+        <p class="lifecycle-scroll-cue" aria-hidden="true">Swipe or scroll horizontally to see all 6 phases →</p>
+        <figure class="lifecycle-map reveal" aria-labelledby="lifecycle-map-caption">
+          <figcaption id="lifecycle-map-caption" class="eyebrow">Lifecycle phases and outputs</figcaption>
+          <div class="lc-track" aria-hidden="true"></div>
+          <ol class="lc-steps">
+            <li class="lc-step" style="--phase-color: var(--cyan)"><span class="lc-phase">Request</span><div class="lc-node"><span class="lc-number">01</span><span class="lc-verb">Describe outcome</span></div><span class="lc-output">natural language</span></li>
+            <li class="lc-step" style="--phase-color: var(--cyan)"><span class="lc-phase">Intake</span><div class="lc-node"><span class="lc-number">02</span><span class="lc-verb">Scope + risk</span></div><span class="lc-output">task packet</span></li>
+            <li class="lc-step" style="--phase-color: var(--mint)"><span class="lc-phase">Route</span><div class="lc-node"><span class="lc-number">03</span><span class="lc-verb">Diagnose / design</span></div><span class="lc-output">smallest matching skill</span></li>
+            <li class="lc-step" style="--phase-color: var(--amber)"><span class="lc-phase">Change</span><div class="lc-node"><span class="lc-number">04</span><span class="lc-verb">Mutate with gates</span></div><span class="lc-output">diff + restore path</span></li>
+            <li class="lc-step" style="--phase-color: var(--mint)"><span class="lc-phase">Verify</span><div class="lc-node"><span class="lc-number">05</span><span class="lc-verb">Run real checks</span></div><span class="lc-output">command + exit + artifact</span></li>
+            <li class="lc-step" style="--phase-color: var(--coral)"><span class="lc-phase">Handoff</span><div class="lc-node"><span class="lc-number">06</span><span class="lc-verb">Report honestly</span></div><span class="lc-output">verdict or BLOCKED</span></li>
+          </ol>
+        </figure>
+        <div class="checkpoint reveal" role="group" aria-label="Mutation approval levels">
+          <div class="checkpoint-step" style="--risk-color: var(--mint)"><strong>Read-only</strong><span>Inspect and diagnose automatically.</span></div>
+          <div class="checkpoint-step" style="--risk-color: var(--cyan)"><strong>Low risk</strong><span>Visible diff plus verification.</span></div>
+          <div class="checkpoint-step" style="--risk-color: var(--amber)"><strong>Medium risk</strong><span>Exact scope, backup, restore path, reviewer.</span></div>
+          <div class="checkpoint-step" style="--risk-color: var(--coral)"><strong>High risk</strong><span>Human approval and dry-run evidence.</span></div>
+        </div>
+        <div class="scenario-heading reveal"><h3>Four common entry routes</h3><p>You describe the job. The kit composes only the skills needed for that path.</p></div>
+        <div class="scenario-grid">
+          <article class="scenario-card reveal" style="--scenario-color: var(--mint)"><div class="scenario-head"><div><span class="scenario-type">Debug a failure</span><h4>Intake → Debug → Verify</h4></div><p class="scenario-prompt">“Client can't enter offline mode. Fix it.”</p></div><div class="scenario-chain"><span class="scenario-skill">studio-project-intake</span><span class="scenario-arrow">→</span><span class="scenario-skill">evidence-first-debugging</span><span class="scenario-arrow">→</span><span class="scenario-skill">safe-project-mutation</span><span class="scenario-arrow">→</span><span class="scenario-skill">build-and-runtime-verification</span></div></article>
+          <article class="scenario-card reveal" style="--scenario-color: var(--cyan)"><div class="scenario-head"><div><span class="scenario-type">Design a feature</span><h4>Idea → Spec → Work packets</h4></div><p class="scenario-prompt">“Turn this mechanic into implementation work.”</p></div><div class="scenario-chain"><span class="scenario-skill">game-feature-brainstorming</span><span class="scenario-arrow">→</span><span class="scenario-skill">game-feature-to-spec</span><span class="scenario-arrow">→</span><span class="scenario-skill">feature-to-work-packets</span><span class="scenario-arrow">→</span><span class="scenario-skill">review-swarm</span></div></article>
+          <article class="scenario-card reveal" style="--scenario-color: var(--amber)"><div class="scenario-head"><div><span class="scenario-type">Adopt a project</span><h4>Intake → Scaffold → Handoff</h4></div><p class="scenario-prompt">“Set this existing game repo up for agent work.”</p></div><div class="scenario-chain"><span class="scenario-skill">studio-project-intake</span><span class="scenario-arrow">→</span><span class="scenario-skill">studio-project-scaffold</span><span class="scenario-arrow">→</span><span class="scenario-skill">build-and-runtime-verification</span><span class="scenario-arrow">→</span><span class="scenario-skill">studio-handoff</span></div></article>
+          <article class="scenario-card reveal" style="--scenario-color: var(--coral)"><div class="scenario-head"><div><span class="scenario-type">Ship or respond</span><h4>Preflight → Gate → Observe</h4></div><p class="scenario-prompt">“Is this RC safe to ship?” / “Players found a dupe.”</p></div><div class="scenario-chain scenario-branches"><div class="scenario-route"><span class="scenario-route-label">Release</span><span class="scenario-skill">release-candidate-preflight</span><span class="scenario-arrow">→</span><span class="scenario-skill">store-submission-checklist</span></div><div class="scenario-route"><span class="scenario-route-label">Incident</span><span class="scenario-skill">liveops-incident-response</span><span class="scenario-arrow">→</span><span class="scenario-skill">studio-handoff</span></div></div></article>
+        </div>
+        <p class="lifecycle-note reveal">Human checkpoints remain in the loop. The router can choose a workflow automatically, but high-risk database, service-control, credential, destructive, and publish actions cannot cross the approval gate on their own.</p>
+      </div>
+    </section>
+
+    <section class="section proof-section" id="field-proof">
+      <div class="container proof-layout">
+        <figure class="showcase-art proof-art reveal">
+          <img src="assets/showcase-handcrafted/slide-07.webp" alt="Evidence from a skill-routed run on a live Unity MMORPG, showing verified fixes alongside blockers that remained blocked." width="1440" height="810" loading="lazy" decoding="async">
+        </figure>
+        <div class="proof-copy reveal">
+          <span class="eyebrow">Field evidence</span>
+          <h2 class="section-title">The contract survived a real project.</h2>
+          <p>Two skill-routed runs shipped three fixes through their owning pipelines, preserved unrelated work, and kept two verification gaps honestly BLOCKED.</p>
+          <div class="proof-callout">Verified · 32/32 config IDs · 34/34 combined sanitizer tests · 150 px content inside a 160 px UI bound · 0 foreign locks touched</div>
+          <a class="proof-link" href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/case-studies/unity-mmorpg-global-localization.md">Read the full case study →</a>
         </div>
       </div>
     </section>

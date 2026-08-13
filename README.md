@@ -6,7 +6,7 @@
 
 **Agent skills for operating live game projects — not writing new ones.**
 
-[![Skills](https://img.shields.io/badge/skills-33%20%2B%20router-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-192%2F192-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-106%20cases-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-33%20%2B%20router-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-192%2F192-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-118%20cases-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -20,6 +20,49 @@ agent:  → routes to unity-client-offline-debugging (read-only diagnosis first)
 ```
 
 That last line is the point. Every claim carries one of four labels — `Verified` / `Snapshot` / `Unverified` / `BLOCKED` — and **an unavailable runner is BLOCKED, never PASS**. Your agent's report becomes trustworthy precisely because it is allowed to say "I couldn't verify this."
+
+## Visual tour
+
+The kit connects a live game, its studio stack, and its operating evidence into one routed workflow. No dashboard theater: every page below maps to a real contract in the catalog.
+
+<p align="center">
+  <img src="docs/assets/showcase-handcrafted/slide-01.webp" alt="GameStudio-CodexKIT operates live games with evidence instead of faking success" width="100%">
+</p>
+
+<table>
+  <tr>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-02.webp" alt="Greenfield development compared with fragile live production" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-03.webp" alt="Natural-language request routed to a specialist workflow and evidence-backed result" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Built for live production</strong><br><sub>Clients, services, generated assets, and player data stay inside the risk model.</sub></td>
+    <td align="center"><strong>Ask for the outcome</strong><br><sub>The router selects the smallest matching specialist workflow.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Thirty-three skills across four packs and six studio personas" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>One studio catalog</strong><br><sub>33 canonical skills, four packs, and six thin persona lenses.</sub></td>
+    <td align="center"><strong>Trust is explicit state</strong><br><sub><code>BLOCKED</code> is never converted into <code>PASS</code>.</sub></td>
+  </tr>
+  <tr>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-06.webp" alt="Four escalating mutation risk gates from read-only to human approval" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-07.webp" alt="Verified dogfood results from a live Unity WebGL MMORPG localization run" width="100%"></td>
+  </tr>
+  <tr>
+    <td align="center"><strong>Mutation gates scale with risk</strong><br><sub>Diffs, restore paths, reviewers, dry runs, and human approval stay visible.</sub></td>
+    <td align="center"><strong>Dogfooded on a live MMORPG</strong><br><sub>Real fixes shipped; missing proof stayed honestly blocked.</sub></td>
+  </tr>
+</table>
+
+<details>
+  <summary><strong>Install paths — Codex App/CLI and Hermes Agent</strong></summary>
+  <br>
+  <p align="center">
+    <img src="docs/assets/showcase-handcrafted/slide-08.webp" alt="Install GameStudio-CodexKIT in Codex or Hermes Agent" width="100%">
+  </p>
+</details>
 
 ## Why this kit is different
 
