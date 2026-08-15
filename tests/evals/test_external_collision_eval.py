@@ -51,6 +51,31 @@ class ExternalCollisionEvalTests(unittest.TestCase):
             self.assertEqual(1, report["passed"])
             self.assertEqual([], report["failures"])
 
+    def test_external_catalog_discovery_excludes_archive_and_generated_trees(self) -> None:
+        from scripts.external_collision_eval import _external_root_descriptions
+
+        with temporary_directory() as temp:
+            external_root = Path(temp) / "external"
+            active = external_root / "skills" / "active-skill" / "SKILL.md"
+            archived = external_root / "archive" / "old-skill" / "SKILL.md"
+            generated = external_root / "adapters" / "generated-skill" / "SKILL.md"
+            for path, name in (
+                (active, "active-skill"),
+                (archived, "old-skill"),
+                (generated, "generated-skill"),
+            ):
+                path.parent.mkdir(parents=True, exist_ok=True)
+                path.write_text(
+                    f"---\nname: {name}\ndescription: Use when exercising {name}.\n---\n",
+                    encoding="utf-8",
+                )
+
+            descriptions, errors = _external_root_descriptions([external_root])
+
+            self.assertEqual([], errors)
+            self.assertEqual(1, len(descriptions))
+            self.assertIn("external-1-skills-active-skill", descriptions)
+
     def test_repository_external_catalog_fixture_passes(self) -> None:
         from scripts.external_collision_eval import evaluate_external_collisions
 

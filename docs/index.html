@@ -387,7 +387,7 @@
           <p class="hero-lede">GameStudio-CodexKIT gives Codex and Hermes an evidence-first operating layer for <strong>fragile, live, revenue-bearing game projects</strong> — from Unity clients and C++ servers to Lua contracts, player saves, release gates, and liveops incidents.</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#install">Install the kit <span aria-hidden="true">↓</span></a>
-            <a class="button" href="#catalog">Explore 33 skills <span aria-hidden="true">→</span></a>
+            <a class="button" href="#catalog">Explore 35 skills <span aria-hidden="true">→</span></a>
           </div>
           <p class="hero-note"><span class="pulse" aria-hidden="true"></span>Evidence over confidence · BLOCKED is never PASS</p>
         </div>
@@ -411,9 +411,9 @@
 
     <section class="stat-band" aria-label="Project statistics">
       <div class="container stats">
-        <div class="stat"><span class="stat-value cyan">33</span><span class="stat-label">canonical skills</span></div>
+        <div class="stat"><span class="stat-value cyan">35</span><span class="stat-label">canonical skills</span></div>
         <div class="stat"><span class="stat-value mint">4</span><span class="stat-label">installable packs</span></div>
-        <div class="stat"><span class="stat-value">192/192</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat"><span class="stat-value">204/204</span><span class="stat-label">routing evaluation</span></div>
         <div class="stat"><span class="stat-value amber">≠ PASS</span><span class="stat-label">BLOCKED contract</span></div>
       </div>
     </section>
@@ -464,10 +464,10 @@
               <input id="skill-search" type="search" placeholder="Search skills, systems, or outcomes…" autocomplete="off">
               <span class="search-kbd" aria-hidden="true">/</span>
             </label>
-            <span class="result-count" id="result-count" aria-live="polite">33 skills</span>
+            <span class="result-count" id="result-count" aria-live="polite">35 skills</span>
           </div>
           <div class="filters" role="tablist" aria-label="Filter skills by pack">
-            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">33</span></button>
+            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">35</span></button>
             <button class="filter" type="button" data-filter="studio-core" aria-selected="false" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>Studio Core</button>
             <button class="filter" type="button" data-filter="unity" aria-selected="false" style="--filter-color: var(--mint)"><span class="filter-dot"></span>Unity</button>
             <button class="filter" type="button" data-filter="cpp-lua-mmorpg" aria-selected="false" style="--filter-color: var(--amber)"><span class="filter-dot"></span>C++ / Lua MMORPG</button>
@@ -494,7 +494,7 @@
 
     <section class="section lifecycle-section" id="lifecycle">
       <div class="container">
-        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 33 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
+        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 35 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
         <p class="lifecycle-scroll-cue" aria-hidden="true">Swipe or scroll horizontally to see all 6 phases →</p>
         <figure class="lifecycle-map reveal" aria-labelledby="lifecycle-map-caption">
           <figcaption id="lifecycle-map-caption" class="eyebrow">Lifecycle phases and outputs</figcaption>
@@ -571,6 +571,8 @@
     const skills = [
       ["using-game-studio-skills", "studio-core", "root", "read-only", "Apply the operating contract, choose evidence labels, route work, and prevent unsupported PASS claims."],
       ["studio-project-intake", "studio-core", "router", "read-only", "Collect the goal, scope, risk tier, engine, ownership, constraints, and do-not-touch paths into an actionable packet."],
+      ["studio-workspace-routing", "studio-core", "router", "read-only", "Route profile-aware multi-repository work by nested Git root, subsystem, validation slice, authority, and cross-project phase."],
+      ["studio-agent-orchestration", "studio-core", "workflow", "read-only", "Select bounded investigator, implementer, verifier, and profile specialist roles with disjoint ownership and concurrency limits."],
       ["safe-project-mutation", "studio-core", "safety", "medium", "Change project files or generated state with a dry run, exact scope, backup manifest, apply verification, and restore path."],
       ["build-and-runtime-verification", "studio-core", "gate", "read-only", "Run build, compile, test, launch, or runtime checks tied to commands, exit codes, artifacts, limitations, and fresh evidence."],
       ["evidence-first-debugging", "studio-core", "workflow", "low", "Debug a crash, lỗi, failing game, tool, build, service, or script through reproduction, root-cause isolation, minimal fix, and regression proof."],

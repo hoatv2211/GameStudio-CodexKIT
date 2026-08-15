@@ -38,11 +38,11 @@
   <g font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="15" font-weight="600">
     <g>
       <rect x="330" y="206" width="170" height="34" rx="17" fill="#0f2536" stroke="#155e75" stroke-width="1.5"/>
-      <text x="415" y="228" text-anchor="middle" fill="#67e8f9">33 skills + router</text>
+      <text x="415" y="228" text-anchor="middle" fill="#67e8f9">35 canonical skills</text>
     </g>
     <g>
       <rect x="516" y="206" width="190" height="34" rx="17" fill="#0f2b22" stroke="#166534" stroke-width="1.5"/>
-      <text x="611" y="228" text-anchor="middle" fill="#6ee7b7">routing eval 192/192</text>
+      <text x="611" y="228" text-anchor="middle" fill="#6ee7b7">routing eval 204/204</text>
     </g>
     <g>
       <rect x="722" y="206" width="228" height="34" rx="17" fill="#2b2410" stroke="#854d0e" stroke-width="1.5"/>

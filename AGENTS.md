@@ -5,7 +5,7 @@
 Use this precedence order:
 
 1. `AGENTS.md` for operating, evidence, mutation, ownership, archive, and handoff rules.
-2. `registry/*.yaml` for capabilities, packs, personas, and upstream snapshot provenance.
+2. `registry/*.yaml` for capabilities, agent roles, packs, personas, skill resources, and upstream snapshot provenance.
 3. `skills/*/SKILL.md` for canonical workflows.
 4. `docs/architecture/overview.md` and `docs/authoring/skills.md` for maintained design guidance.
 5. Generated adapters as read-only optional export artifacts.
@@ -19,7 +19,7 @@ Files under the ignored local `.archive/` are optional historical context only a
 - `.codex-plugin/plugin.json` defines the plugin identity and exposes `./skills/` directly.
 - `.claude-plugin/marketplace.json` is the Codex-supported repository marketplace compatibility path used by the GitHub install flow.
 - Hermes Agent installs the same canonical catalog through `npx skills add <repo> -a hermes-agent`; the CLI copies individual skill directories, so runtime helpers must be bundled inside each skill.
-- Generated Hermes, Codex, pack, and per-project outputs are optional export artifacts. Never create a second hand-maintained plugin skill tree.
+- Generated Hermes, Codex, pack, and per-project outputs are optional export artifacts. Canonical agent-role templates live in `agents/` and are materialized project-locally; never create a second hand-maintained plugin skill tree.
 - Keep Codex plugin metadata, the Hermes Agent-discoverable root catalog, repository URL, and registry synchronized through `scripts/validate.py` and packaging tests.
 - Increment the plugin semantic version when a distributed plugin change must invalidate an installed cache.
 

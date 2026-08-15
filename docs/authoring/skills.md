@@ -4,7 +4,7 @@ Use `skill-authoring-and-audit` in `author` mode before creating or changing a c
 
 ## Required sequence
 
-1. Search registries and existing skills for overlap; prefer update-first.
+1. Search capability, agent-role, pack, persona, and resource registries plus existing skills for overlap; prefer update-first.
 2. Classify Adopt, Adapt, or Write-new and record provenance.
 3. Add a failing routing, behavior, pressure, or deterministic regression case before editing behavior.
 4. Update the smallest complete skill using the closed frontmatter schema enforced by `scripts/validate.py`.
@@ -12,8 +12,12 @@ Use `skill-authoring-and-audit` in `author` mode before creating or changing a c
 6. Add at least 3 positive, 2 negative with owner, and 1 collision routing case; root skills are exempt and require `Negative scope`.
 7. If the skill uses a deterministic helper, update the canonical root script and `registry/skill-resources.yaml`, then run `scripts/sync_skill_resources.py`; never patch `skills/*/scripts/` by hand.
 8. For execution-heavy workflows, add a progressively loaded `references/commands.md` with platform-specific commands, evidence fields, and mutation boundaries.
-9. Validate repository-root discovery for Codex and per-skill copying for Hermes Agent, then regenerate only the packs or adapter exports being distributed.
+9. Validate repository-root discovery for Codex, per-skill copying for Hermes Agent, and project-local role materialization from `registry/agent-roles.yaml`, then regenerate only the packs or adapter exports being distributed.
 10. Run structural validation, routing, external-catalog collision, secret, policy, cross-agent packaging, and full unittest discovery.
+
+## Project adapter contract
+
+Keep project adapter documentation and tests aligned with its safety boundary: report-only by default; apply requires a named reviewer, disjoint backup root, and approved plan digest. The overlay combines packaged generic agent templates with the profile specialist overlay, emits inert activation for manual review, and leaves `.codex/config.toml` untouched. Record per-file ownership so unmanaged local agents survive regeneration and hash-safe uninstall can return `PARTIAL` recovery with remaining owned paths instead of deleting drifted content.
 
 ## Trigger quality
 

@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 from pathlib import Path
@@ -31,6 +32,28 @@ def _canonical_descriptions(root: Path) -> dict[str, str]:
     return descriptions
 
 
+EXTERNAL_EXCLUDED_DIRECTORIES = {
+    ".archive",
+    ".git",
+    "adapters",
+    "archive",
+    "node_modules",
+    "packs",
+}
+
+
+def _external_skill_paths(root: Path) -> list[Path]:
+    found: list[Path] = []
+    excluded = {name.casefold() for name in EXTERNAL_EXCLUDED_DIRECTORIES}
+    for current, directory_names, file_names in os.walk(root, topdown=True, followlinks=False):
+        directory_names[:] = [
+            name for name in directory_names if name.casefold() not in excluded
+        ]
+        if "SKILL.md" in file_names:
+            found.append(Path(current) / "SKILL.md")
+    return sorted(found)
+
+
 def _external_root_descriptions(roots: list[Path]) -> tuple[dict[str, str], list[str]]:
     descriptions: dict[str, str] = {}
     errors: list[str] = []
@@ -38,7 +61,7 @@ def _external_root_descriptions(roots: list[Path]) -> tuple[dict[str, str], list
         if not external_root.is_dir():
             errors.append(f"external catalog root is not a directory: {external_root}")
             continue
-        for skill_path in sorted(external_root.rglob("SKILL.md")):
+        for skill_path in _external_skill_paths(external_root):
             try:
                 frontmatter, _ = parse_frontmatter(skill_path)
             except (OSError, ValueError) as error:

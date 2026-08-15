@@ -111,6 +111,38 @@
       "expected_verdict": "PASS",
       "allow_mutation": false,
       "required_artifact_fields": ["schemas", "compatibility", "consumers", "privacy", "verdict"]
+    },
+    {
+      "id": "workspace-profile-route",
+      "prompt": "Route this multi-repository game task using the project profile without editing sibling repositories.",
+      "target_skill": "studio-workspace-routing",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["profile", "repository", "owner_skill", "validation"]
+    },
+    {
+      "id": "bounded-agent-plan",
+      "prompt": "Choose bounded investigator, implementer, verifier, and specialist roles while keeping the critical path local.",
+      "target_skill": "studio-agent-orchestration",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["critical_path", "roles", "ownership", "concurrency"]
+    },
+    {
+      "id": "adapter-report-before-apply",
+      "prompt": "Prepare the per-project adapter report without writing files, then identify the reviewer, backup root, and approved plan digest required before apply.",
+      "target_skill": "studio-project-scaffold",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["report", "plan_digest", "required_apply_gates"]
+    },
+    {
+      "id": "adapter-preserves-unmanaged-local-agent",
+      "prompt": "Plan a project adapter overlay where a local agent already exists; preserve the unmanaged agent and omit it from generated activation ownership.",
+      "target_skill": "studio-project-scaffold",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["preserved_agents", "ownership", "activation"]
     }
   ]
 }

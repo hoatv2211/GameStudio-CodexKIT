@@ -1,49 +1,59 @@
-schema_version: 1
+schema_version: 2
 bundled:
   balance-data-change-review:
-    - balance_review.py
+  - balance_review.py
   cpp-server-crash-triage:
-    - crash_triage.py
+  - crash_triage.py
   economy-source-sink-model:
-    - economy_model.py
+  - economy_model.py
   game-database-migration-safety:
-    - db_safety.py
+  - db_safety.py
   game-performance-budget:
-    - performance_budget.py
+  - performance_budget.py
   localization-authority-audit:
-    - localization_audit.py
+  - localization_audit.py
   lua-client-server-contract-audit:
-    - lua_contract_audit.py
+  - lua_contract_audit.py
   mmorpg-packet-protocol-review:
-    - lua_contract_audit.py
-    - protocol_review.py
+  - lua_contract_audit.py
+  - protocol_review.py
   multi-service-local-environment-doctor:
-    - environment_doctor.py
+  - environment_doctor.py
   network-authority-and-exploit-review:
-    - authority_review.py
+  - authority_review.py
   release-candidate-preflight:
-    - release_preflight.py
+  - release_preflight.py
   safe-project-mutation:
-    - safe_mutation.py
+  - safe_mutation.py
   save-data-schema-migration:
-    - save_migration.py
+  - save_migration.py
   studio-project-scaffold:
-    - project_scaffold.py
-    - safe_mutation.py
+  - agent_overlay.py
+  - project_scaffold.py
+  - safe_mutation.py
+  - project_profile.py
+  - source: agents/investigator.toml
+    destination: templates/agents/investigator.toml
+  - source: agents/implementer.toml
+    destination: templates/agents/implementer.toml
+  - source: agents/verifier.toml
+    destination: templates/agents/verifier.toml
   telemetry-event-contract-review:
-    - telemetry_contract.py
+  - telemetry_contract.py
   unity-asset-guid-meta-audit:
-    - unity_guid_audit.py
+  - unity_guid_audit.py
   unity-batchmode-build-verification:
-    - build_evidence.py
+  - build_evidence.py
+  studio-workspace-routing:
+  - project_profile.py
 repository_only:
   review-swarm:
-    - secret_scan.py
-    - validate.py
+  - secret_scan.py
+  - validate.py
   skill-authoring-and-audit:
-    - catalog_audit.py
-    - check_originality.py
-    - route_eval.py
-    - validate.py
+  - catalog_audit.py
+  - check_originality.py
+  - route_eval.py
+  - validate.py
   using-game-studio-skills:
-    - doctor.py
+  - doctor.py

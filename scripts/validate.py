@@ -4,17 +4,20 @@ import argparse
 import datetime as dt
 import json
 import re
+import stat
 import sys
+import tomllib
+import unicodedata
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Iterable
 
 try:
     from scripts.common import load_yaml, parse_frontmatter
-    from scripts.sync_skill_resources import sync_skill_resources
+    from scripts.sync_skill_resources import load_skill_resources, sync_skill_resources
 except ModuleNotFoundError:
     from common import load_yaml, parse_frontmatter
-    from sync_skill_resources import sync_skill_resources
+    from sync_skill_resources import load_skill_resources, sync_skill_resources
 
 
 TOP_LEVEL_FIELDS = {
@@ -99,6 +102,71 @@ class Issue:
             display_path = self.path
         return f"{self.severity.upper()} {self.code} {display_path}: {self.message}"
 
+
+FORBIDDEN_PATH_CHARACTERS = set('<>:"|?*')
+RESERVED_DEVICE_BASENAMES = {
+    "aux",
+    "clock$",
+    "con",
+    "conin$",
+    "conout$",
+    "nul",
+    "prn",
+}
+RESERVED_NUMBERED_DEVICE = re.compile(r"^(?:com|lpt)(?:[1-9¹²³])$", re.IGNORECASE)
+
+def _is_reparse_point(path: Path) -> bool:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return False
+    attributes = getattr(info, "st_file_attributes", 0)
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return path.is_symlink() or bool(attributes & reparse_flag)
+
+def _safe_agent_role_path(root: Path, value: object) -> Path:
+    if not isinstance(value, str) or not value:
+        raise ValueError("agent role path must be a non-empty relative path")
+    normalized = value.replace("\\", "/")
+    parts = normalized.split("/")
+    posix = PurePosixPath(normalized)
+    windows = PureWindowsPath(value)
+    if (
+        posix.is_absolute()
+        or windows.is_absolute()
+        or windows.drive
+        or any(part in {"", ".", ".."} for part in parts)
+        or len(parts) < 2
+        or parts[0] != "agents"
+    ):
+        raise ValueError(f"unsafe agent role path: {value}")
+    for part in parts:
+        device_basename = part.split(".", 1)[0].rstrip(" .").casefold()
+        if (
+            any(unicodedata.category(character) == "Cc" for character in part)
+            or any(character in FORBIDDEN_PATH_CHARACTERS for character in part)
+            or part.endswith((".", " "))
+            or device_basename in RESERVED_DEVICE_BASENAMES
+            or RESERVED_NUMBERED_DEVICE.fullmatch(device_basename)
+        ):
+            raise ValueError(f"unsafe agent role path component {part!r}: {value}")
+
+    root_path = root.resolve()
+    if _is_reparse_point(root_path):
+        raise ValueError(f"repository root is a symlink or reparse point: {root_path}")
+    candidate = root_path.joinpath(*parts)
+    current = root_path
+    for part in parts:
+        current = current / part
+        if _is_reparse_point(current):
+            raise ValueError(f"symlink or reparse point is not allowed: {current}")
+    resolved = candidate.resolve()
+    agents_root = (root_path / "agents").resolve()
+    try:
+        resolved.relative_to(agents_root)
+    except ValueError as error:
+        raise ValueError(f"agent role path escapes repository agents/: {value}") from error
+    return candidate
 
 def _unknown_fields(data: Any, allowed: set[str]) -> set[str]:
     if not isinstance(data, dict):
@@ -338,7 +406,13 @@ def _find_cycles(graph: dict[str, list[str]]) -> list[list[str]]:
     return cycles
 
 
-def _load_registry(path: Path, top_key: str, issues: list[Issue]) -> list[dict[str, Any]]:
+def _load_registry(
+    path: Path,
+    top_key: str,
+    issues: list[Issue],
+    *,
+    preserve_raw_entries: bool = False,
+) -> list[Any]:
     if not path.exists():
         _issue(issues, "registry.file.missing", path, f"missing registry file for {top_key}")
         return []
@@ -354,6 +428,8 @@ def _load_registry(path: Path, top_key: str, issues: list[Issue]) -> list[dict[s
     if not isinstance(entries, list):
         _issue(issues, "registry.schema", path, f"{top_key} must be a list")
         return []
+    if preserve_raw_entries:
+        return entries
     return [entry for entry in entries if isinstance(entry, dict)]
 
 
@@ -552,6 +628,127 @@ def _validate_plugin_package(root: Path, capability_ids: set[str], issues: list[
             _issue(issues, "plugin.marketplace.entry", marketplace_path, "category must be 'Productivity'")
 
 
+def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
+    registry_path = root / "registry" / "agent-roles.yaml"
+    entries = _load_registry(
+        registry_path,
+        "agent_roles",
+        issues,
+        preserve_raw_entries=True,
+    )
+    role_ids = [
+        str(entry.get("id", ""))
+        for entry in entries
+        if isinstance(entry, dict)
+    ]
+    for duplicate in _duplicates(role_ids):
+        _issue(
+            issues,
+            "registry.agent_role.duplicate",
+            registry_path,
+            f"duplicate agent role id: {duplicate}",
+        )
+    expected_fields = {
+        "id",
+        "path",
+        "description",
+        "sandbox_mode",
+        "reasoning_effort",
+    }
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"agent_roles[{index}] must be a mapping",
+            )
+            continue
+        role_id = str(entry.get("id", ""))
+        if set(entry) != expected_fields:
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"agent role {role_id or '<missing>'} must contain {sorted(expected_fields)}",
+            )
+            continue
+        relative = str(entry.get("path", ""))
+        if (
+            not role_id
+            or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", role_id)
+            or not relative.startswith("agents/")
+            or not relative.endswith(".toml")
+        ):
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"invalid agent role id or path: {role_id} -> {relative}",
+            )
+            continue
+        try:
+            template_path = _safe_agent_role_path(root, relative)
+        except ValueError as error:
+            _issue(issues, "registry.agent_role.path", registry_path, str(error))
+            continue
+        if not template_path.is_file():
+            _issue(
+                issues,
+                "registry.agent_role.path",
+                template_path,
+                f"missing agent role template for {role_id}",
+            )
+            continue
+        if entry.get("sandbox_mode") not in {"read-only", "workspace-write"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid sandbox mode for {role_id}",
+            )
+        if entry.get("reasoning_effort") not in {"low", "medium", "high", "xhigh"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid reasoning effort for {role_id}",
+            )
+        try:
+            template = tomllib.loads(template_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "registry.agent_role.toml", template_path, str(error))
+            continue
+        if template.get("name") != role_id:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template name must be {role_id}",
+            )
+        if template.get("sandbox_mode") != entry.get("sandbox_mode"):
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template sandbox mode does not match registry for {role_id}",
+            )
+        if template.get("model_reasoning_effort") != entry.get("reasoning_effort"):
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template reasoning effort does not match registry for {role_id}",
+            )
+        if not isinstance(template.get("developer_instructions"), str) or not template["developer_instructions"].strip():
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template developer instructions are required for {role_id}",
+            )
+
+
 def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
     registry_path = root / "registry" / "skill-resources.yaml"
     if not registry_path.is_file():
@@ -563,6 +760,7 @@ def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
         )
         return
     try:
+        bundled, _repository_only = load_skill_resources(root)
         drift = sync_skill_resources(root, check=True)
     except (OSError, ValueError) as error:
         _issue(issues, "skill.resources.registry_invalid", registry_path, str(error))
@@ -574,6 +772,38 @@ def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
             path,
             "generated skill helper is missing, stale, or unexpected",
         )
+    for resource in bundled:
+        template_path = resource.destination
+        if template_path.suffix.casefold() != ".toml" or not template_path.is_file():
+            continue
+        relative = template_path.relative_to(root / "skills" / resource.skill_id)
+        is_agent_template = (
+            len(relative.parts) == 3
+            and relative.parts[:2] == ("templates", "agents")
+        )
+        if not is_agent_template:
+            continue
+        try:
+            template = tomllib.loads(template_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "skill.resources.toml_parse", template_path, str(error))
+            continue
+        if template.get("name") != template_path.stem:
+            _issue(
+                issues,
+                "skill.resources.toml_name",
+                template_path,
+                f"packaged template name must be {template_path.stem}",
+            )
+        for field in ("name", "description", "developer_instructions"):
+            value = template.get(field)
+            if not isinstance(value, str) or not value.strip():
+                _issue(
+                    issues,
+                    "skill.resources.toml_required",
+                    template_path,
+                    f"packaged agent template requires non-empty {field}",
+                )
 
 
 def validate_repository(root: Path | str) -> list[Issue]:
@@ -599,6 +829,7 @@ def validate_repository(root: Path | str) -> list[Issue]:
     for skill_path in sorted((root_path / "skills").glob("*/SKILL.md")):
         _validate_skill(skill_path, issues)
     capability_ids = _validate_registries(root_path, issues)
+    _validate_agent_roles(root_path, issues)
     _validate_skill_resources(root_path, issues)
     _validate_plugin_package(root_path, capability_ids, issues)
     return sorted(issues, key=lambda issue: (str(issue.path), issue.code, issue.message))

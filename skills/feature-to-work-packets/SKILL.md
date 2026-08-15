@@ -1,6 +1,6 @@
 ---
 name: feature-to-work-packets
-description: Use when decomposing an approved feature specification into ordered work packets with objectives, exact files, single-writer ownership, dependencies, risks, evidence, and verification commands.
+description: Use when decomposing an approved specification into ordered work packets with a file owner, exact paths, single-writer ownership, dependencies, risks, evidence, and verification commands.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -48,8 +48,8 @@ Packet authoring is low-risk. Packets cannot grant destructive actions or overla
    Completion criterion: generated outputs and external dependencies are distinguished from editable sources.
 2. Build the dependency graph and identify immediate blockers versus parallel sidecars.
    Completion criterion: ordering is based on real interfaces, not team preference.
-3. Create packets with one objective, exact owned files, excluded files, inputs, outputs, and risks.
-   Completion criterion: no two concurrent packets own the same path or generated target.
+3. Create packets with one objective, repository phase, exact owned files, excluded files, inputs, outputs, authority handoff, and risks.
+   Completion criterion: no two concurrent packets own the same path or generated target, and cross-project phases have one integration owner.
 4. Attach focused and broader verification commands plus expected artifacts.
    Completion criterion: each packet has an objective completion check.
 5. Define integration and review packets owned by the orchestrator or reviewer.

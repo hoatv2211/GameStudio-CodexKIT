@@ -6,7 +6,7 @@
 
 **Agent skills for operating live game projects — not writing new ones.**
 
-[![Skills](https://img.shields.io/badge/skills-33%20%2B%20router-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-192%2F192-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-118%20cases-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-35%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-204%2F204-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -43,7 +43,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
     <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
   </tr>
   <tr>
-    <td align="center"><strong>One studio catalog</strong><br><sub>33 canonical skills, four packs, and six thin persona lenses.</sub></td>
+    <td align="center"><strong>One studio catalog</strong><br><sub>35 canonical skills, four packs, six thin persona lenses, and three generated agent roles.</sub></td>
     <td align="center"><strong>Trust is explicit state</strong><br><sub><code>BLOCKED</code> is never converted into <code>PASS</code>.</sub></td>
   </tr>
   <tr>
@@ -153,7 +153,7 @@ The repository root is the plugin package. `.codex-plugin/plugin.json` exposes t
 
 ## Install in Hermes Agent
 
-Install all 33 skills globally with the Agent Skills CLI:
+Install all 35 skills globally with the Agent Skills CLI:
 
 ```bash
 npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y
@@ -171,14 +171,14 @@ Repository governance tools such as the catalog validator, originality audit, an
 
 ## Current state
 
-- 33 canonical skills, including one root entry router and 32 routed domain skills.
-- 192/192 deterministic Tier-A routing cases.
+- 35 canonical skills, including one root entry router and 34 routed workflow or domain skills.
+- 204/204 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
-- 10 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
+- 12 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
 - Four installable packs and six thin personas.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
-- Seventeen standalone domain skills with 19 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
-- Optional generated exports for manual Hermes, Codex, pack, and project-local `.agents/` workflows.
+- Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
+- Optional generated exports for manual Hermes, Codex, pack, project-local `.agents/` skills, and `.codex/agents/` role overlays.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
 - All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist. First dogfood evidence: the localization case study above.
 
@@ -188,7 +188,7 @@ The template does not claim that a Unity build, C++ server, database migration, 
 
 | Pack | Focus |
 |---|---|
-| `studio-core` | Intake, design, planning, debugging, evidence, safe mutation, review, handoff, and skill governance |
+| `studio-core` | Intake, multi-repository routing, agent orchestration, design, planning, debugging, evidence, safe mutation, review, handoff, and skill governance |
 | `unity` | Offline client debugging, UI rendering, localization, GUID/meta integrity, and batch builds |
 | `cpp-lua-mmorpg` | Local services, MySQL safety, Lua contracts, C++ crashes, packet protocols, authority, and save migration |
 | `production-design-liveops` | Playtests, performance, economy, balance, release, stores, incidents, and telemetry |
@@ -201,7 +201,7 @@ The authoritative capability list is `registry/capabilities.yaml`. Pack composit
 - PyYAML
 - Git
 
-Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ standard library only. A full clone additionally needs PyYAML for repository validation, routing, policy, and generation tools. The project uses standard-library `unittest`; pytest is not required.
+Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ and may require PyYAML when they validate or render YAML-backed project profiles. A full clone requires PyYAML for repository validation, routing, policy, profile, and generation tools. The project uses standard-library `unittest`; pytest is not required.
 
 ## Verify the kit
 
@@ -249,13 +249,24 @@ Applying the scaffold is a medium-risk mutation and requires a reviewer plus bac
 python -B scripts/project_scaffold.py D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.scaffold-backup
 ```
 
-Install the canonical skills into an existing project while preserving unmanaged local skills:
+The per-project adapter is report-only by default. Capture its proposed plan first; this command creates nothing:
 
-```bash
-python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project
+```powershell
+$report = python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project | ConvertFrom-Json
+$report | ConvertTo-Json -Depth 10
 ```
 
-The per-project adapter writes kit-owned skills under `.agents/skills/`, records hashes in `.agents/registry.json`, and does not overwrite local skills without the generated ownership marker.
+Review the full report and its `plan_digest`, then apply that exact plan. Apply requires a named reviewer, a disjoint project-local backup root, and the approved plan digest:
+
+```powershell
+python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.adapter-backup --plan-digest $report.plan_digest
+```
+
+Apply rebuilds the plan and refuses mutation if the source catalog, project profile, or any managed target changed after the report. If it refuses, generate and review a new report instead of reusing the old digest. The backup root must not overlap any planned target such as `.agents/` or `.codex/`.
+
+The apply command writes kit-owned skills under `.agents/skills/` and builds a role overlay from packaged generic agent templates plus the profile specialist overlay under `.codex/agents/`. It emits an inert activation file at `.codex/agents.generated.toml`, records per-file ownership hashes in `.agents/registry.json`, and returns a safe-mutation manifest plus restore command. The activation file has no effect until it is manually reviewed and merged into project configuration. The adapter leaves `.codex/config.toml` untouched and never overwrites `.codex/config.toml`.
+
+Uninstall is hash-safe: it removes only files whose current content still matches their recorded per-file ownership hash, preserves unmanaged or drifted local agents, and reports `PARTIAL` recovery with the remaining owned paths when safe removal cannot finish. Resolve those paths from the report rather than deleting project-local content blindly.
 
 ## Advanced maintenance: packs and adapters
 

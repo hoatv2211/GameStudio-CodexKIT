@@ -12,6 +12,20 @@ from pathlib import Path
 from tests._meta.support import temporary_directory, write_plugin_package
 
 
+def install_reviewed_project_adapter(source_root: Path, project: Path) -> dict[str, object]:
+    from scripts.doctor import install_adapter
+
+    report = install_adapter(source_root, "per-project", project)
+    return install_adapter(
+        source_root,
+        "per-project",
+        project,
+        apply=True,
+        reviewer="QA Lead",
+        backup_root=project / ".adapter-backup",
+        approved_plan_digest=report["plan_digest"],
+    )
+
 class DoctorTests(unittest.TestCase):
     def test_health_checks_disable_bytecode_and_leave_no_cache(self) -> None:
         from scripts.doctor import health
@@ -20,7 +34,7 @@ class DoctorTests(unittest.TestCase):
         with temporary_directory() as temp:
             root = Path(temp)
             ignore_generated = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
-            for directory in ("scripts", "skills", "registry", "personas", "evals"):
+            for directory in ("scripts", "skills", "agents", "registry", "personas", "evals"):
                 shutil.copytree(
                     source_root / directory,
                     root / directory,
@@ -80,6 +94,144 @@ class DoctorTests(unittest.TestCase):
             )
             self.assertNotEqual(0, count.returncode)
 
+    def test_adapter_install_per_project_defaults_to_report_only(self) -> None:
+        from scripts.doctor import install_adapter
+
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp) / "missing-project"
+
+            report = install_adapter(source_root, "per-project", project)
+
+            self.assertEqual("REPORT_ONLY", report["status"])
+            self.assertIn(".agents/registry.json", report["proposed"])
+            self.assertFalse(project.exists())
+
+    def test_adapter_install_per_project_apply_requires_review_inputs(self) -> None:
+        from scripts.doctor import install_adapter
+
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp) / "project"
+            with self.assertRaisesRegex(ValueError, "reviewer"):
+                install_adapter(
+                    source_root,
+                    "per-project",
+                    project,
+                    apply=True,
+                    reviewer="   ",
+                    backup_root=project / ".adapter-backup",
+                )
+            with self.assertRaisesRegex(ValueError, "backup_root"):
+                install_adapter(
+                    source_root,
+                    "per-project",
+                    project,
+                    apply=True,
+                    reviewer="QA Lead",
+                )
+            self.assertFalse(project.exists())
+
+    def test_doctor_cli_per_project_defaults_to_report_and_enforces_apply_args(self) -> None:
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp) / "missing-project"
+            base = [
+                sys.executable,
+                "-B",
+                str(source_root / "scripts" / "doctor.py"),
+                "--root",
+                str(source_root),
+                "--install-adapter",
+                "per-project",
+                "--destination",
+                str(project),
+            ]
+            report = subprocess.run(base, cwd=source_root, check=False, capture_output=True, text=True)
+            missing_args = subprocess.run(
+                [*base, "--apply"],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertEqual(0, report.returncode, report.stderr)
+            self.assertEqual("REPORT_ONLY", json.loads(report.stdout)["status"])
+            self.assertNotEqual(0, missing_args.returncode)
+            self.assertIn("--reviewer", missing_args.stderr)
+            self.assertFalse(project.exists())
+
+    def test_doctor_adapter_apply_requires_approved_plan_digest(self) -> None:
+        from scripts.doctor import install_adapter
+
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp) / "project"
+            report = install_adapter(source_root, "per-project", project)
+
+            with self.assertRaisesRegex(ValueError, "approved_plan_digest"):
+                install_adapter(
+                    source_root,
+                    "per-project",
+                    project,
+                    apply=True,
+                    reviewer="QA Lead",
+                    backup_root=project / ".adapter-backup",
+                )
+
+            self.assertFalse(project.exists())
+            self.assertTrue(report["plan_digest"])
+
+    def test_doctor_cli_requires_plan_digest_and_rejects_uninstall_review_args(self) -> None:
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp) / "project"
+            script = str(source_root / "scripts" / "doctor.py")
+            base = [
+                sys.executable,
+                "-B",
+                script,
+                "--root",
+                str(source_root),
+                "--destination",
+                str(project),
+            ]
+            missing_digest = subprocess.run(
+                [
+                    *base,
+                    "--install-adapter",
+                    "per-project",
+                    "--apply",
+                    "--reviewer",
+                    "QA Lead",
+                    "--backup-root",
+                    str(project / ".adapter-backup"),
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            uninstall_with_digest = subprocess.run(
+                [
+                    *base,
+                    "--uninstall-adapter",
+                    "--plan-digest",
+                    "0" * 64,
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+
+            self.assertNotEqual(0, missing_digest.returncode)
+            self.assertIn("--plan-digest", missing_digest.stderr)
+            self.assertNotEqual(0, uninstall_with_digest.returncode)
+            self.assertIn("cannot be used with --uninstall-adapter", uninstall_with_digest.stderr)
+            self.assertFalse(project.exists())
+
     def test_adapter_install_and_uninstall_preserve_project_local_skills(self) -> None:
         from scripts.doctor import install_adapter, uninstall_adapter
 
@@ -89,7 +241,7 @@ class DoctorTests(unittest.TestCase):
             local_skill = project / ".agents" / "skills" / "project-memory" / "SKILL.md"
             local_skill.parent.mkdir(parents=True)
             local_skill.write_text("local-owned\n", encoding="utf-8")
-            install_adapter(source_root, "per-project", project)
+            install_reviewed_project_adapter(source_root, project)
             generated = project / ".agents" / "skills" / "studio-project-intake" / "SKILL.md"
             self.assertTrue(generated.exists())
             removed = uninstall_adapter(project)
@@ -103,7 +255,7 @@ class DoctorTests(unittest.TestCase):
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             project = Path(temp)
-            install_adapter(source_root, "per-project", project)
+            install_reviewed_project_adapter(source_root, project)
             local_skill = project / ".agents" / "skills" / "local-notes" / "SKILL.md"
             local_skill.parent.mkdir(parents=True)
             local_skill.write_text(
@@ -120,7 +272,7 @@ class DoctorTests(unittest.TestCase):
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             project = Path(temp)
-            install_adapter(source_root, "per-project", project)
+            install_reviewed_project_adapter(source_root, project)
             generated = project / ".agents" / "skills" / "studio-project-intake" / "SKILL.md"
             generated.write_text(generated.read_text(encoding="utf-8") + "local drift\n", encoding="utf-8")
             removed = uninstall_adapter(project)

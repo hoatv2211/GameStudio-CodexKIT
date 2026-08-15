@@ -1,54 +1,63 @@
 schema_version: 1
 packs:
-  - id: studio-core
-    description: Engine-agnostic intake, safety, evidence, collaboration, design, and governance workflows.
-    skills:
-      - using-game-studio-skills
-      - studio-project-intake
-      - safe-project-mutation
-      - build-and-runtime-verification
-      - evidence-first-debugging
-      - studio-handoff
-      - review-swarm
-      - bug-hunt-swarm
-      - game-feature-brainstorming
-      - game-feature-to-spec
-      - feature-to-work-packets
-      - skill-authoring-and-audit
-      - studio-project-scaffold
-    depends_on: []
-  - id: unity
-    description: Unity client diagnostics, UI rendering, localization, asset integrity, batch build, and project scaffold workflows.
-    skills:
-      - studio-project-scaffold
-      - unity-client-offline-debugging
-      - unity-ui-rendering-debugging
-      - localization-authority-audit
-      - unity-asset-guid-meta-audit
-      - unity-batchmode-build-verification
-    depends_on: [studio-core]
-  - id: cpp-lua-mmorpg
-    description: Local services, MySQL safety, Lua contracts, crash triage, protocol and authority review, save migration, localization, and MMORPG project scaffolding.
-    skills:
-      - studio-project-scaffold
-      - multi-service-local-environment-doctor
-      - game-database-migration-safety
-      - lua-client-server-contract-audit
-      - localization-authority-audit
-      - cpp-server-crash-triage
-      - mmorpg-packet-protocol-review
-      - network-authority-and-exploit-review
-      - save-data-schema-migration
-    depends_on: [studio-core]
-  - id: production-design-liveops
-    description: Playtest evidence, performance, economy, balance, release, store, incident, and telemetry production workflows.
-    skills:
-      - playtest-evidence
-      - game-performance-budget
-      - economy-source-sink-model
-      - balance-data-change-review
-      - release-candidate-preflight
-      - store-submission-checklist
-      - liveops-incident-response
-      - telemetry-event-contract-review
-    depends_on: [studio-core]
+- id: studio-core
+  description: Engine-agnostic intake, safety, evidence, collaboration, design, and
+    governance workflows.
+  skills:
+  - using-game-studio-skills
+  - studio-project-intake
+  - studio-agent-orchestration
+  - studio-workspace-routing
+  - safe-project-mutation
+  - build-and-runtime-verification
+  - evidence-first-debugging
+  - studio-handoff
+  - review-swarm
+  - bug-hunt-swarm
+  - game-feature-brainstorming
+  - game-feature-to-spec
+  - feature-to-work-packets
+  - skill-authoring-and-audit
+  - studio-project-scaffold
+  depends_on: []
+- id: unity
+  description: Unity client diagnostics, UI rendering, localization, asset integrity,
+    batch build, and project scaffold workflows.
+  skills:
+  - studio-project-scaffold
+  - unity-client-offline-debugging
+  - unity-ui-rendering-debugging
+  - localization-authority-audit
+  - unity-asset-guid-meta-audit
+  - unity-batchmode-build-verification
+  depends_on:
+  - studio-core
+- id: cpp-lua-mmorpg
+  description: Local services, MySQL safety, Lua contracts, crash triage, protocol
+    and authority review, save migration, localization, and MMORPG project scaffolding.
+  skills:
+  - studio-project-scaffold
+  - multi-service-local-environment-doctor
+  - game-database-migration-safety
+  - lua-client-server-contract-audit
+  - localization-authority-audit
+  - cpp-server-crash-triage
+  - mmorpg-packet-protocol-review
+  - network-authority-and-exploit-review
+  - save-data-schema-migration
+  depends_on:
+  - studio-core
+- id: production-design-liveops
+  description: Playtest evidence, performance, economy, balance, release, store, incident,
+    and telemetry production workflows.
+  skills:
+  - playtest-evidence
+  - game-performance-budget
+  - economy-source-sink-model
+  - balance-data-change-review
+  - release-candidate-preflight
+  - store-submission-checklist
+  - liveops-incident-response
+  - telemetry-event-contract-review
+  depends_on:
+  - studio-core

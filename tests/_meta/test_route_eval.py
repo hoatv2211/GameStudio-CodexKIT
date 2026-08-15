@@ -85,6 +85,20 @@ class RouteEvalTests(unittest.TestCase):
         summary = evaluate_repository(self.root)
         self.assertTrue(any("minimum" in failure.message for failure in summary.failures))
 
+    def test_repository_registers_workspace_and_agent_routing_skills(self) -> None:
+        import yaml
+
+        repository_root = Path(__file__).resolve().parents[2]
+        registry = yaml.safe_load(
+            (repository_root / "registry" / "capabilities.yaml").read_text(encoding="utf-8")
+        )
+        capability_ids = {entry["id"] for entry in registry["capabilities"]}
+
+        for skill_id in ("studio-workspace-routing", "studio-agent-orchestration"):
+            self.assertIn(skill_id, capability_ids)
+            self.assertTrue((repository_root / "skills" / skill_id / "SKILL.md").is_file())
+            self.assertTrue((repository_root / "evals" / "routing" / f"{skill_id}.json").is_file())
+
     def test_cli_reports_vietnamese_failure_without_unicode_crash(self) -> None:
         cases = minimum_cases(
             "runtime-verification",

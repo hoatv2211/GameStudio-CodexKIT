@@ -1,15 +1,160 @@
 {
   "schema_version": 1,
   "cases": [
-    {"id": "intake-sov-project", "workflow": "studio-project-intake", "project_kind": "Unity MMORPG", "prompt": "Collect Sea-of-Vanguard project goal, engine version, scope, constraints, and safe do-not-touch boundaries before debugging.", "required_artifacts": ["command-log", "project-snapshot", "intake-packet", "verdict"], "allow_mutation": false},
-    {"id": "unity-offline-bootstrap", "workflow": "unity-client-offline-debugging", "project_kind": "Unity client", "prompt": "Diagnose why the MU client cannot enter offline gameplay by tracing login, bootstrap, disconnected fallback, local mock data, and scene startup.", "required_artifacts": ["command-log", "project-snapshot", "bootstrap-trace", "verdict"], "allow_mutation": false},
-    {"id": "ngui-offline-screen", "workflow": "unity-ui-rendering-debugging", "project_kind": "Unity NGUI UI", "prompt": "Investigate a missing offline screen item with NGUI draw order, clipping, atlas, camera, and runtime hierarchy evidence.", "required_artifacts": ["command-log", "project-snapshot", "frame-capture", "verdict"], "allow_mutation": false},
-    {"id": "batchmode-windows-build", "workflow": "unity-batchmode-build-verification", "project_kind": "Unity CI build", "prompt": "Run and verify a Unity batchmode Windows build with Editor.log, exit code, build identity, and player artifact.", "required_artifacts": ["command-log", "project-snapshot", "build-log", "build-artifact", "verdict"], "allow_mutation": false},
-    {"id": "mysql-3307-dry-run", "workflow": "game-database-migration-safety", "project_kind": "MySQL game database", "prompt": "Prepare a MySQL 3307 schema migration dry-run with recognized schema, backup, restore, validation queries, reviewer, and human approval gate.", "required_artifacts": ["command-log", "project-snapshot", "migration-safety-plan", "verdict"], "allow_mutation": false},
-    {"id": "local-port-collision", "workflow": "multi-service-local-environment-doctor", "project_kind": "Local MU services", "prompt": "Diagnose port 3306 and 3307 conflicts, process listeners, configured service ports, and cross-project startup dependencies without killing processes.", "required_artifacts": ["command-log", "project-snapshot", "port-report", "verdict"], "allow_mutation": false},
-    {"id": "cpp-access-violation", "workflow": "cpp-server-crash-triage", "project_kind": "C++ game server", "prompt": "Triage an access violation dump with symbols, stack signature, exact build identity, ranked hypotheses, and a minimal regression plan.", "required_artifacts": ["command-log", "project-snapshot", "crash-signature", "verdict"], "allow_mutation": false},
-    {"id": "lua-opcode-drift", "workflow": "lua-client-server-contract-audit", "project_kind": "Lua/C++ MMORPG", "prompt": "Audit a Lua client/server opcode and request-response field mismatch against generated protocol authority without patching either side.", "required_artifacts": ["command-log", "project-snapshot", "contract-diff", "verdict"], "allow_mutation": false},
-    {"id": "liveops-incident-bridge", "workflow": "liveops-incident-response", "project_kind": "Live game service", "prompt": "Contain a live service incident with an incident commander, timeline, mitigation, player communication, recovery, and postmortem handoff.", "required_artifacts": ["command-log", "project-snapshot", "incident-timeline", "verdict"], "allow_mutation": false},
-    {"id": "release-rc-go-no-go", "workflow": "release-candidate-preflight", "project_kind": "Game release", "prompt": "Make a release-candidate go/no-go decision from build and test evidence, known issues, compatibility, monitoring, rollback, and approvals.", "required_artifacts": ["command-log", "project-snapshot", "release-preflight", "verdict"], "allow_mutation": false}
+    {
+      "id": "intake-sov-project",
+      "workflow": "studio-project-intake",
+      "project_kind": "Unity MMORPG",
+      "prompt": "Collect Sea-of-Vanguard project goal, engine version, scope, constraints, and safe do-not-touch boundaries before debugging.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "intake-packet",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "unity-offline-bootstrap",
+      "workflow": "unity-client-offline-debugging",
+      "project_kind": "Unity client",
+      "prompt": "Diagnose why the MU client cannot enter offline gameplay by tracing login, bootstrap, disconnected fallback, local mock data, and scene startup.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "bootstrap-trace",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "ngui-offline-screen",
+      "workflow": "unity-ui-rendering-debugging",
+      "project_kind": "Unity NGUI UI",
+      "prompt": "Investigate a missing offline screen item with NGUI draw order, clipping, atlas, camera, and runtime hierarchy evidence.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "frame-capture",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "batchmode-windows-build",
+      "workflow": "unity-batchmode-build-verification",
+      "project_kind": "Unity CI build",
+      "prompt": "Run and verify a Unity batchmode Windows build with Editor.log, exit code, build identity, and player artifact.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "build-log",
+        "build-artifact",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "mysql-3307-dry-run",
+      "workflow": "game-database-migration-safety",
+      "project_kind": "MySQL game database",
+      "prompt": "Prepare a MySQL 3307 schema migration dry-run with recognized schema, backup, restore, validation queries, reviewer, and human approval gate.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "migration-safety-plan",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "local-port-collision",
+      "workflow": "multi-service-local-environment-doctor",
+      "project_kind": "Local MU services",
+      "prompt": "Diagnose port 3306 and 3307 conflicts, process listeners, configured service ports, and cross-project startup dependencies without killing processes.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "port-report",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "cpp-access-violation",
+      "workflow": "cpp-server-crash-triage",
+      "project_kind": "C++ game server",
+      "prompt": "Triage an access violation dump with symbols, stack signature, exact build identity, ranked hypotheses, and a minimal regression plan.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "crash-signature",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "lua-opcode-drift",
+      "workflow": "lua-client-server-contract-audit",
+      "project_kind": "Lua/C++ MMORPG",
+      "prompt": "Audit a Lua client/server opcode and request-response field mismatch against generated protocol authority without patching either side.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "contract-diff",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "liveops-incident-bridge",
+      "workflow": "liveops-incident-response",
+      "project_kind": "Live game service",
+      "prompt": "Contain a live service incident with an incident commander, timeline, mitigation, player communication, recovery, and postmortem handoff.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "incident-timeline",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "release-rc-go-no-go",
+      "workflow": "release-candidate-preflight",
+      "project_kind": "Game release",
+      "prompt": "Make a release-candidate go/no-go decision from build and test evidence, known issues, compatibility, monitoring, rollback, and approvals.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "release-preflight",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "route-sanitized-multi-repo-workspace",
+      "workflow": "studio-workspace-routing",
+      "project_kind": "Sanitized Unity MMO multi-repository workspace",
+      "prompt": "Use the verified project profile to route one cross-repository reward change through services, authoritative server, and Unity client phases without editing sibling repositories early.",
+      "required_artifacts": [
+        "workspace-route",
+        "project-profile",
+        "validation-matrix"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "plan-sanitized-agent-overlay",
+      "workflow": "studio-agent-orchestration",
+      "project_kind": "Sanitized project-local Codex agent overlay",
+      "prompt": "Choose bounded investigator, implementer, verifier, and one profile specialist while keeping the critical path local and rejecting overlapping writers.",
+      "required_artifacts": [
+        "agent-plan",
+        "ownership-map",
+        "rejected-parallelism"
+      ],
+      "allow_mutation": false
+    }
   ]
 }

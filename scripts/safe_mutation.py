@@ -100,6 +100,58 @@ def _normalized_operations(root: Path, operations: list[dict[str, str]]) -> list
     return normalized
 
 
+def _operation_precondition(item: dict[str, Any]) -> dict[str, Any]:
+    return {
+        "path": item["path"],
+        "action": "update" if item["before_exists"] else "create",
+        "before_sha256": item["before_sha256"],
+        "after_sha256": item["after_sha256"],
+    }
+
+
+def _normalized_expected_operations(
+    expected_operations: list[dict[str, Any]],
+) -> list[dict[str, Any]]:
+    required = {"path", "action", "before_sha256", "after_sha256"}
+    allowed = required | {"restore"}
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for operation in expected_operations:
+        if (
+            not isinstance(operation, dict)
+            or not required.issubset(operation)
+            or not set(operation).issubset(allowed)
+        ):
+            raise ValueError(
+                "expected operations require path, action, before_sha256, and after_sha256"
+            )
+        relative = str(operation["path"]).replace("\\", "/")
+        collision_key = relative.casefold()
+        if collision_key in seen:
+            raise ValueError(f"duplicate expected mutation path: {relative}")
+        seen.add(collision_key)
+        action = operation["action"]
+        if action not in {"create", "update"}:
+            raise ValueError(f"invalid expected mutation action: {action}")
+        normalized.append(
+            {
+                "path": relative,
+                "action": action,
+                "before_sha256": operation["before_sha256"],
+                "after_sha256": operation["after_sha256"],
+            }
+        )
+    return sorted(normalized, key=lambda operation: operation["path"])
+
+
+def _assert_target_pre_state(item: dict[str, Any]) -> None:
+    target: Path = item["target"]
+    exists = target.exists()
+    current_sha256 = _sha256_path(target)
+    if exists != item["before_exists"] or current_sha256 != item["before_sha256"]:
+        raise ValueError(f"target pre-state changed before mutation: {item['path']}")
+
+
 def report_mutation(root: Path | str, operations: list[dict[str, str]]) -> dict[str, Any]:
     root_path = Path(root).resolve()
     normalized = _normalized_operations(root_path, operations)
@@ -119,8 +171,35 @@ def report_mutation(root: Path | str, operations: list[dict[str, str]]) -> dict[
     }
 
 
+def _serialized_json_bytes(payload: dict[str, Any]) -> bytes:
+    return (json.dumps(payload, indent=2) + "\n").encode("utf-8")
+
+
+_ATOMIC_REPLACE = os.replace
+
+
 def _write_manifest(path: Path, manifest: dict[str, Any]) -> None:
-    path.write_text(json.dumps(manifest, indent=2) + "\n", encoding="utf-8")
+    payload = _serialized_json_bytes(manifest)
+    fd, temporary_name = tempfile.mkstemp(
+        prefix=f".{path.name}.",
+        suffix=".tmp",
+        dir=path.parent,
+    )
+    temporary = Path(temporary_name)
+    try:
+        with os.fdopen(fd, "wb") as handle:
+            handle.write(payload)
+            handle.flush()
+            os.fsync(handle.fileno())
+        _ATOMIC_REPLACE(temporary, path)
+    finally:
+        if temporary.exists():
+            temporary.unlink()
+
+
+def _verify_manifest(path: Path, manifest: dict[str, Any]) -> None:
+    if not path.is_file() or path.read_bytes() != _serialized_json_bytes(manifest):
+        raise RuntimeError(f"manifest verification failed: {path}")
 
 
 def _ownership_digest(manifest: dict[str, Any]) -> str:
@@ -134,14 +213,17 @@ def _ownership_digest(manifest: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
-def _write_ownership_sidecar(backup_root: Path, manifest: dict[str, Any]) -> None:
-    sidecar = {
+def _ownership_sidecar_payload(manifest: dict[str, Any]) -> dict[str, Any]:
+    return {
         "schema_version": 1,
         "operation_id": manifest["operation_id"],
         "manifest_digest": _ownership_digest(manifest),
     }
-    (backup_root / "ownership.json").write_text(
-        json.dumps(sidecar, indent=2) + "\n", encoding="utf-8"
+
+
+def _write_ownership_sidecar(backup_root: Path, manifest: dict[str, Any]) -> None:
+    (backup_root / "ownership.json").write_bytes(
+        _serialized_json_bytes(_ownership_sidecar_payload(manifest))
     )
 
 
@@ -150,34 +232,112 @@ def _trusted_journal_path(root: Path, operation_id: str) -> Path:
     return Path(tempfile.gettempdir()) / "GameStudio-CodexKIT-safe-mutation" / root_key / f"{operation_id}.json"
 
 
-def _write_trusted_journal(root: Path, manifest: dict[str, Any]) -> None:
-    journal_path = _trusted_journal_path(root, manifest["operation_id"])
-    journal_path.parent.mkdir(parents=True, exist_ok=True)
-    record = {
+def _trusted_journal_payload(root: Path, manifest: dict[str, Any]) -> dict[str, Any]:
+    return {
         "schema_version": 1,
         "operation_id": manifest["operation_id"],
         "root": str(root.resolve()),
         "manifest_digest": _ownership_digest(manifest),
     }
-    journal_path.write_text(json.dumps(record, indent=2) + "\n", encoding="utf-8")
 
 
-def _rollback_applied(root: Path, backup_root: Path, operations: list[dict[str, Any]]) -> None:
+def _write_trusted_journal(root: Path, manifest: dict[str, Any]) -> None:
+    journal_path = _trusted_journal_path(root, manifest["operation_id"])
+    journal_path.parent.mkdir(parents=True, exist_ok=True)
+    journal_path.write_bytes(
+        _serialized_json_bytes(_trusted_journal_payload(root, manifest))
+    )
+
+
+def _mkdir_tracked(path: Path, created_directories: list[Path]) -> None:
+    missing: list[Path] = []
+    current = path
+    while not current.exists():
+        missing.append(current)
+        current = current.parent
+    path.mkdir(parents=True, exist_ok=True)
+    created_directories.extend(reversed(missing))
+
+
+def _register_expected_owned_file(
+    path: Path,
+    expected_hash: str,
+    owned_files: dict[Path, str],
+) -> str | None:
+    if not path.exists():
+        return None
+    if not path.is_file() or _sha256_path(path) != expected_hash:
+        return f"preserved unowned preparation artifact at expected path: {path}"
+    owned_files[path] = expected_hash
+    return None
+
+
+def _cleanup_preparation_artifacts(
+    owned_files: dict[Path, str],
+    created_directories: list[Path],
+) -> list[str]:
+    issues: list[str] = []
+    for path, expected_hash in reversed(list(owned_files.items())):
+        try:
+            if not path.exists():
+                continue
+            if not path.is_file() or _sha256_path(path) != expected_hash:
+                issues.append(f"preserved changed preparation artifact: {path}")
+                continue
+            path.unlink()
+        except BaseException as error:
+            issues.append(f"failed to remove preparation artifact {path}: {error}")
+    for directory in sorted(set(created_directories), key=lambda item: len(item.parts), reverse=True):
+        try:
+            if directory.is_dir() and not any(directory.iterdir()):
+                directory.rmdir()
+        except BaseException as error:
+            issues.append(f"failed to remove preparation directory {directory}: {error}")
+    return issues
+
+
+def _rollback_applied(
+    root: Path,
+    backup_root: Path,
+    operations: list[dict[str, Any]],
+) -> list[str]:
+    issues: list[str] = []
     for operation in reversed(operations):
-        target = _target(root, operation["path"])
-        if operation["action"] == "create":
-            if target.exists():
+        try:
+            target = _target(root, operation["path"])
+            if _sha256_path(target) != operation["after_sha256"]:
+                issues.append(
+                    f"preserved drifted applied target {operation['path']}; manual recovery required"
+                )
+                continue
+            if operation["action"] == "create":
                 target.unlink()
-            continue
-        backup = (backup_root / str(operation["backup"])).resolve()
-        backup.relative_to(backup_root)
-        if _sha256_path(backup) != operation["before_sha256"]:
-            raise RuntimeError(f"cannot rollback because backup hash mismatched: {operation['path']}")
-        target.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy2(backup, target)
+                continue
+            backup = (backup_root / str(operation["backup"])).resolve()
+            backup.relative_to(backup_root)
+            if _sha256_path(backup) != operation["before_sha256"]:
+                issues.append(
+                    f"backup hash mismatched for {operation['path']}; manual recovery required"
+                )
+                continue
+            target.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(backup, target)
+            if _sha256_path(target) != operation["before_sha256"]:
+                issues.append(
+                    f"rollback verification failed for {operation['path']}; manual recovery required"
+                )
+        except BaseException as error:
+            issues.append(f"rollback failed for {operation['path']}: {error}")
+    return issues
 
 
-def apply_mutation(root: Path | str, operations: list[dict[str, str]], backup_root: Path | str) -> Path:
+def apply_mutation(
+    root: Path | str,
+    operations: list[dict[str, str]],
+    backup_root: Path | str,
+    *,
+    expected_operations: list[dict[str, Any]] | None = None,
+) -> Path:
     root_path = Path(root).resolve()
     backup_path = Path(backup_root).resolve()
     try:
@@ -186,49 +346,148 @@ def apply_mutation(root: Path | str, operations: list[dict[str, str]], backup_ro
         raise ValueError("backup root must remain inside the approved root") from error
     _assert_safe_components(root_path, backup_path)
     normalized = _normalized_operations(root_path, operations)
+    if expected_operations is not None:
+        expected = _normalized_expected_operations(expected_operations)
+        actual = sorted(
+            (_operation_precondition(item) for item in normalized),
+            key=lambda operation: operation["path"],
+        )
+        if actual != expected:
+            raise ValueError(
+                "approved mutation precondition mismatch; report and target state changed before apply"
+            )
     if backup_path.exists() and any(backup_path.iterdir()):
         raise ValueError(f"backup root must be empty: {backup_path}")
 
-    files_root = backup_path / "files"
-    files_root.mkdir(parents=True, exist_ok=True)
+    owned_preparation_files: dict[Path, str] = {}
+    preparation_ownership_issues: list[str] = []
+    created_preparation_directories: list[Path] = []
     manifest_operations: list[dict[str, Any]] = []
-    for item in normalized:
-        backup_relative: str | None = None
-        if item["before_exists"]:
-            backup_file = files_root / item["path"]
-            backup_file.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(item["target"], backup_file)
-            backup_relative = backup_file.relative_to(backup_path).as_posix()
-        manifest_operations.append(
-            {
-                "path": item["path"],
-                "action": "update" if item["before_exists"] else "create",
-                "before_sha256": item["before_sha256"],
-                "after_sha256": item["after_sha256"],
-                "backup": backup_relative,
-                "restore": "copy backup" if item["before_exists"] else "remove created file",
-            }
-        )
+    manifest: dict[str, Any]
+    manifest_path: Path
+    journal_path: Path
+    try:
+        files_root = backup_path / "files"
+        _mkdir_tracked(files_root, created_preparation_directories)
+        for item in normalized:
+            _assert_target_pre_state(item)
+            backup_relative: str | None = None
+            if item["before_exists"]:
+                backup_file = files_root / item["path"]
+                _mkdir_tracked(backup_file.parent, created_preparation_directories)
+                expected_backup_hash = str(item["before_sha256"])
+                try:
+                    shutil.copy2(item["target"], backup_file)
+                finally:
+                    ownership_issue = _register_expected_owned_file(
+                        backup_file,
+                        expected_backup_hash,
+                        owned_preparation_files,
+                    )
+                    if ownership_issue:
+                        preparation_ownership_issues.append(ownership_issue)
+                if preparation_ownership_issues:
+                    raise ValueError(preparation_ownership_issues[-1])
+                _assert_target_pre_state(item)
+                backup_relative = backup_file.relative_to(backup_path).as_posix()
+            manifest_operations.append(
+                {
+                    "path": item["path"],
+                    "action": "update" if item["before_exists"] else "create",
+                    "before_sha256": item["before_sha256"],
+                    "after_sha256": item["after_sha256"],
+                    "backup": backup_relative,
+                    "restore": "copy backup" if item["before_exists"] else "remove created file",
+                }
+            )
 
-    manifest = {
-        "schema_version": 1,
-        "mode": "prepared",
-        "operation_id": uuid.uuid4().hex,
-        "root": str(root_path),
-        "backup_root": str(backup_path),
-        "operations": manifest_operations,
-    }
-    manifest_path = backup_path / "manifest.json"
-    _write_manifest(manifest_path, manifest)
-    _write_ownership_sidecar(backup_path, manifest)
-    _write_trusted_journal(root_path, manifest)
+        manifest = {
+            "schema_version": 1,
+            "mode": "prepared",
+            "operation_id": uuid.uuid4().hex,
+            "root": str(root_path),
+            "backup_root": str(backup_path),
+            "operations": manifest_operations,
+        }
+        manifest_path = backup_path / "manifest.json"
+        expected_manifest_hash = _sha256_bytes(_serialized_json_bytes(manifest))
+        try:
+            _write_manifest(manifest_path, manifest)
+        finally:
+            ownership_issue = _register_expected_owned_file(
+                manifest_path,
+                expected_manifest_hash,
+                owned_preparation_files,
+            )
+            if ownership_issue:
+                preparation_ownership_issues.append(ownership_issue)
+        if preparation_ownership_issues:
+            raise ValueError(preparation_ownership_issues[-1])
+
+        sidecar_path = backup_path / "ownership.json"
+        expected_sidecar_hash = _sha256_bytes(
+            _serialized_json_bytes(_ownership_sidecar_payload(manifest))
+        )
+        try:
+            _write_ownership_sidecar(backup_path, manifest)
+        finally:
+            ownership_issue = _register_expected_owned_file(
+                sidecar_path,
+                expected_sidecar_hash,
+                owned_preparation_files,
+            )
+            if ownership_issue:
+                preparation_ownership_issues.append(ownership_issue)
+        if preparation_ownership_issues:
+            raise ValueError(preparation_ownership_issues[-1])
+
+        journal_path = _trusted_journal_path(root_path, manifest["operation_id"])
+        missing_journal_directories: list[Path] = []
+        current = journal_path.parent
+        while not current.exists():
+            missing_journal_directories.append(current)
+            current = current.parent
+        expected_journal_hash = _sha256_bytes(
+            _serialized_json_bytes(_trusted_journal_payload(root_path, manifest))
+        )
+        try:
+            _write_trusted_journal(root_path, manifest)
+        finally:
+            created_preparation_directories.extend(
+                directory
+                for directory in reversed(missing_journal_directories)
+                if directory.exists()
+            )
+            ownership_issue = _register_expected_owned_file(
+                journal_path,
+                expected_journal_hash,
+                owned_preparation_files,
+            )
+            if ownership_issue:
+                preparation_ownership_issues.append(ownership_issue)
+        if preparation_ownership_issues:
+            raise ValueError(preparation_ownership_issues[-1])
+    except BaseException as preparation_error:
+        cleanup_issues = preparation_ownership_issues + _cleanup_preparation_artifacts(
+            owned_preparation_files,
+            created_preparation_directories,
+        )
+        if cleanup_issues:
+            raise RuntimeError(
+                "preparation cleanup incomplete; manual recovery required: "
+                + "; ".join(cleanup_issues)
+            ) from preparation_error
+        raise
+
     applied: list[dict[str, Any]] = []
     try:
         for item, manifest_operation in zip(normalized, manifest_operations, strict=True):
             target: Path = item["target"]
             _assert_safe_components(root_path, target)
+            _assert_target_pre_state(item)
             target.parent.mkdir(parents=True, exist_ok=True)
             _assert_safe_components(root_path, target)
+            _assert_target_pre_state(item)
             fd, temporary_name = tempfile.mkstemp(prefix=f".{target.name}.", suffix=".tmp", dir=target.parent)
             temporary = Path(temporary_name)
             try:
@@ -236,6 +495,7 @@ def apply_mutation(root: Path | str, operations: list[dict[str, str]], backup_ro
                     handle.write(item["content"])
                     handle.flush()
                     os.fsync(handle.fileno())
+                _assert_target_pre_state(item)
                 os.replace(temporary, target)
             finally:
                 if temporary.exists():
@@ -243,19 +503,47 @@ def apply_mutation(root: Path | str, operations: list[dict[str, str]], backup_ro
             applied.append(manifest_operation)
             if _sha256_path(target) != item["after_sha256"]:
                 raise RuntimeError(f"post-write hash mismatch: {item['path']}")
-    except BaseException:
-        _rollback_applied(root_path, backup_path, applied)
-        manifest["mode"] = "rolled-back"
+        manifest["mode"] = "applied"
         _write_manifest(manifest_path, manifest)
-        journal_path = _trusted_journal_path(root_path, manifest["operation_id"])
+        _verify_manifest(manifest_path, manifest)
+        return manifest_path
+    except BaseException as mutation_error:
+        rollback_issues = _rollback_applied(root_path, backup_path, applied)
+        manifest["mode"] = (
+            "rollback-incomplete-manual-recovery"
+            if rollback_issues
+            else "rolled-back"
+        )
+        try:
+            _write_manifest(manifest_path, manifest)
+        except BaseException as recording_error:
+            rollback_issues.append(f"failed to record rollback state: {recording_error}")
+            recovery_path = backup_path / "rollback-recovery.json"
+            try:
+                recovery_path.write_text(
+                    json.dumps(
+                        {
+                            "mode": "rollback-incomplete-manual-recovery",
+                            "operation_id": manifest["operation_id"],
+                            "issues": rollback_issues,
+                        },
+                        indent=2,
+                    )
+                    + "\n",
+                    encoding="utf-8",
+                )
+            except BaseException as recovery_error:
+                rollback_issues.append(
+                    f"failed to write rollback recovery evidence: {recovery_error}"
+                )
+        if rollback_issues:
+            raise RuntimeError(
+                "rollback incomplete; manual recovery required: "
+                + "; ".join(rollback_issues)
+            ) from mutation_error
         if journal_path.exists():
             journal_path.unlink()
         raise
-
-    manifest["mode"] = "applied"
-    _write_manifest(manifest_path, manifest)
-    return manifest_path
-
 
 def _validate_manifest(path: Path, approved_root: Path) -> tuple[dict[str, Any], Path, Path]:
     manifest = json.loads(path.read_text(encoding="utf-8"))

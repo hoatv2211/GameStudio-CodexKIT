@@ -38,7 +38,7 @@ Use at the start of every kit-guided task and whenever a task changes scope, ris
 Do not use this root contract as a substitute for intake, debugging, mutation, review, build verification, or handoff workflows.
 
 ## Required inputs and context discovery
-Collect the repository path, current branch or snapshot, user goal, explicit constraints, available tools, and any do-not-touch paths.
+Collect the workspace and repository paths, current branch or snapshot, user goal, explicit constraints, available tools, project-profile path when present, and any do-not-touch paths.
 
 ## Safety and risk level
 This skill is read-only. It classifies work and routes it; it never authorizes mutation, service control, database changes, publishing, credentials, or destructive cleanup.
@@ -46,8 +46,8 @@ This skill is read-only. It classifies work and routes it; it never authorizes m
 ## Workflow
 1. Restate the goal, repository scope, constraints, and unavailable capabilities.
    Completion criterion: a bounded task packet exists and unknowns are labeled.
-2. Select the narrowest matching workflow skill from the installed catalog using skill descriptions and the task context.
-   Completion criterion: one primary skill and any explicit dependencies are named.
+2. If `.agents/project-profile.yaml` exists or nested Git roots are present, route through `studio-workspace-routing`; otherwise select the narrowest matching workflow skill from the installed catalog.
+   Completion criterion: one repository route, primary skill, and any explicit dependencies are named.
 3. Assign `Verified`, `Snapshot`, `Unverified`, or `BLOCKED` to each material claim.
    Completion criterion: no PASS claim depends on confidence or memory alone.
 4. Apply the risk gate before any side effect and preserve exact write ownership.

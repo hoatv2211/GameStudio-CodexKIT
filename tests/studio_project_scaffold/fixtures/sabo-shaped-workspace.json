@@ -1,0 +1,42 @@
+{
+  "schema_version": 1,
+  "directories": [
+    "client/.git/objects",
+    "client/Assets",
+    "client/ProjectSettings",
+    "client/Library/Fake/Assets",
+    "client/Library/Fake/ProjectSettings",
+    "server/.git/objects",
+    "server/Game",
+    "services/.git/objects",
+    "services/src",
+    "node_modules/fake"
+  ],
+  "files": {
+    "client/Library/Fake/ignored.lua": "return {}",
+    "server/GameServer.csproj": "<Project />",
+    "server/Game/runtime.lua": "return {}",
+    "services/pom.xml": "<project />",
+    "node_modules/fake/ignored.sql": "-- ignored",
+    "client/.git/HEAD": "ref: refs/heads/main",
+    "server/.git/HEAD": "ref: refs/heads/main",
+    "services/.git/HEAD": "ref: refs/heads/main"
+  },
+  "expected_git_roots": [
+    "client",
+    "server",
+    "services"
+  ],
+  "expected_repositories": {
+    "client": [
+      "unity"
+    ],
+    "server": [
+      "lua",
+      "server"
+    ],
+    "services": [
+      "java"
+    ]
+  }
+}

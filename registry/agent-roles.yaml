@@ -1,0 +1,17 @@
+schema_version: 1
+agent_roles:
+  - id: investigator
+    path: agents/investigator.toml
+    description: Read-only ownership and dependency discovery.
+    sandbox_mode: read-only
+    reasoning_effort: high
+  - id: implementer
+    path: agents/implementer.toml
+    description: Bounded implementation for one explicit write scope.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+  - id: verifier
+    path: agents/verifier.toml
+    description: Independent validation without source mutation.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
