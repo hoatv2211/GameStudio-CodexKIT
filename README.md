@@ -39,7 +39,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
     <td align="center"><strong>Ask for the outcome</strong><br><sub>The router selects the smallest matching specialist workflow.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Thirty-three skills across four packs and six studio personas" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Forty-seven skills across seven packs, six studio personas, and twenty-two canonical agent roles" width="100%"></td>
     <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
   </tr>
   <tr>
@@ -72,7 +72,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
 | Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
 | Mutations | Agent edits freely | 4-tier risk gates: read-only → low → medium (reviewer+backup) → high (human approval + dry-run) |
 | Multi-agent | Single session | One-writer-per-file ownership, lock protocol, handoff contracts, review/bug-hunt swarms |
-| Routing quality | Hope the description matches | 192 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
+| Routing quality | Hope the description matches | 276 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
 
 ## Field evidence — real run on a live MMORPG
 
@@ -174,13 +174,13 @@ Repository governance tools such as the catalog validator, originality audit, an
 - 47 canonical skills, including one root entry router and 46 routed workflow or domain skills.
 - 276/276 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
-- 12 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
+- 12 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
 - Seven installable packs, six thin personas, and 22 canonical agent roles.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
 - Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
 - Optional generated exports for manual Hermes, Codex, pack, project-local `.agents/` skills, and `.codex/agents/` role overlays.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
-- All 47 canonical skills are `beta` based on maintainer-confirmed use in the FPC studio project (`Snapshot`). Deterministic gates and the localization case study are `Verified`; per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
+- The 47-skill catalog is `beta` as a studio-adopted kit based on maintainer-confirmed use in the FPC project (`Snapshot`); this does not claim that every skill ran individually. Deterministic gates and the localization case study are `Verified`, while per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
 

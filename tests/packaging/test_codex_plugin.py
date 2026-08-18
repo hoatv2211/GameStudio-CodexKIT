@@ -16,6 +16,27 @@ REPOSITORY_URL = "https://github.com/hoatv2211/GameStudio-CodexKIT.git"
 
 
 class CodexPluginPackagingTests(unittest.TestCase):
+    def test_public_catalog_surfaces_match_registry_counts(self) -> None:
+        from scripts.route_eval import evaluate_repository
+
+        skill_count = len(load_yaml(ROOT / "registry" / "capabilities.yaml")["capabilities"])
+        agent_count = len(load_yaml(ROOT / "registry" / "agent-roles.yaml")["agent_roles"])
+        pack_count = len(load_yaml(ROOT / "registry" / "packs.yaml")["packs"])
+        routing = evaluate_repository(ROOT)
+
+        banner = (ROOT / "docs" / "assets" / "banner.svg").read_text(encoding="utf-8")
+        landing = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
+        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+
+        self.assertIn(f"{skill_count} SKILLS", banner)
+        self.assertIn(f"{agent_count} AGENTS", banner)
+        self.assertIn(f"{pack_count} PACKS", banner)
+        self.assertIn(f"ROUTING {routing.passed}/{routing.total}", banner)
+        self.assertIn(f">{skill_count}</span><span class=\"stat-label\">canonical skills", landing)
+        self.assertIn(f">{agent_count}</span><span class=\"stat-label\">canonical agents", landing)
+        self.assertIn(f">{pack_count}</span><span class=\"stat-label\">installable packs", landing)
+        self.assertIn(f">{routing.passed}/{routing.total}</span>", landing)
+        self.assertIn(f"{routing.total} deterministic eval cases", readme)
     def test_root_manifest_packages_the_canonical_skill_catalog(self) -> None:
         manifest_path = ROOT / ".codex-plugin" / "plugin.json"
         self.assertTrue(manifest_path.is_file(), manifest_path)

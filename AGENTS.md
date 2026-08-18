@@ -31,6 +31,13 @@ Files under the ignored local `.archive/` are optional historical context only a
 - Use `BLOCKED` when a tool, dependency, permission, live project, or model runner is unavailable. Never convert `BLOCKED` into `PASS`.
 - A PASS claim requires a command, exit code, and artifact path where applicable.
 - Compile success is not regression proof; performance claims require a baseline, scenario, hardware, sample count, and measured delta.
+## Maturity
+
+- Use `draft` or `experimental` before real studio adoption is confirmed.
+- Use `beta` for a catalog or workflow adopted in a real studio project. Maintainer confirmation may be recorded as `Snapshot`; beta does not claim that every skill has individual verified dogfood evidence.
+- `beta` does not require a per-skill promotion record. `stable` requires verified dogfood plus Tier-B, behavior, and pressure evidence; `release` additionally requires a runtime matrix and sanitized session history.
+- Keep maturity separate from task evidence: a beta skill must still report individual claims as `Verified`, `Snapshot`, `Unverified`, or `BLOCKED` according to what was observed.
+- A lifecycle audit may honestly remain `BLOCKED` for missing model, runtime, history, upstream, or KPI evidence while catalog beta maturity remains valid. Never treat that absence as `premature_maturity`; that gate applies to `stable` and `release`.
 
 ## Mutation
 
