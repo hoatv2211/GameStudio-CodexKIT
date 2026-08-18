@@ -4,17 +4,26 @@ import argparse
 import datetime as dt
 import json
 import re
+import stat
 import sys
+import tomllib
+import unicodedata
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Iterable
 
 try:
     from scripts.common import load_yaml, parse_frontmatter
-    from scripts.sync_skill_resources import sync_skill_resources
+    from scripts.dogfood_eval import load_profile
+    from scripts.promotion_evidence import load_promotion_records, validate_promotion_record
+    from scripts.release_preflight import load_release_preflight_schema
+    from scripts.sync_skill_resources import load_skill_resources, sync_skill_resources
 except ModuleNotFoundError:
     from common import load_yaml, parse_frontmatter
-    from sync_skill_resources import sync_skill_resources
+    from dogfood_eval import load_profile
+    from promotion_evidence import load_promotion_records, validate_promotion_record
+    from release_preflight import load_release_preflight_schema
+    from sync_skill_resources import load_skill_resources, sync_skill_resources
 
 
 TOP_LEVEL_FIELDS = {
@@ -59,7 +68,8 @@ SKILL_TYPES = {
 LIFECYCLE_STAGES = {"discover", "define", "plan", "build", "verify", "review", "ship", "operate"}
 RISK_LEVELS = {"read-only", "low", "medium", "high"}
 SIDE_EFFECTS = {"none", "files", "assets", "database", "network", "external_publish"}
-MATURITY_LEVELS = {"draft", "experimental", "beta", "stable", "deprecated", "archived"}
+MATURITY_LEVELS = {"draft", "experimental", "beta", "stable", "release", "deprecated", "archived"}
+PROMOTED_MATURITY_LEVELS = {"stable", "release"}
 PERMISSIVE_LICENSES = {
     "MIT",
     "BSD-2-Clause",
@@ -83,6 +93,14 @@ PLUGIN_NAME = "game-studio-codex-kit"
 MARKETPLACE_NAME = "gamestudio-codex-kit"
 PLUGIN_REPOSITORY = "https://github.com/hoatv2211/GameStudio-CodexKIT"
 PLUGIN_GIT_URL = f"{PLUGIN_REPOSITORY}.git"
+REPOSITORY_MAINTENANCE_SKILL_ID = "codexkit-repository-maintenance"
+REPOSITORY_MAINTENANCE_AGENT_ID = "codexkit-maintainer"
+REPOSITORY_MAINTENANCE_PATHS = (
+    Path(".agents/skills/codexkit-repository-maintenance/SKILL.md"),
+    Path(".codex/agents/codexkit-maintainer.toml"),
+    Path(".codex/config.toml"),
+    Path("workflows/repository-maintenance.md"),
+)
 
 
 @dataclass(frozen=True)
@@ -99,6 +117,77 @@ class Issue:
             display_path = self.path
         return f"{self.severity.upper()} {self.code} {display_path}: {self.message}"
 
+
+FORBIDDEN_PATH_CHARACTERS = set('<>:"|?*')
+RESERVED_DEVICE_BASENAMES = {
+    "aux",
+    "clock$",
+    "con",
+    "conin$",
+    "conout$",
+    "nul",
+    "prn",
+}
+RESERVED_NUMBERED_DEVICE = re.compile(r"^(?:com|lpt)(?:[1-9¹²³])$", re.IGNORECASE)
+
+def _is_reparse_point(path: Path) -> bool:
+    try:
+        info = path.lstat()
+    except FileNotFoundError:
+        return False
+    attributes = getattr(info, "st_file_attributes", 0)
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return path.is_symlink() or bool(attributes & reparse_flag)
+
+
+def _string_list(value: object) -> bool:
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(item, str) and item.strip() for item in value
+    )
+
+def _safe_agent_role_path(root: Path, value: object) -> Path:
+    if not isinstance(value, str) or not value:
+        raise ValueError("agent role path must be a non-empty relative path")
+    normalized = value.replace("\\", "/")
+    parts = normalized.split("/")
+    posix = PurePosixPath(normalized)
+    windows = PureWindowsPath(value)
+    if (
+        posix.is_absolute()
+        or windows.is_absolute()
+        or windows.drive
+        or any(part in {"", ".", ".."} for part in parts)
+        or len(parts) < 2
+        or parts[0] != "agents"
+    ):
+        raise ValueError(f"unsafe agent role path: {value}")
+    for part in parts:
+        device_basename = part.split(".", 1)[0].rstrip(" .").casefold()
+        if (
+            any(unicodedata.category(character) == "Cc" for character in part)
+            or any(character in FORBIDDEN_PATH_CHARACTERS for character in part)
+            or part.endswith((".", " "))
+            or device_basename in RESERVED_DEVICE_BASENAMES
+            or RESERVED_NUMBERED_DEVICE.fullmatch(device_basename)
+        ):
+            raise ValueError(f"unsafe agent role path component {part!r}: {value}")
+
+    root_path = root.resolve()
+    if _is_reparse_point(root_path):
+        raise ValueError(f"repository root is a symlink or reparse point: {root_path}")
+    candidate = root_path.joinpath(*parts)
+    current = root_path
+    for part in parts:
+        current = current / part
+        if _is_reparse_point(current):
+            raise ValueError(f"symlink or reparse point is not allowed: {current}")
+    resolved = candidate.resolve()
+    agents_root = (root_path / "agents").resolve()
+    try:
+        resolved.relative_to(agents_root)
+    except ValueError as error:
+        raise ValueError(f"agent role path escapes repository agents/: {value}") from error
+    return candidate
 
 def _unknown_fields(data: Any, allowed: set[str]) -> set[str]:
     if not isinstance(data, dict):
@@ -338,7 +427,13 @@ def _find_cycles(graph: dict[str, list[str]]) -> list[list[str]]:
     return cycles
 
 
-def _load_registry(path: Path, top_key: str, issues: list[Issue]) -> list[dict[str, Any]]:
+def _load_registry(
+    path: Path,
+    top_key: str,
+    issues: list[Issue],
+    *,
+    preserve_raw_entries: bool = False,
+) -> list[Any]:
     if not path.exists():
         _issue(issues, "registry.file.missing", path, f"missing registry file for {top_key}")
         return []
@@ -354,6 +449,8 @@ def _load_registry(path: Path, top_key: str, issues: list[Issue]) -> list[dict[s
     if not isinstance(entries, list):
         _issue(issues, "registry.schema", path, f"{top_key} must be a list")
         return []
+    if preserve_raw_entries:
+        return entries
     return [entry for entry in entries if isinstance(entry, dict)]
 
 
@@ -456,7 +553,109 @@ def _validate_registries(root: Path, issues: list[Issue]) -> set[str]:
         _issue(issues, "registry.dependency.cycle", capabilities_path, " -> ".join(cycle))
     for cycle in _find_cycles(pack_graph):
         _issue(issues, "registry.dependency.cycle", packs_path, " -> ".join(cycle))
+    if "release-candidate-preflight" in capability_set:
+        schema_path = root / "evals" / "schema" / "release-preflight.schema.json"
+        try:
+            load_release_preflight_schema(schema_path)
+        except (OSError, ValueError) as error:
+            _issue(issues, "eval.release_preflight.schema", schema_path, str(error))
+    _validate_promotion_evidence(root, capabilities, issues)
     return capability_set
+
+
+def _validate_promotion_evidence(
+    root: Path,
+    capabilities: list[dict[str, Any]],
+    issues: list[Issue],
+) -> None:
+    promotion_path = root / "registry" / "promotion-evidence.yaml"
+    promoted = {
+        str(entry.get("id", "")): str(entry.get("maturity", ""))
+        for entry in capabilities
+        if entry.get("maturity") in PROMOTED_MATURITY_LEVELS
+    }
+    if not promotion_path.is_file():
+        for skill_id, maturity in sorted(promoted.items()):
+            _issue(
+                issues,
+                "registry.promotion.missing",
+                promotion_path,
+                f"capability {skill_id} at {maturity} requires promotion evidence",
+            )
+        return
+
+    try:
+        records = load_promotion_records(promotion_path)
+    except (OSError, ValueError) as error:
+        _issue(issues, "registry.promotion.invalid", promotion_path, str(error))
+        records = []
+
+    profile_cases: dict[str, set[str]] = {}
+    profiles_root = root / "evals" / "dogfood" / "profiles"
+    for profile_path in sorted(profiles_root.glob("*.json")):
+        try:
+            profile = load_profile(root, profile_path.stem)
+        except (OSError, ValueError) as error:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                profile_path,
+                f"promotion profile cannot be loaded: {error}",
+            )
+            continue
+        profile_cases[profile_path.stem] = set(profile["case_ids"])
+
+    known_skills = {
+        str(entry.get("id", ""))
+        for entry in capabilities
+        if isinstance(entry.get("id"), str) and entry.get("id")
+    }
+    valid_targets: set[tuple[str, str]] = set()
+    record_ids: list[str] = []
+    for index, record in enumerate(records):
+        record_id = record.get("id")
+        if isinstance(record_id, str) and record_id.strip():
+            record_ids.append(record_id)
+        else:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                promotion_path,
+                f"promotion record {index} requires a non-empty id",
+            )
+        errors = validate_promotion_record(
+            record,
+            known_skills=known_skills,
+            known_profiles=profile_cases,
+            profile_cases=profile_cases,
+            artifact_root=root,
+            repository_root=root,
+        )
+        for message in errors:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                promotion_path,
+                f"promotion record {record_id or index}: {message}",
+            )
+        if not errors:
+            valid_targets.add((str(record.get("skill_id")), str(record.get("target_maturity"))))
+
+    for duplicate in _duplicates(record_ids):
+        _issue(
+            issues,
+            "registry.promotion.invalid",
+            promotion_path,
+            f"duplicate promotion record id: {duplicate}",
+        )
+    for skill_id, maturity in sorted(promoted.items()):
+        if (skill_id, maturity) not in valid_targets:
+            _issue(
+                issues,
+                "registry.promotion.missing",
+                promotion_path,
+                f"capability {skill_id} at {maturity} requires a valid matching promotion record",
+            )
 
 
 def _load_json_object(path: Path, issues: list[Issue], code_prefix: str) -> dict[str, Any] | None:
@@ -552,6 +751,202 @@ def _validate_plugin_package(root: Path, capability_ids: set[str], issues: list[
             _issue(issues, "plugin.marketplace.entry", marketplace_path, "category must be 'Productivity'")
 
 
+def _validate_agent_roles(
+    root: Path,
+    issues: list[Issue],
+    capability_ids: set[str] | None = None,
+) -> None:
+    registry_path = root / "registry" / "agent-roles.yaml"
+    entries = _load_registry(
+        registry_path,
+        "agent_roles",
+        issues,
+        preserve_raw_entries=True,
+    )
+    role_ids = [
+        str(entry.get("id", ""))
+        for entry in entries
+        if isinstance(entry, dict)
+    ]
+    for duplicate in _duplicates(role_ids):
+        _issue(
+            issues,
+            "registry.agent_role.duplicate",
+            registry_path,
+            f"duplicate agent role id: {duplicate}",
+        )
+    base_fields = {
+        "id",
+        "path",
+        "description",
+        "sandbox_mode",
+        "reasoning_effort",
+    }
+    specialist_fields = {
+        "kind",
+        "discipline",
+        "required_skills",
+        "owned_scope_patterns",
+        "read_scope_patterns",
+        "forbidden_actions",
+        "validation_commands",
+        "concurrency_group",
+    }
+    for index, entry in enumerate(entries):
+        if not isinstance(entry, dict):
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"agent_roles[{index}] must be a mapping",
+            )
+            continue
+        role_id = str(entry.get("id", ""))
+        kind = entry.get("kind")
+        expected_fields = base_fields | specialist_fields if kind == "specialist" else base_fields
+        if set(entry) != expected_fields:
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"agent role {role_id or '<missing>'} must contain {sorted(expected_fields)}",
+            )
+            continue
+        if kind not in {None, "generic", "specialist"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid agent role kind for {role_id}: {kind}",
+            )
+        if kind == "specialist":
+            for field in (
+                "discipline",
+                "concurrency_group",
+            ):
+                if not isinstance(entry.get(field), str) or not entry[field].strip():
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        registry_path,
+                        f"specialist {role_id} requires non-empty {field}",
+                    )
+            for field in (
+                "required_skills",
+                "owned_scope_patterns",
+                "read_scope_patterns",
+                "forbidden_actions",
+                "validation_commands",
+            ):
+                if not _string_list(entry.get(field)):
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        registry_path,
+                        f"specialist {role_id} requires a non-empty string list for {field}",
+                    )
+            if capability_ids is not None:
+                for skill_id in entry.get("required_skills", []) or []:
+                    if skill_id not in capability_ids:
+                        _issue(
+                            issues,
+                            "registry.agent_role.reference",
+                            registry_path,
+                            f"unknown required skill for {role_id}: {skill_id}",
+                        )
+        relative = str(entry.get("path", ""))
+        if (
+            not role_id
+            or not re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", role_id)
+            or not relative.startswith("agents/")
+            or not relative.endswith(".toml")
+        ):
+            _issue(
+                issues,
+                "registry.agent_role.schema",
+                registry_path,
+                f"invalid agent role id or path: {role_id} -> {relative}",
+            )
+            continue
+        try:
+            template_path = _safe_agent_role_path(root, relative)
+        except ValueError as error:
+            _issue(issues, "registry.agent_role.path", registry_path, str(error))
+            continue
+        if not template_path.is_file():
+            _issue(
+                issues,
+                "registry.agent_role.path",
+                template_path,
+                f"missing agent role template for {role_id}",
+            )
+            continue
+        if entry.get("sandbox_mode") not in {"read-only", "workspace-write"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid sandbox mode for {role_id}",
+            )
+        if entry.get("reasoning_effort") not in {"low", "medium", "high", "xhigh"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid reasoning effort for {role_id}",
+            )
+        try:
+            template = tomllib.loads(template_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "registry.agent_role.toml", template_path, str(error))
+            continue
+        if template.get("name") != role_id:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template name must be {role_id}",
+            )
+        if template.get("sandbox_mode") != entry.get("sandbox_mode"):
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template sandbox mode does not match registry for {role_id}",
+            )
+        if template.get("model_reasoning_effort") != entry.get("reasoning_effort"):
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template reasoning effort does not match registry for {role_id}",
+            )
+        if not isinstance(template.get("developer_instructions"), str) or not template["developer_instructions"].strip():
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                template_path,
+                f"template developer instructions are required for {role_id}",
+            )
+        if kind == "specialist":
+            for field in (
+                "discipline",
+                "required_skills",
+                "owned_scope_patterns",
+                "read_scope_patterns",
+                "forbidden_actions",
+                "validation_commands",
+                "concurrency_group",
+            ):
+                if template.get(field) != entry.get(field):
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        template_path,
+                        f"template {field} does not match registry for {role_id}",
+                    )
+
+
 def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
     registry_path = root / "registry" / "skill-resources.yaml"
     if not registry_path.is_file():
@@ -563,6 +958,7 @@ def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
         )
         return
     try:
+        bundled, _repository_only = load_skill_resources(root)
         drift = sync_skill_resources(root, check=True)
     except (OSError, ValueError) as error:
         _issue(issues, "skill.resources.registry_invalid", registry_path, str(error))
@@ -574,7 +970,210 @@ def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
             path,
             "generated skill helper is missing, stale, or unexpected",
         )
+    for resource in bundled:
+        template_path = resource.destination
+        if template_path.suffix.casefold() != ".toml" or not template_path.is_file():
+            continue
+        relative = template_path.relative_to(root / "skills" / resource.skill_id)
+        is_agent_template = (
+            len(relative.parts) == 3
+            and relative.parts[:2] == ("templates", "agents")
+        )
+        if not is_agent_template:
+            continue
+        try:
+            template = tomllib.loads(template_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "skill.resources.toml_parse", template_path, str(error))
+            continue
+        if template.get("name") != template_path.stem:
+            _issue(
+                issues,
+                "skill.resources.toml_name",
+                template_path,
+                f"packaged template name must be {template_path.stem}",
+            )
+        for field in ("name", "description", "developer_instructions"):
+            value = template.get(field)
+            if not isinstance(value, str) or not value.strip():
+                _issue(
+                    issues,
+                    "skill.resources.toml_required",
+                    template_path,
+                    f"packaged agent template requires non-empty {field}",
+                )
 
+
+def _validate_repository_maintenance_bundle(root: Path, issues: list[Issue]) -> None:
+    paths = [root / relative for relative in REPOSITORY_MAINTENANCE_PATHS]
+    if not any(path.exists() for path in paths):
+        return
+
+    for path in paths:
+        if not path.is_file():
+            _issue(
+                issues,
+                "repository.maintenance.missing",
+                path,
+                "repository-local maintenance bundle requires all declared files",
+            )
+
+    skill_path, agent_path, config_path, workflow_path = paths
+    if skill_path.is_file():
+        try:
+            frontmatter, body = parse_frontmatter(skill_path)
+        except (OSError, ValueError) as error:
+            _issue(issues, "repository.maintenance.skill", skill_path, str(error))
+        else:
+            if frontmatter.get("name") != REPOSITORY_MAINTENANCE_SKILL_ID:
+                _issue(
+                    issues,
+                    "repository.maintenance.skill",
+                    skill_path,
+                    f"name must be {REPOSITORY_MAINTENANCE_SKILL_ID!r}",
+                )
+            description = frontmatter.get("description")
+            if not isinstance(description, str) or not description.startswith("Use when "):
+                _issue(
+                    issues,
+                    "repository.maintenance.skill",
+                    skill_path,
+                    "description must start with 'Use when '",
+                )
+            for marker in (
+                ".codex-plugin/plugin.json",
+                PLUGIN_NAME,
+                "registry/capabilities.yaml",
+                "scripts/validate.py",
+                "skills/",
+                "BLOCKED: repository identity mismatch",
+            ):
+                if marker not in body:
+                    _issue(
+                        issues,
+                        "repository.maintenance.skill",
+                        skill_path,
+                        f"missing repository identity marker: {marker}",
+                    )
+
+    if agent_path.is_file():
+        try:
+            agent = tomllib.loads(agent_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "repository.maintenance.agent", agent_path, str(error))
+        else:
+            expected_values = {
+                "name": REPOSITORY_MAINTENANCE_AGENT_ID,
+                "sandbox_mode": "workspace-write",
+            }
+            for field, expected in expected_values.items():
+                if agent.get(field) != expected:
+                    _issue(
+                        issues,
+                        "repository.maintenance.agent",
+                        agent_path,
+                        f"{field} must be {expected!r}",
+                    )
+            for field in ("description", "model_reasoning_effort", "developer_instructions"):
+                if not isinstance(agent.get(field), str) or not agent[field].strip():
+                    _issue(
+                        issues,
+                        "repository.maintenance.agent",
+                        agent_path,
+                        f"missing non-empty {field}",
+                    )
+
+    if config_path.is_file():
+        try:
+            config = tomllib.loads(config_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "repository.maintenance.activation", config_path, str(error))
+        else:
+            agents = config.get("agents")
+            activation = (
+                agents.get(REPOSITORY_MAINTENANCE_AGENT_ID, {})
+                if isinstance(agents, dict)
+                else {}
+            )
+            if activation.get("config_file") != "./agents/codexkit-maintainer.toml":
+                _issue(
+                    issues,
+                    "repository.maintenance.activation",
+                    config_path,
+                    "codexkit-maintainer must reference './agents/codexkit-maintainer.toml'",
+                )
+            if not isinstance(activation.get("description"), str) or not activation[
+                "description"
+            ].strip():
+                _issue(
+                    issues,
+                    "repository.maintenance.activation",
+                    config_path,
+                    "codexkit-maintainer activation requires a description",
+                )
+
+    if workflow_path.is_file():
+        try:
+            workflow = workflow_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            _issue(issues, "repository.maintenance.workflow", workflow_path, str(error))
+        else:
+            for stage in ("Intake", "Root cause", "Canonical edit", "Local gates", "Handoff"):
+                if stage not in workflow:
+                    _issue(
+                        issues,
+                        "repository.maintenance.workflow",
+                        workflow_path,
+                        f"missing workflow stage: {stage}",
+                    )
+
+    distributed_paths = (
+        root / "registry" / "capabilities.yaml",
+        root / "registry" / "packs.yaml",
+        root / "registry" / "agent-roles.yaml",
+        root / "registry" / "skill-resources.yaml",
+    )
+    for path in distributed_paths:
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            _issue(issues, "repository.maintenance.distribution", path, str(error))
+            continue
+        for internal_id in (
+            REPOSITORY_MAINTENANCE_SKILL_ID,
+            REPOSITORY_MAINTENANCE_AGENT_ID,
+        ):
+            if internal_id in text:
+                _issue(
+                    issues,
+                    "repository.maintenance.distribution",
+                    path,
+                    f"repository-local id must not be distributed: {internal_id}",
+                )
+
+    scaffold_root = root / "skills" / "studio-project-scaffold" / "templates"
+    if scaffold_root.is_dir():
+        for path in scaffold_root.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError as error:
+                _issue(issues, "repository.maintenance.distribution", path, str(error))
+                continue
+            for internal_id in (
+                REPOSITORY_MAINTENANCE_SKILL_ID,
+                REPOSITORY_MAINTENANCE_AGENT_ID,
+            ):
+                if internal_id in text:
+                    _issue(
+                        issues,
+                        "repository.maintenance.distribution",
+                        path,
+                        f"repository-local id must not enter scaffold templates: {internal_id}",
+                    )
 
 def validate_repository(root: Path | str) -> list[Issue]:
     root_path = Path(root).resolve()
@@ -599,7 +1198,9 @@ def validate_repository(root: Path | str) -> list[Issue]:
     for skill_path in sorted((root_path / "skills").glob("*/SKILL.md")):
         _validate_skill(skill_path, issues)
     capability_ids = _validate_registries(root_path, issues)
+    _validate_agent_roles(root_path, issues, capability_ids)
     _validate_skill_resources(root_path, issues)
+    _validate_repository_maintenance_bundle(root_path, issues)
     _validate_plugin_package(root_path, capability_ids, issues)
     return sorted(issues, key=lambda issue: (str(issue.path), issue.code, issue.message))
 

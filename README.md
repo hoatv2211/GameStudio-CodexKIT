@@ -6,7 +6,7 @@
 
 **Agent skills for operating live game projects — not writing new ones.**
 
-[![Skills](https://img.shields.io/badge/skills-33%20%2B%20router-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-192%2F192-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-118%20cases-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-276%2F276-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -39,11 +39,11 @@ The kit connects a live game, its studio stack, and its operating evidence into 
     <td align="center"><strong>Ask for the outcome</strong><br><sub>The router selects the smallest matching specialist workflow.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Thirty-three skills across four packs and six studio personas" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Forty-seven skills across seven packs, six studio personas, and twenty-two canonical agent roles" width="100%"></td>
     <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
   </tr>
   <tr>
-    <td align="center"><strong>One studio catalog</strong><br><sub>33 canonical skills, four packs, and six thin persona lenses.</sub></td>
+    <td align="center"><strong>One studio catalog</strong><br><sub>47 canonical skills, seven packs, six thin persona lenses, and 22 canonical agent roles.</sub></td>
     <td align="center"><strong>Trust is explicit state</strong><br><sub><code>BLOCKED</code> is never converted into <code>PASS</code>.</sub></td>
   </tr>
   <tr>
@@ -72,7 +72,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
 | Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
 | Mutations | Agent edits freely | 4-tier risk gates: read-only → low → medium (reviewer+backup) → high (human approval + dry-run) |
 | Multi-agent | Single session | One-writer-per-file ownership, lock protocol, handoff contracts, review/bug-hunt swarms |
-| Routing quality | Hope the description matches | 192 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
+| Routing quality | Hope the description matches | 276 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
 
 ## Field evidence — real run on a live MMORPG
 
@@ -153,7 +153,7 @@ The repository root is the plugin package. `.codex-plugin/plugin.json` exposes t
 
 ## Install in Hermes Agent
 
-Install all 33 skills globally with the Agent Skills CLI:
+Install all 47 skills globally with the Agent Skills CLI:
 
 ```bash
 npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y
@@ -171,16 +171,16 @@ Repository governance tools such as the catalog validator, originality audit, an
 
 ## Current state
 
-- 33 canonical skills, including one root entry router and 32 routed domain skills.
-- 192/192 deterministic Tier-A routing cases.
+- 47 canonical skills, including one root entry router and 46 routed workflow or domain skills.
+- 276/276 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
-- 10 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
-- Four installable packs and six thin personas.
+- 12 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
+- Seven installable packs, six thin personas, and 22 canonical agent roles.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
-- Seventeen standalone domain skills with 19 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
-- Optional generated exports for manual Hermes, Codex, pack, and project-local `.agents/` workflows.
+- Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
+- Optional generated exports for manual Hermes, Codex, pack, project-local `.agents/` skills, and `.codex/agents/` role overlays.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
-- All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist. First dogfood evidence: the localization case study above.
+- The 47-skill catalog is `beta` as a studio-adopted kit based on maintainer-confirmed use in the FPC project (`Snapshot`); this does not claim that every skill ran individually. Deterministic gates and the localization case study are `Verified`, while per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
 
@@ -188,20 +188,31 @@ The template does not claim that a Unity build, C++ server, database migration, 
 
 | Pack | Focus |
 |---|---|
-| `studio-core` | Intake, design, planning, debugging, evidence, safe mutation, review, handoff, and skill governance |
+| `studio-core` | Intake, multi-repository routing, agent orchestration, design, planning, debugging, evidence, safe mutation, review, handoff, and skill governance |
 | `unity` | Offline client debugging, UI rendering, localization, GUID/meta integrity, and batch builds |
 | `cpp-lua-mmorpg` | Local services, MySQL safety, Lua contracts, C++ crashes, packet protocols, authority, and save migration |
 | `production-design-liveops` | Playtests, performance, economy, balance, release, stores, incidents, and telemetry |
 
 The authoritative capability list is `registry/capabilities.yaml`. Pack composition and persona routes live in `registry/packs.yaml` and `registry/personas.yaml`.
 
+## Maintain this repository
+
+A full repository clone exposes an internal maintenance bundle that is intentionally separate from the 47 distributed skills and 22 cataloged agent roles:
+
+- Invoke `codexkit-repository-maintenance` for CI, governance, catalog, generator, adapter, packaging, documentation, architecture, versioning, or release-readiness work on this repository.
+- Select the repository-local `codexkit-maintainer` agent when the task needs a bounded writer and integration owner.
+- The skill verifies `.codex-plugin/plugin.json`, `registry/capabilities.yaml`, `scripts/validate.py`, and `skills/`; another repository receives `BLOCKED: repository identity mismatch`.
+- Internal files live under `.agents/skills/` and `.codex/agents/`. They are excluded from registries, packs, generated adapters, project scaffold templates, and installed game projects.
+- Follow `workflows/repository-maintenance.md` and run the local gates below before handoff.
+
 ## Contributor requirements
 
 - Python 3.11+
 - PyYAML
+- jsonschema
 - Git
 
-Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ standard library only. A full clone additionally needs PyYAML for repository validation, routing, policy, and generation tools. The project uses standard-library `unittest`; pytest is not required.
+Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ and may require PyYAML when they validate or render YAML-backed project profiles. A full clone requires PyYAML for repository validation, routing, policy, profile, and generation tools, plus jsonschema for governed dogfood result validation. The project uses standard-library `unittest`; pytest is not required.
 
 ## Verify the kit
 
@@ -249,13 +260,24 @@ Applying the scaffold is a medium-risk mutation and requires a reviewer plus bac
 python -B scripts/project_scaffold.py D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.scaffold-backup
 ```
 
-Install the canonical skills into an existing project while preserving unmanaged local skills:
+The per-project adapter is report-only by default. Capture its proposed plan first; this command creates nothing:
 
-```bash
-python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project
+```powershell
+$report = python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project | ConvertFrom-Json
+$report | ConvertTo-Json -Depth 10
 ```
 
-The per-project adapter writes kit-owned skills under `.agents/skills/`, records hashes in `.agents/registry.json`, and does not overwrite local skills without the generated ownership marker.
+Review the full report and its `plan_digest`, then apply that exact plan. Apply requires a named reviewer, a disjoint project-local backup root, and the approved plan digest:
+
+```powershell
+python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.adapter-backup --plan-digest $report.plan_digest
+```
+
+Apply rebuilds the plan and refuses mutation if the source catalog, project profile, or any managed target changed after the report. If it refuses, generate and review a new report instead of reusing the old digest. The backup root must not overlap any planned target such as `.agents/` or `.codex/`.
+
+The apply command writes kit-owned skills under `.agents/skills/` and builds a role overlay from packaged generic agent templates plus the profile specialist overlay under `.codex/agents/`. It emits an inert activation file at `.codex/agents.generated.toml`, records per-file ownership hashes in `.agents/registry.json`, and returns a safe-mutation manifest plus restore command. The activation file has no effect until it is manually reviewed and merged into project configuration. The adapter leaves `.codex/config.toml` untouched and never overwrites `.codex/config.toml`.
+
+Uninstall is hash-safe: it removes only files whose current content still matches their recorded per-file ownership hash, preserves unmanaged or drifted local agents, and reports `PARTIAL` recovery with the remaining owned paths when safe removal cannot finish. Resolve those paths from the report rather than deleting project-local content blindly.
 
 ## Advanced maintenance: packs and adapters
 
@@ -297,15 +319,15 @@ python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl
 python -B scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json
 ```
 
-The dogfood pack contains ten real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, and project intake. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
+The dogfood pack contains twelve real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, project intake, workspace routing, and agent orchestration. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
 
-After a governed runner produces the complete result array, validate it and generate promotion-eligible summaries:
+After a governed runner produces the strict `{"results": [...]}` object and stores hashed artifacts under an approved root, validate it and generate promotion-eligible summaries:
 
 ```bash
-python -B scripts/dogfood_eval.py . --results evidence/local/dogfood-results.json --summary-dir evidence/local/dogfood
+python -B scripts/dogfood_eval.py . --results evidence/local/dogfood-results.json --artifact-root evidence/local --summary-dir evidence/local/dogfood
 ```
 
-The evaluator rejects bare PASS labels, missing artifact paths, non-zero exits, missing reviewers or project snapshots, unauthorized writes, and incomplete case coverage. See `docs/authoring/dogfood.md` for the runner contract.
+The evaluator rejects bare PASS labels, schema drift, unsafe or missing artifact paths, digest mismatches, non-zero exits, missing reviewers or project snapshots, unauthorized writes, and incomplete case coverage. Legacy array results remain diagnostic-only and cannot generate promotion summaries. See `docs/authoring/dogfood.md` for the runner contract.
 
 When a runner, live project, engine, service, or permission is unavailable, the correct verdict is `BLOCKED`, never a fabricated PASS.
 
@@ -353,7 +375,7 @@ Use update-first authoring:
 4. Update `registry/skill-resources.yaml` and regenerate bundled helpers when a skill uses a root helper.
 5. Run all local gates.
 6. Validate the native plugin and regenerate any packs or adapters being distributed.
-7. Keep maturity `draft` or `experimental` until governed evidence supports promotion.
+7. Keep new skills `draft` or `experimental` until studio adoption is confirmed; use `beta` for adopted workflows, and require governed promotion evidence for `stable` or `release`.
 
 ## License
 

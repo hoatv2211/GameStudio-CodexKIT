@@ -19,7 +19,7 @@ metadata:
     required_evidence: [schema-version, backup-plan, restore-plan, reviewer-approval]
     owner: HoaTV Studio
     reviewer: Network/Backend
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none

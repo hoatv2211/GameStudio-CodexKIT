@@ -1,6 +1,6 @@
 ---
 name: studio-project-scaffold
-description: Use when bootstrapping a new or newly adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, a subsystem registry, ownership rules, and preserved project-local skills.
+description: Use when running gamestudio init, status, or uninit, or bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project governance, a subsystem registry, or a per-project adapter report, plan digest, named reviewer, backup root, generated agent overlay, apply, uninstall, and .codex/config.toml preservation.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -19,7 +19,7 @@ metadata:
     required_evidence: [detected-subsystems, created-file-list, preserved-file-list]
     owner: HoaTV Studio
     reviewer: Producer
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none
@@ -29,7 +29,7 @@ metadata:
 # Studio Project Scaffold
 
 ## Overview
-Create the minimum project-local governance needed for safe multi-session work while preserving existing instructions and local skills.
+Create the minimum project-local governance, project profile, routing references, and agent-role overlay needed for safe multi-session work while preserving existing instructions, configuration, skills, and agents.
 
 ## When to use
 Use for a new game repository, an inherited legacy project without agent governance, or a project that needs standardized ownership, evidence labels, and handoff state.
@@ -38,41 +38,53 @@ Use for a new game repository, an inherited legacy project without agent governa
 Do not overwrite a mature project-local `.agents/` system, existing `AGENTS.md`, `HANDOFF.md`, or skills. Generate a report and merge plan instead.
 
 ## Required inputs and context discovery
-Collect repository root, Git state, existing governance files, Unity markers, server projects, Lua/data trees, database inputs, generated paths, vendor paths, and project-local skill IDs.
+Collect workspace root, nested Git roots, Git state, existing governance files, Unity markers, server projects, Lua/data trees, database inputs, generated, cache, vendor, and excluded paths, project-local skill IDs, agent files, and `.codex/config.toml` state.
 
 ## Safety and risk level
-Scaffolding is medium-risk because it writes governance files. Run report-only first, preserve every existing file by default, require a reviewer, and never mutate external projects during kit tests.
+Scaffolding and the per-project adapter are medium-risk because they write governance and agent files. Run report-only first, preserve every existing file by default, and never mutate external projects during kit tests.
 
 ## Workflow
 1. Scan structure read-only and detect Unity, server, Lua, database, tooling, and generated subsystems.
    Completion criterion: detected subsystems and unknown areas are reported.
-2. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
+3. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
    Completion criterion: every existing governance artifact is marked preserve, merge, or BLOCKED.
-3. Render the minimum scaffold with evidence, ownership, mutation, generated-file, and no-touch rules.
-   Completion criterion: report-only output lists exact proposed files without writes.
-4. Apply only missing files and merge registries without replacing project-local skill IDs.
-   Completion criterion: created and preserved paths are both recorded.
-5. Run project-local validation and inspect the generated handoff snapshot.
+4. Render the minimum scaffold with evidence, ownership, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
+   Completion criterion: `scaffold-report.json` lists exact proposed and preserved scaffold files without writes.
+5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
+   Completion criterion: the reviewed adapter report identifies every proposed write and collision without mutation.
+6. Apply only that reviewed adapter plan with a named reviewer, a disjoint project-local backup root, and the approved plan digest. Generate and review a new report when the digest is stale.
+   Completion criterion: apply uses all three gates and returns its manifest and restore command.
+7. Materialize roles from packaged generic agent templates plus profile specialists under `.codex/agents/`. The generated `.codex/agents.generated.toml` file remains inert until manual merge, and the adapter leaves `.codex/config.toml` untouched.
+   Completion criterion: unmanaged agents and active configuration remain preserved.
+8. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
    Completion criterion: scaffold output is parseable and unresolved runtime facts remain Unverified or BLOCKED.
+9. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
+   Completion criterion: uninstall never deletes unmanaged or drifted project content.
 
 ## Evidence and output contract
-Produce `scaffold-report.json` with subsystem detection, source snapshots, proposed files, created files, preserved files, collisions, reviewer, and verification results.
+Produce `scaffold-report.json` with subsystem detection, source snapshots, proposed files, created files, preserved files, collisions, reviewer, and verification results. The separate per-project adapter report uses the implemented fields named in workflow step 4; do not rename them into the scaffold report.
 
 ## Handoff contract
-Record project path, detected subsystems, existing local skills, created governance files, preserved conflicts, unverified owners, and the project-intake reactivation prompt.
+Record project path, detected subsystems, existing local skills and agents, created governance files, preserved conflicts, adapter plan digest, reviewer, restore information, unresolved ownership, and the project-intake reactivation prompt.
 
 ## Pitfalls and anti-rationalization
 - Similarity to golden fixtures does not authorize copying project-specific text.
 - Never overwrite `project-*` or other project-local skills.
+- Keep activation in the generated inert file for manual review; do not edit `.codex/config.toml`.
+- Treat hash drift as preserved project content requiring manual recovery, not deletion authority.
 - Do not infer service ports or DB schemas from directory names.
 - Generated scaffold state is only a starting Snapshot.
 
 ## Verification checklist
 - [ ] Report-only ran before apply.
+- [ ] Reviewer, backup root, and approved plan digest match the reviewed adapter report.
 - [ ] Existing governance and local skills were preserved.
+- [ ] Generic templates and profile specialists were collision-checked.
+- [ ] Activation stayed inert and `.codex/config.toml` stayed untouched.
+- [ ] Per-file ownership and uninstall recovery fields were recorded.
 - [ ] Detected subsystems are evidence-backed.
 - [ ] Created files carry generated markers where appropriate.
 - [ ] Runtime facts remain Unverified or BLOCKED until checked.
 
 ## References and scripts
-Use the bundled [scripts/project_scaffold.py](scripts/project_scaffold.py) with its [scripts/safe_mutation.py](scripts/safe_mutation.py) dependency. Sanitized golden fixtures are kit-maintenance resources available only in a full repository clone.
+Use the bundled [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.

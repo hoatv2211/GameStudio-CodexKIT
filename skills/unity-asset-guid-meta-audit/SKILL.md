@@ -19,7 +19,7 @@ metadata:
     required_evidence: [asset-list, guid-map, reference-map]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

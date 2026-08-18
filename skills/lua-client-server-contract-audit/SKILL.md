@@ -19,7 +19,7 @@ metadata:
     required_evidence: [client-contract, server-contract, mismatch-list]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none

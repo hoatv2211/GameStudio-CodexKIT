@@ -165,7 +165,7 @@
     .route-arrow { color: var(--faint); }
 
     .stat-band { border-block: 1px solid var(--line); background: rgba(13, 25, 41, .40); }
-    .stats { display: grid; grid-template-columns: repeat(4, 1fr); }
+    .stats { display: grid; grid-template-columns: repeat(5, 1fr); }
     .stat { padding: 23px 18px; border-right: 1px solid var(--line); }
     .stat:first-child { padding-left: 0; } .stat:last-child { border-right: 0; }
     .stat-value { display: block; color: var(--ink); font-size: 1.45rem; font-weight: 650; letter-spacing: -.04em; }
@@ -387,7 +387,7 @@
           <p class="hero-lede">GameStudio-CodexKIT gives Codex and Hermes an evidence-first operating layer for <strong>fragile, live, revenue-bearing game projects</strong> — from Unity clients and C++ servers to Lua contracts, player saves, release gates, and liveops incidents.</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#install">Install the kit <span aria-hidden="true">↓</span></a>
-            <a class="button" href="#catalog">Explore 33 skills <span aria-hidden="true">→</span></a>
+            <a class="button" href="#catalog">Explore 47 skills <span aria-hidden="true">→</span></a>
           </div>
           <p class="hero-note"><span class="pulse" aria-hidden="true"></span>Evidence over confidence · BLOCKED is never PASS</p>
         </div>
@@ -411,10 +411,11 @@
 
     <section class="stat-band" aria-label="Project statistics">
       <div class="container stats">
-        <div class="stat"><span class="stat-value cyan">33</span><span class="stat-label">canonical skills</span></div>
-        <div class="stat"><span class="stat-value mint">4</span><span class="stat-label">installable packs</span></div>
-        <div class="stat"><span class="stat-value">192/192</span><span class="stat-label">routing evaluation</span></div>
-        <div class="stat"><span class="stat-value amber">≠ PASS</span><span class="stat-label">BLOCKED contract</span></div>
+        <div class="stat"><span class="stat-value cyan">47</span><span class="stat-label">canonical skills</span></div>
+        <div class="stat"><span class="stat-value">22</span><span class="stat-label">canonical agents</span></div>
+        <div class="stat"><span class="stat-value mint">7</span><span class="stat-label">installable packs</span></div>
+        <div class="stat"><span class="stat-value">276/276</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat"><span class="stat-value amber">&#8800; PASS</span><span class="stat-label">BLOCKED contract</span></div>
       </div>
     </section>
 
@@ -439,14 +440,17 @@
     <section class="section" id="packs">
       <div class="container">
         <div class="section-heading reveal">
-          <div><span class="eyebrow">The catalog</span><h2 class="section-title">One operating model.<br>Four studio lanes.</h2></div>
+          <div><span class="eyebrow">The catalog</span><h2 class="section-title">One operating model.<br>Seven studio lanes.</h2></div>
           <p class="section-intro">The router starts with the smallest matching workflow. Packs give teams a clean way to install only the surface they need.</p>
         </div>
         <div class="packs-grid">
-          <article class="pack-card reveal" style="--pack-color: var(--cyan)"><div class="pack-index"><span>01 / core</span><span>engine-agnostic</span></div><div class="pack-icon">⌁</div><h3>Studio Core</h3><p>Intake, safety, evidence, collaboration, design, and governance for every project.</p><span class="pack-count">13 workflows</span></article>
-          <article class="pack-card reveal" style="--pack-color: var(--mint)"><div class="pack-index"><span>02 / client</span><span>unity</span></div><div class="pack-icon">◈</div><h3>Unity</h3><p>Offline debugging, UI rendering, localization, asset integrity, batch builds, and scaffolding.</p><span class="pack-count">6 workflows</span></article>
-          <article class="pack-card reveal" style="--pack-color: var(--amber)"><div class="pack-index"><span>03 / backend</span><span>mmorpg</span></div><div class="pack-icon">⌘</div><h3>C++ / Lua MMORPG</h3><p>Services, MySQL, protocol contracts, crash triage, authority review, and save migrations.</p><span class="pack-count">9 workflows</span></article>
-          <article class="pack-card reveal" style="--pack-color: var(--coral)"><div class="pack-index"><span>04 / production</span><span>liveops</span></div><div class="pack-icon">✦</div><h3>Production / LiveOps</h3><p>Playtests, performance, economy, balance, release, stores, incidents, and telemetry.</p><span class="pack-count">8 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--cyan)"><div class="pack-index"><span>01 / core</span><span>engine-agnostic</span></div><div class="pack-icon">CORE</div><h3>Studio Core</h3><p>Intake, safety, evidence, collaboration, design, and governance for every project.</p><span class="pack-count">15 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--mint)"><div class="pack-index"><span>02 / client</span><span>unity</span></div><div class="pack-icon">UNITY</div><h3>Unity</h3><p>Offline debugging, UI rendering, localization, asset integrity, batch builds, and scaffolding.</p><span class="pack-count">6 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--amber)"><div class="pack-index"><span>03 / backend</span><span>mmorpg</span></div><div class="pack-icon">NET</div><h3>C++ / Lua MMORPG</h3><p>Services, MySQL, protocol contracts, crash triage, authority review, and save migrations.</p><span class="pack-count">9 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: var(--coral)"><div class="pack-index"><span>04 / operations</span><span>liveops</span></div><div class="pack-icon">OPS</div><h3>Production / LiveOps</h3><p>Playtests, performance, economy, balance, release, stores, incidents, and telemetry.</p><span class="pack-count">8 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: #c4b5fd"><div class="pack-index"><span>05 / planning</span><span>delivery</span></div><div class="pack-icon">PLAN</div><h3>Production Management</h3><p>Production planning, dependency risk, QA strategy, compatibility, and capacity verification.</p><span class="pack-count">5 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: #f9a8d4"><div class="pack-index"><span>06 / content</span><span>creative</span></div><div class="pack-icon">ART</div><h3>Content Production</h3><p>Level, narrative, art, animation, and audio production review workflows.</p><span class="pack-count">5 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: #fde68a"><div class="pack-index"><span>07 / product</span><span>experiments</span></div><div class="pack-icon">DATA</div><h3>Product Analytics</h3><p>Product experimentation and governed live content rollout workflows.</p><span class="pack-count">2 workflows</span></article>
         </div>
       </div>
     </section>
@@ -464,14 +468,17 @@
               <input id="skill-search" type="search" placeholder="Search skills, systems, or outcomes…" autocomplete="off">
               <span class="search-kbd" aria-hidden="true">/</span>
             </label>
-            <span class="result-count" id="result-count" aria-live="polite">33 skills</span>
+            <span class="result-count" id="result-count" aria-live="polite">47 skills</span>
           </div>
           <div class="filters" role="tablist" aria-label="Filter skills by pack">
-            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">33</span></button>
+            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">47</span></button>
             <button class="filter" type="button" data-filter="studio-core" aria-selected="false" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>Studio Core</button>
             <button class="filter" type="button" data-filter="unity" aria-selected="false" style="--filter-color: var(--mint)"><span class="filter-dot"></span>Unity</button>
             <button class="filter" type="button" data-filter="cpp-lua-mmorpg" aria-selected="false" style="--filter-color: var(--amber)"><span class="filter-dot"></span>C++ / Lua MMORPG</button>
             <button class="filter" type="button" data-filter="production-design-liveops" aria-selected="false" style="--filter-color: var(--coral)"><span class="filter-dot"></span>Production / LiveOps</button>
+            <button class="filter" type="button" data-filter="production-management" aria-selected="false" style="--filter-color: #c4b5fd"><span class="filter-dot"></span>Production Management</button>
+            <button class="filter" type="button" data-filter="content-production" aria-selected="false" style="--filter-color: #f9a8d4"><span class="filter-dot"></span>Content Production</button>
+            <button class="filter" type="button" data-filter="product-analytics" aria-selected="false" style="--filter-color: #fde68a"><span class="filter-dot"></span>Product Analytics</button>
           </div>
         </div>
         <div class="skills-grid" id="skills-grid"></div>
@@ -494,7 +501,7 @@
 
     <section class="section lifecycle-section" id="lifecycle">
       <div class="container">
-        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 33 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
+        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 47 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
         <p class="lifecycle-scroll-cue" aria-hidden="true">Swipe or scroll horizontally to see all 6 phases →</p>
         <figure class="lifecycle-map reveal" aria-labelledby="lifecycle-map-caption">
           <figcaption id="lifecycle-map-caption" class="eyebrow">Lifecycle phases and outputs</figcaption>
@@ -566,42 +573,59 @@
       "studio-core": { label: "Studio Core", short: "core", color: "var(--cyan)" },
       "unity": { label: "Unity", short: "unity", color: "var(--mint)" },
       "cpp-lua-mmorpg": { label: "C++ / Lua MMORPG", short: "cpp-lua", color: "var(--amber)" },
-      "production-design-liveops": { label: "Production / LiveOps", short: "liveops", color: "var(--coral)" }
+      "production-design-liveops": { label: "Production / LiveOps", short: "liveops", color: "var(--coral)" },
+      "production-management": { label: "Production Management", short: "production", color: "#c4b5fd" },
+      "content-production": { label: "Content Production", short: "content", color: "#f9a8d4" },
+      "product-analytics": { label: "Product Analytics", short: "analytics", color: "#fde68a" }
     };
     const skills = [
-      ["using-game-studio-skills", "studio-core", "root", "read-only", "Apply the operating contract, choose evidence labels, route work, and prevent unsupported PASS claims."],
-      ["studio-project-intake", "studio-core", "router", "read-only", "Collect the goal, scope, risk tier, engine, ownership, constraints, and do-not-touch paths into an actionable packet."],
-      ["safe-project-mutation", "studio-core", "safety", "medium", "Change project files or generated state with a dry run, exact scope, backup manifest, apply verification, and restore path."],
-      ["build-and-runtime-verification", "studio-core", "gate", "read-only", "Run build, compile, test, launch, or runtime checks tied to commands, exit codes, artifacts, limitations, and fresh evidence."],
-      ["evidence-first-debugging", "studio-core", "workflow", "low", "Debug a crash, lỗi, failing game, tool, build, service, or script through reproduction, root-cause isolation, minimal fix, and regression proof."],
-      ["studio-handoff", "studio-core", "workflow", "low", "Pause or transfer work with a durable handoff covering branch, scope, files, evidence labels, decisions, and next actions."],
-      ["review-swarm", "studio-core", "workflow", "read-only", "Review a known change set through parallel read-only code, architecture, test, safety, or product lanes with one verdict."],
-      ["bug-hunt-swarm", "studio-core", "workflow", "read-only", "Investigate an unknown crash, intermittent failure, or cross-subsystem bug with parallel reproduction lanes and ranked hypotheses."],
-      ["game-feature-brainstorming", "studio-core", "interactive", "read-only", "Explore a game feature, mechanic, player experience, or production approach with options and trade-offs before choosing."],
-      ["game-feature-to-spec", "studio-core", "workflow", "low", "Turn an approved game mechanic into a testable specification with states, criteria, edge cases, tuning, telemetry, and playtest criteria."],
-      ["feature-to-work-packets", "studio-core", "workflow", "low", "Decompose an approved feature into ordered work packets with exact files, ownership, dependencies, risks, and verification."],
-      ["skill-authoring-and-audit", "studio-core", "governance", "low", "Author or audit kit skills with trigger collision checks, provenance, routing evals, pressure evals, and lifecycle rules."],
-      ["studio-project-scaffold", "studio-core", "workflow", "medium", "Bootstrap an adopted game repository with rules, handoff, contracts, subsystem ownership, and preserved local skills.", ["unity", "cpp-lua-mmorpg"]],
-      ["multi-service-local-environment-doctor", "cpp-lua-mmorpg", "diagnostic", "read-only", "Diagnose local game services with ports, listeners, configured dependencies, startup order, and project isolation."],
-      ["game-database-migration-safety", "cpp-lua-mmorpg", "safety", "high", "Plan a MySQL schema or data migration with isolation, dry-run review, backup, restore, approval, and zero credential exposure."],
-      ["lua-client-server-contract-audit", "cpp-lua-mmorpg", "diagnostic", "read-only", "Audit Lua client/server RPC copies or generated protocol tables for opcode, fields, types, ordering, and source authority."],
-      ["localization-authority-audit", "cpp-lua-mmorpg", "diagnostic", "read-only", "Audit localization authority, generated copies, keys, text drift, encoding, mojibake, and client/server consistency.", ["unity"]],
-      ["cpp-server-crash-triage", "cpp-lua-mmorpg", "diagnostic", "read-only", "Triage a C++ game server crash, dump, access violation, stack trace, symbols, or build identity into a ranked root-cause plan."],
-      ["mmorpg-packet-protocol-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Review C++ server and Unity client wire compatibility: versions, opcodes, byte layout, direction, and request-response pairing."],
-      ["network-authority-and-exploit-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Review multiplayer trust boundaries, server authority, replay, abuse, and rate limits without attack traffic."],
-      ["save-data-schema-migration", "cpp-lua-mmorpg", "safety", "high", "Version and convert player saves, profiles, or persistence payloads with fixtures, compatibility checks, and rollback."],
-      ["unity-client-offline-debugging", "unity", "diagnostic", "read-only", "Diagnose Unity offline gameplay failures across login, bootstrap, network fallback, local data, and scene startup."],
-      ["unity-ui-rendering-debugging", "unity", "diagnostic", "read-only", "Find missing, clipped, wrongly sorted, misanchored, or invisible Unity and NGUI content without guessing."],
-      ["unity-asset-guid-meta-audit", "unity", "diagnostic", "read-only", "Audit Unity GUID and meta consistency, duplicate GUIDs, missing metas, stale references, and import failures."],
-      ["unity-batchmode-build-verification", "unity", "gate", "low", "Verify Unity batchmode, BuildPipeline, Editor.log, PlayerSettings, or Unity CI jobs with reproducible evidence."],
-      ["playtest-evidence", "production-design-liveops", "workflow", "read-only", "Plan or review playtests with scenarios, participant context, observations, reproduction evidence, severity, and honest conclusions."],
-      ["game-performance-budget", "production-design-liveops", "gate", "read-only", "Define or review frame-time, memory, loading, network, CPU, GPU, allocation, or thermal budgets against measurements."],
-      ["economy-source-sink-model", "production-design-liveops", "workflow", "read-only", "Model currencies, item faucets, sinks, exchange rates, player segments, inflation risk, and progression affordability."],
-      ["balance-data-change-review", "production-design-liveops", "workflow", "read-only", "Review numeric tuning diffs such as damage, price, cooldown, drop rate, or progression against approved bounds."],
-      ["release-candidate-preflight", "production-design-liveops", "gate", "read-only", "Make a go/no-go release decision across artifacts, tests, issues, approvals, compatibility, monitoring, and rollback."],
-      ["store-submission-checklist", "production-design-liveops", "gate", "high", "Prepare a game for store submission with metadata, compliance, ratings, privacy, package, entitlement, and approval gates."],
-      ["liveops-incident-response", "production-design-liveops", "workflow", "high", "Control a live outage with an incident commander, containment, mitigation, communication, recovery, and postmortem."],
-      ["telemetry-event-contract-review", "production-design-liveops", "diagnostic", "read-only", "Review analytics event names, properties, types, versions, privacy classes, producers, consumers, and compatibility."]
+      ["using-game-studio-skills", "studio-core", "root", "read-only", "Use when starting any GameStudio-CodexKIT task or when a model runner is unavailable and someone requests a confidence-based PASS."],
+      ["studio-project-intake", "studio-core", "router", "read-only", "Use when collecting a game project goal, scope, risk tier, engine and version, subsystem ownership, constraints, and do-not-touch paths into an actionable intake task packet."],
+      ["studio-workspace-routing", "studio-core", "router", "read-only", "Use when `.agents/project-profile.yaml`, nested Git roots, or cross-repository game work requires a profile-defined repository route, validation slice, or cross-project phase."],
+      ["studio-agent-orchestration", "studio-core", "workflow", "read-only", "Use when selecting project investigator, implementer, independent verifier, or profile specialist roles with expected output, do-not-touch scope, critical-path ownership, disjoint writers, concurrency limits, or no child agents."],
+      ["safe-project-mutation", "studio-core", "safety", "medium", "Use when changing project files or generated state requires a report-only dry run, exact scope, backup manifest, apply verification, and a tested restore path."],
+      ["build-and-runtime-verification", "studio-core", "gate", "read-only", "Use when running build, compile, test, launch, or runtime checks and producing a verdict tied to exact commands, exit codes, artifact paths, limitations, and fresh evidence."],
+      ["evidence-first-debugging", "studio-core", "workflow", "low", "Use when debugging a crash, lỗi, failing game, tool, build, service, script, or reproducible local code failure requires repro or reproduction, giả thuyết or ranked hypotheses, instrumentation, root-cause isolation, a minimal fix, regression proof, and a regression test."],
+      ["studio-handoff", "studio-core", "workflow", "low", "Use when pausing, transferring, or reactivating game-studio work and a durable handoff must capture branch, goal, scope, files, commands, Verified Snapshot Unverified BLOCKED facts, failures, decisions, next actions, and a reactivation prompt."],
+      ["review-swarm", "studio-core", "workflow", "read-only", "Use when reviewing a known change set through parallel read-only code, architecture, test, safety, or product lanes with disjoint concerns and one integrator verdict."],
+      ["bug-hunt-swarm", "studio-core", "workflow", "read-only", "Use when an unknown crash, intermittent failure, or cross-subsystem bug needs parallel read-only reproduction lanes, ranked hypotheses, suspect paths, and an integrator root-cause plan."],
+      ["game-feature-brainstorming", "studio-core", "interactive", "read-only", "Use when exploring a game feature, mechanic, player experience, or production approach and the team needs two or three options with trade-offs before choosing a design."],
+      ["game-feature-to-spec", "studio-core", "workflow", "low", "Use when an approved, chosen, or selected game mechanic direction must become a testable specification with acceptance criteria, state transitions, inputs, outputs, edge cases, tuning, telemetry, and playtest criteria."],
+      ["feature-to-work-packets", "studio-core", "workflow", "low", "Use when decomposing an approved specification into ordered work packets with a file owner, exact paths, single-writer ownership, dependencies, risks, evidence, and verification commands."],
+      ["skill-authoring-and-audit", "studio-core", "governance", "low", "Use when creating or revising a GameStudio-CodexKIT skill, resolving ambiguous skill triggers, auditing provenance or lifecycle maturity, or deriving reusable capabilities from session history."],
+      ["studio-project-scaffold", "studio-core", "workflow", "medium", "Use when running gamestudio init, status, or uninit, or bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project governance, a subsystem registry, or a per-project adapter report, plan digest, named reviewer, backup root, generated agent overlay, apply, uninstall, and .codex/config.toml preservation.", ["unity", "cpp-lua-mmorpg"]],
+      ["multi-service-local-environment-doctor", "cpp-lua-mmorpg", "diagnostic", "read-only", "Use when diagnosing a multi-service local game environment with port conflicts, process listeners, configured ports, service names, startup dependencies, and cross-project isolation concerns."],
+      ["game-database-migration-safety", "cpp-lua-mmorpg", "safety", "high", "Use when planning a game MySQL schema or data migration that requires 3306 or 3307 isolation, recognized schema gates, dry-run review, backup, restore, human approval, and zero credential exposure."],
+      ["unity-client-offline-debugging", "unity", "diagnostic", "read-only", "Use when a Unity client cannot enter offline gameplay because login, bootstrap, disconnected server handling, local mock data, network fallback, or scene startup paths fail."],
+      ["unity-ui-rendering-debugging", "unity", "diagnostic", "read-only", "Use when a Unity UI, HUD, screen item, or NGUI widget is missing, clipped, behind another canvas, wrongly sorted, disconnected from a prefab or atlas, misanchored, or invisible despite correct gameplay state."],
+      ["lua-client-server-contract-audit", "cpp-lua-mmorpg", "diagnostic", "read-only", "Use when normalized Lua client/server RPC contract copies or generated protocol tables disagree on opcode, request-response fields, types, ordering, or source authority."],
+      ["localization-authority-audit", "unity", "diagnostic", "read-only", "Use when auditing localization source authority, generated copies, translation keys, missing or extra entries, mismatched text, encoding, mojibake, or client and server localization drift.", ["cpp-lua-mmorpg"]],
+      ["unity-asset-guid-meta-audit", "unity", "diagnostic", "read-only", "Use when auditing Unity asset GUID and meta consistency, duplicate GUIDs, missing meta files, stale references, or import and prefab reference failures without editing assets."],
+      ["unity-batchmode-build-verification", "unity", "gate", "low", "Use when a Unity batch or batchmode, BuildPipeline, Editor.log, PlayerSettings, or Unity CI job is involved."],
+      ["cpp-server-crash-triage", "cpp-lua-mmorpg", "diagnostic", "read-only", "Use when triaging a C++ game server crash, dump, access violation, segmentation fault, stack trace, symbols, or build identity into a stable signature and ranked root-cause plan."],
+      ["mmorpg-packet-protocol-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Use when a C++ server and Unity client protocol manifest or wire compatibility review covers packet version negotiation, numeric opcode registry, byte layout order, direction, and request-response pairing."],
+      ["network-authority-and-exploit-review", "cpp-lua-mmorpg", "diagnostic", "read-only", "Use when sensitive multiplayer or MMORPG client actions require static server-authority validation, trust-boundary, replay, abuse, or rate-limit analysis with no attack traffic."],
+      ["save-data-schema-migration", "cpp-lua-mmorpg", "safety", "high", "Use when versioning or converting serialized player save files, profiles, checkpoints, or persistence payloads across recognized save-format versions with fixture compatibility and rollback."],
+      ["playtest-evidence", "production-design-liveops", "workflow", "read-only", "Use when planning or reviewing game playtests that need structured scenarios, participant context, observations, reproduction evidence, severity, and honest separation of observed findings from conclusions."],
+      ["game-performance-budget", "production-design-liveops", "gate", "read-only", "Use when defining or reviewing game frame-time, memory, loading, network, CPU, GPU, allocation, or thermal budgets against captured measurements and target hardware tiers."],
+      ["economy-source-sink-model", "production-design-liveops", "workflow", "read-only", "Use when modeling a game economy's currencies, item faucets, sinks, exchange rates, player segments, inflation risk, progression affordability, or live-operations reward assumptions."],
+      ["balance-data-change-review", "production-design-liveops", "workflow", "read-only", "Use when numeric game tuning data such as damage, price, cooldown, drop rate, or progression has a before/after diff that must stay within approved min/max bounds."],
+      ["release-candidate-preflight", "production-design-liveops", "gate", "read-only", "Use when a release candidate or RC needs a go/no-go readiness decision across required artifacts, test summaries, known issues, approvals, compatibility, monitoring, and rollback."],
+      ["store-submission-checklist", "production-design-liveops", "gate", "high", "Use when preparing a game for Steam, console, mobile, or other storefront submission with platform metadata, compliance, ratings, privacy, package, entitlement, and approval requirements."],
+      ["liveops-incident-response", "production-design-liveops", "workflow", "high", "Use when a live production service outage needs incident-controlled service or database mitigation, an incident commander, containment, timeline, player communications, recovery, and postmortem."],
+      ["telemetry-event-contract-review", "production-design-liveops", "diagnostic", "read-only", "Use when reviewing game analytics or telemetry event names, IDs, required properties, types, versions, privacy classes, producers, consumers, and backward compatibility before instrumentation changes."],
+      ["studio-production-planning", "production-management", "workflow", "low", "Use when a game milestone needs production planning across schedule, staffing, workstreams, dependencies, delivery forecast, scope, and milestone acceptance; not for decomposing one approved feature into work packets."],
+      ["production-risk-and-dependency-review", "production-management", "gate", "read-only", "Use when a production plan needs a read-only dependency risk review covering critical path, ownership gaps, blocked handoffs, mitigation, escalation, and schedule exposure; not for creating the baseline production schedule."],
+      ["level-and-content-design-review", "content-production", "workflow", "read-only", "Use when a level, encounter, mission space, or content slice needs review for player flow, pacing, readability, content density, progression gates, challenge, replayability, and production feasibility; not for broad feature ideation."],
+      ["narrative-quest-content-contract", "content-production", "workflow", "low", "Use when narrative, quest, dialogue, objective, state, reward, localization, cinematic, and implementation teams need one explicit content contract; not for general story brainstorming or protocol review."],
+      ["art-asset-pipeline-preflight", "content-production", "gate", "read-only", "Use when source art or game assets need preflight across naming, ownership, DCC export, scale, pivots, materials, textures, LOD, collision, compression, import settings, budgets, and delivery; not for GUID-only audits."],
+      ["animation-rigging-import-audit", "content-production", "diagnostic", "read-only", "Use when character animation needs an audit across skeleton, rig, skin weights, avatar, retargeting, clips, events, root motion, compression, import settings, runtime blending, and platform budgets; not for general art preflight."],
+      ["audio-content-pipeline-review", "content-production", "diagnostic", "read-only", "Use when music, voice, SFX, ambience, or middleware content needs review across source ownership, loudness, codec, streaming, looping, localization, routing, memory, concurrency, platform limits, and integration; not for generic performance budgeting."],
+      ["qa-test-strategy-and-coverage", "production-management", "workflow", "read-only", "Use when a game project, milestone, or feature needs a QA test strategy and coverage matrix across risk, test levels, platforms, environments, ownership, automation, regression, evidence, and exit criteria; not for one playtest session."],
+      ["platform-device-compatibility-matrix", "production-management", "gate", "read-only", "Use when a game needs a platform and device compatibility matrix across OS, hardware, GPU, memory, resolution, input, network, storefront, certification, test evidence, and support policy; not for store metadata preparation."],
+      ["load-soak-capacity-verification", "production-management", "gate", "medium", "Use when servers or online game services need controlled load, soak, concurrency, capacity, saturation, leak, queue, failover, recovery, and scaling verification with baselines and stop conditions; not for client frame budgets."],
+      ["product-analytics-experiment-review", "product-analytics", "workflow", "read-only", "Use when a game product experiment or A/B test needs review across hypothesis, population, assignment, metrics, guardrails, instrumentation, segmentation, sample size, significance, novelty, ethics, and decision rules; not for telemetry schema alone."],
+      ["liveops-content-rollout-and-rollback", "product-analytics", "gate", "high", "Use when a live game content update needs a governed rollout and rollback plan across cohort, canary, configuration, dependencies, monitoring, approvals, triggers, recovery, communication, and post-rollout verification; not for incident response after failure."]
     ];
 
     const grid = document.getElementById("skills-grid");

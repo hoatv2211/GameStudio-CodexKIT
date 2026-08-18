@@ -1,49 +1,103 @@
-schema_version: 1
+schema_version: 2
 bundled:
   balance-data-change-review:
-    - balance_review.py
+  - balance_review.py
   cpp-server-crash-triage:
-    - crash_triage.py
+  - crash_triage.py
   economy-source-sink-model:
-    - economy_model.py
+  - economy_model.py
   game-database-migration-safety:
-    - db_safety.py
+  - db_safety.py
   game-performance-budget:
-    - performance_budget.py
+  - performance_budget.py
   localization-authority-audit:
-    - localization_audit.py
+  - localization_audit.py
   lua-client-server-contract-audit:
-    - lua_contract_audit.py
+  - lua_contract_audit.py
   mmorpg-packet-protocol-review:
-    - lua_contract_audit.py
-    - protocol_review.py
+  - lua_contract_audit.py
+  - protocol_review.py
   multi-service-local-environment-doctor:
-    - environment_doctor.py
+  - environment_doctor.py
   network-authority-and-exploit-review:
-    - authority_review.py
+  - authority_review.py
   release-candidate-preflight:
-    - release_preflight.py
+  - release_preflight.py
+  - source: evals/schema/release-preflight.schema.json
+    destination: schemas/release-preflight.schema.json
   safe-project-mutation:
-    - safe_mutation.py
+  - safe_mutation.py
   save-data-schema-migration:
-    - save_migration.py
+  - save_migration.py
   studio-project-scaffold:
-    - project_scaffold.py
-    - safe_mutation.py
+  - agent_overlay.py
+  - project_scaffold.py
+  - project_complexity.py
+  - codegraph_adapter.py
+  - project_skill_overlay.py
+  - gamestudio_cli.py
+  - safe_mutation.py
+  - project_profile.py
+  - source: agents/investigator.toml
+    destination: templates/agents/investigator.toml
+  - source: agents/implementer.toml
+    destination: templates/agents/implementer.toml
+  - source: agents/verifier.toml
+    destination: templates/agents/verifier.toml
+  - source: agents/unity-csharp-client.toml
+    destination: templates/specialists/unity-csharp-client.toml
+  - source: agents/csharp-backend.toml
+    destination: templates/specialists/csharp-backend.toml
+  - source: agents/cpp-game-server.toml
+    destination: templates/specialists/cpp-game-server.toml
+  - source: agents/golang-services.toml
+    destination: templates/specialists/golang-services.toml
+  - source: agents/lua-gameplay.toml
+    destination: templates/specialists/lua-gameplay.toml
+  - source: agents/game-data-engineer.toml
+    destination: templates/specialists/game-data-engineer.toml
+  - source: agents/technical-artist.toml
+    destination: templates/specialists/technical-artist.toml
+  - source: agents/ui-localization-specialist.toml
+    destination: templates/specialists/ui-localization-specialist.toml
+  - source: agents/systems-game-designer.toml
+    destination: templates/specialists/systems-game-designer.toml
+  - source: agents/qa-automation.toml
+    destination: templates/specialists/qa-automation.toml
+  - source: agents/build-release-engineer.toml
+    destination: templates/specialists/build-release-engineer.toml
+  - source: agents/liveops-sre.toml
+    destination: templates/specialists/liveops-sre.toml
+  - source: agents/game-security-engineer.toml
+    destination: templates/specialists/game-security-engineer.toml
+  - source: agents/producer.toml
+    destination: templates/specialists/producer.toml
+  - source: agents/level-content-designer.toml
+    destination: templates/specialists/level-content-designer.toml
+  - source: agents/narrative-designer.toml
+    destination: templates/specialists/narrative-designer.toml
+  - source: agents/asset-pipeline-specialist.toml
+    destination: templates/specialists/asset-pipeline-specialist.toml
+  - source: agents/audio-engineer.toml
+    destination: templates/specialists/audio-engineer.toml
+  - source: agents/product-analyst.toml
+    destination: templates/specialists/product-analyst.toml
   telemetry-event-contract-review:
-    - telemetry_contract.py
+  - telemetry_contract.py
   unity-asset-guid-meta-audit:
-    - unity_guid_audit.py
+  - unity_guid_audit.py
   unity-batchmode-build-verification:
-    - build_evidence.py
+  - build_evidence.py
+  studio-workspace-routing:
+  - project_profile.py
 repository_only:
   review-swarm:
-    - secret_scan.py
-    - validate.py
+  - secret_scan.py
+  - validate.py
   skill-authoring-and-audit:
-    - catalog_audit.py
-    - check_originality.py
-    - route_eval.py
-    - validate.py
+  - catalog_audit.py
+  - check_originality.py
+  - route_eval.py
+  - validate.py
   using-game-studio-skills:
-    - doctor.py
+  - doctor.py

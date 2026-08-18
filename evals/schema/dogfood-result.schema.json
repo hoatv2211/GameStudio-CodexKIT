@@ -1,36 +1,64 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://gamestudio-codexkit.local/schema/dogfood-result.schema.json",
-  "type": "array",
-  "items": {
-    "type": "object",
-    "additionalProperties": false,
-    "required": ["id", "workflow", "verdict", "evidence_label"],
-    "properties": {
-      "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-      "workflow": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-      "verdict": {"enum": ["PASS", "FAIL", "BLOCKED"]},
-      "evidence_label": {"enum": ["Verified", "Snapshot", "Unverified", "BLOCKED"]},
-      "command": {"type": "string"},
-      "exit_code": {"type": "integer"},
-      "artifacts": {
-        "type": "array",
-        "items": {
-          "type": "object",
-          "additionalProperties": false,
-          "required": ["kind", "path"],
-          "properties": {
-            "kind": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-            "path": {"type": "string", "minLength": 1}
-          }
-        }
-      },
-      "project_snapshot": {"type": "string"},
-      "reviewer": {"type": "string"},
-      "timestamp": {"type": "string", "format": "date-time"},
-      "unauthorized_write": {"type": "boolean"},
-      "restore": {"type": "string"},
-      "reason": {"type": "string"}
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["results"],
+  "properties": {
+    "results": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/result"}
+    }
+  },
+  "$defs": {
+    "artifact": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "path", "sha256"],
+      "properties": {
+        "kind": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "path": {"type": "string", "minLength": 1},
+        "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}
+      }
+    },
+    "result": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "workflow",
+        "verdict",
+        "evidence_label",
+        "runtime_target",
+        "command",
+        "exit_code",
+        "artifacts",
+        "project_snapshot",
+        "reviewer",
+        "timestamp",
+        "unauthorized_write",
+        "restore",
+        "reason"
+      ],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "workflow": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "verdict": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+        "evidence_label": {"enum": ["Verified", "Snapshot", "Unverified", "BLOCKED"]},
+        "runtime_target": {"type": ["string", "null"]},
+        "command": {"type": ["string", "null"]},
+        "exit_code": {"type": ["integer", "null"]},
+        "artifacts": {
+          "type": "array",
+          "items": {"$ref": "#/$defs/artifact"}
+        },
+        "project_snapshot": {"type": ["string", "null"]},
+        "reviewer": {"type": ["string", "null"]},
+        "timestamp": {"type": ["string", "null"]},
+        "unauthorized_write": {"type": ["boolean", "null"]},
+        "restore": {"type": ["string", "null"]},
+        "reason": {"type": ["string", "null"]}
+      }
     }
   }
 }

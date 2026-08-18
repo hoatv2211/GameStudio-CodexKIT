@@ -1,0 +1,34 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/promotion-evidence.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "records"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "records": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["id", "skill_id", "from_maturity", "target_maturity", "profile", "case_ids", "evidence", "owner", "reviewer", "reviewed_at", "runtime_targets", "restore", "limitations", "expires_at"],
+        "properties": {
+          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "skill_id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "from_maturity": {"enum": ["experimental", "beta", "stable"]},
+          "target_maturity": {"enum": ["beta", "stable", "release"]},
+          "profile": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+          "case_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+          "evidence": {"type": "array", "minItems": 1, "items": {"type": "object", "additionalProperties": false, "required": ["kind", "path", "sha256"], "properties": {"kind": {"type": "string", "pattern": "^[a-z0-9-]+$"}, "path": {"type": "string", "minLength": 1}, "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"}}}},
+          "owner": {"type": "string", "minLength": 1},
+          "reviewer": {"type": "string", "minLength": 1},
+          "reviewed_at": {"type": "string", "format": "date"},
+          "runtime_targets": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+          "restore": {"type": "string", "minLength": 1},
+          "limitations": {"type": "array", "items": {"type": "string", "minLength": 1}},
+          "expires_at": {"type": "string", "format": "date"}
+        }
+      }
+    }
+  }
+}

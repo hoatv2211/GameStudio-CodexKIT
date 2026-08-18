@@ -1,0 +1,8 @@
+{"target_skill":"studio-agent-orchestration","cases":[
+  {"prompt":"Choose investigator implementer verifier or specialist agents with disjoint write ownership and concurrency limits","expected_skill":"studio-agent-orchestration","type":"positive"},
+  {"prompt":"agent orchestration keep critical path local reject overlapping writers and forbid nested delegation","expected_skill":"studio-agent-orchestration","type":"positive"},
+  {"prompt":"select project specialist role expected output do not touch scope and independent verifier","expected_skill":"studio-agent-orchestration","type":"positive"},
+  {"prompt":"review a known diff through independent read only architecture test and safety lanes","expected_skill":"review-swarm","type":"negative","owner":"review-swarm"},
+  {"prompt":"hunt an unknown intermittent crash using ranked read only hypothesis lanes","expected_skill":"bug-hunt-swarm","type":"negative","owner":"bug-hunt-swarm"},
+  {"prompt":"parallel implementation request has shared files so reject writers and choose bounded investigator verifier roles","expected_skill":"studio-agent-orchestration","type":"collision"}
+]}

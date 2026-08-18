@@ -1,0 +1,37 @@
+{
+  "target_skill": "platform-device-compatibility-matrix",
+  "cases": [
+    {
+      "prompt": "Create a platform device OS GPU input resolution compatibility matrix and certification risk",
+      "expected_skill": "platform-device-compatibility-matrix",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for platform device OS GPU input resolution compatibility matrix and certification risk without executing production actions",
+      "expected_skill": "platform-device-compatibility-matrix",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for platform device OS GPU input resolution compatibility matrix and certification risk with owners blockers and verification",
+      "expected_skill": "platform-device-compatibility-matrix",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by store-submission-checklist",
+      "expected_skill": "store-submission-checklist",
+      "type": "negative",
+      "owner": "store-submission-checklist"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs platform device OS GPU input resolution compatibility matrix and certification risk but must not publish deploy or invent PASS evidence",
+      "expected_skill": "platform-device-compatibility-matrix",
+      "type": "collision"
+    }
+  ]
+}

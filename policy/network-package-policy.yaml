@@ -1,3 +1,4 @@
 allowed_third_party_modules:
+  - jsonschema
   - yaml
 network_access: {}

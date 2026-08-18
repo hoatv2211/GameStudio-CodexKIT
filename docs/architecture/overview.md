@@ -2,16 +2,16 @@
 
 ## Source of truth
 
-Workflow logic lives only in `skills/<name>/SKILL.md` and progressively loaded references, scripts, templates, or assets. Root `scripts/` files are canonical helper implementations; `registry/skill-resources.yaml` deterministically copies the runtime subset into the owning skill directories. Registries index capabilities, personas, packs, skill resources, and upstream snapshots. Personas contain perspective and routes only. The repository root serves both the native Codex plugin and Hermes Agent skill discovery; adapters and packs are generated optional exports.
+Workflow logic lives only in `skills/<name>/SKILL.md` and progressively loaded references, scripts, templates, or assets. Root `scripts/` files are canonical helper implementations; `registry/skill-resources.yaml` deterministically copies the runtime subset into the owning skill directories. Registries index capabilities, agent roles, personas, packs, skill resources, and upstream snapshots. Personas contain perspective and routes only. The repository root serves both the native Codex plugin and Hermes Agent skill discovery; adapters and packs are generated optional exports.
 
 Active authority flows from `AGENTS.md` to registries, canonical skills, and maintained documentation. The ignored local `.archive/` may hold maintainer history but is never distributable authority and must not drive current execution.
 
-The catalog contains 33 canonical skills: 13 in `studio-core`, 6 in `unity`, 9 in `cpp-lua-mmorpg`, and 8 in `production-design-liveops`. Shared skills may appear in more than one pack without duplicating canonical source text. `.codex-plugin/plugin.json` exposes that catalog directly. Hermes and Codex adapter exports contain 33 generated skills plus `registry.json`.
+The catalog contains 47 canonical skills across seven additive packs: `studio-core`, `unity`, `cpp-lua-mmorpg`, `production-design-liveops`, `production-management`, `content-production`, and `product-analytics`. Shared skills may appear in more than one pack without duplicating canonical source text. The registry also defines 22 canonical agent roles. `.codex-plugin/plugin.json` exposes the canonical skill catalog directly.
 
 ## Layers
 
 1. Policy: evidence, mutation, ownership, archive, and handoff contracts in `AGENTS.md`.
-2. Router/context: root skill, project intake, and persona lenses.
+2. Router/context: root skill, project intake, project profiles, multi-repository routing, agent orchestration, and persona lenses.
 3. Workflow orchestration: design, planning, debugging, review, mutation, and handoff skills.
 4. Domain execution: Unity, C++, Lua, MMORPG, database, production, release, and liveops skills plus pure helpers.
 5. Evidence adapters: reports, verdicts, summaries, manifests, and handoffs.
@@ -24,7 +24,7 @@ Skills own reusable procedures and output contracts. Personas are thin lenses th
 
 ## Evaluation model
 
-Tier-A routing is deterministic and covers 32 routed skills with 192 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, and real-project dogfood are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
+Tier-A routing is deterministic and covers 46 routed skills with 276 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, and real-project dogfood are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
 
 Without a model runner or live project, the correct status is `BLOCKED`. Keyword routing proves catalog separation, not real model behavior.
 
@@ -36,7 +36,7 @@ Read-only work runs automatically. Low-risk changes require a visible diff and v
 
 Codex and Hermes Agent are the two primary distributions. `.claude-plugin/marketplace.json` exposes the repository-root Codex plugin from GitHub, `.codex-plugin/plugin.json` points directly at canonical `skills/`, and the Agent Skills CLI discovers those same directories for `hermes-agent`. Hermes copies individual skill directories rather than repository-root maintenance files, so every runtime helper is generated into the skill that owns it. Neither primary path duplicates workflow text.
 
-Four deterministic packs provide scoped installation. Hermes and Codex adapters remain optional exports regenerated from canonical skills. The per-project adapter merges kit-owned skills into `.agents/`, preserves unmanaged local skills, and records ownership hashes for safe uninstall.
+Seven deterministic packs provide scoped installation. Hermes and Codex adapters remain optional exports regenerated from canonical skills. The per-project adapter is report-only by default; apply requires a reviewer, a disjoint backup root, and an approved plan digest. It merges kit-owned skills into `.agents/`, combines packaged generic agent templates with a profile specialist overlay under `.codex/agents/`, and emits an inert activation file for manual merge while it leaves `.codex/config.toml` untouched. Per-file ownership hashes preserve unmanaged local agents and enable hash-safe uninstall; drift, unsafe links, or incomplete cleanup produce a `PARTIAL` recovery report instead of destructive removal.
 
 Generated content carries a `Generated by scripts/... Do not edit manually.` marker. `scripts/sync_skill_resources.py --check` detects missing or stale installed-helper sources, and generators refuse to replace unmanaged output.
 

@@ -1,6 +1,6 @@
 ---
 name: skill-authoring-and-audit
-description: Use when authoring or auditing GameStudio-CodexKIT skills with update-first preflight, trigger collision checks, provenance, routing and pressure evals, lifecycle rules, and session-history gap detection.
+description: Use when creating or revising a GameStudio-CodexKIT skill, resolving ambiguous skill triggers, auditing provenance or lifecycle maturity, or deriving reusable capabilities from session history.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -19,7 +19,7 @@ metadata:
     required_evidence: [catalog-scan, routing-results, provenance-check]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from:
@@ -39,10 +39,10 @@ One governance skill supports two modes: `author` creates or updates a needed wo
 Use when a recurring workflow needs codification, a skill trigger is ambiguous, session history reveals repeated failures, or catalog lifecycle and provenance need review.
 
 ## When NOT to use
-Do not author a skill for a one-off task, duplicate an existing capability, copy noncommercial content, or promote maturity without eval and dogfood evidence.
+Do not use this skill merely to execute or report an existing evaluation, and do not author a skill for a one-off task, duplicate an existing capability, copy noncommercial content, or promote maturity without eval and dogfood evidence.
 
 ## Required inputs and context discovery
-Collect requested mode, catalog and registry, existing descriptions, routing cases, session or issue evidence, provenance source/license/SHA, owner, reviewer, risk, and target pack.
+Collect requested mode, catalog and registries, existing descriptions, project-local skills and agent roles, routing cases, session or issue evidence, provenance source/license/SHA, owner, reviewer, risk, and target pack.
 
 ## Safety and risk level
 Writes are limited to owned skill, eval, registry, and documentation paths. Never mutate `.research` sources, external projects, generated adapters, or copied NC content.
@@ -56,7 +56,7 @@ Writes are limited to owned skill, eval, registry, and documentation paths. Neve
    Completion criterion: structural validation passes for the skill.
 4. Run deterministic routing, behavior, pressure, originality, and safety checks.
    Completion criterion: failures are repaired without weakening cases.
-5. In `audit` mode, scan catalog and session history for stale skills, repeated manual workflows, collisions, missing owners, and observed-versus-target KPI gaps.
+5. In `audit` mode, scan catalog, project overlays, agent-role IDs, and session history for stale skills, repeated manual workflows, trigger or role collisions, missing owners, and observed-versus-target KPI gaps.
    Completion criterion: findings have evidence, owner, severity, and update-first recommendation.
 6. Apply lifecycle promotion or demotion only when prerequisites are observed.
    Completion criterion: registry maturity matches evidence rather than aspiration.

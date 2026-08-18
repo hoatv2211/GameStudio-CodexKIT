@@ -1,7 +1,7 @@
 ---
 name: localization-authority-audit
 description: Use when auditing localization source authority, generated copies, translation keys, missing or extra entries, mismatched text, encoding, mojibake, or client and server localization drift.
-version: 0.1.0
+version: 0.2.0
 author: GameStudio-CodexKIT
 license: MIT
 compatibility:
@@ -19,8 +19,8 @@ metadata:
     required_evidence: [authority-map, copy-map, mismatch-list]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
-    last_reviewed: 2026-08-07
+    maturity: beta
+    last_reviewed: 2026-08-17
     provenance:
       derived_from: none
       patterns_from: [Hermes localization promotion source unavailable locally BLOCKED, sanitized copy synchronization fixture]

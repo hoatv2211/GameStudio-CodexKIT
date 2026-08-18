@@ -1,0 +1,37 @@
+{
+  "target_skill": "animation-rigging-import-audit",
+  "cases": [
+    {
+      "prompt": "Create a animation rig skeleton avatar retarget clip import root motion and compression audit",
+      "expected_skill": "animation-rigging-import-audit",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for animation rig skeleton avatar retarget clip import root motion and compression audit without executing production actions",
+      "expected_skill": "animation-rigging-import-audit",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for animation rig skeleton avatar retarget clip import root motion and compression audit with owners blockers and verification",
+      "expected_skill": "animation-rigging-import-audit",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by art-asset-pipeline-preflight",
+      "expected_skill": "art-asset-pipeline-preflight",
+      "type": "negative",
+      "owner": "art-asset-pipeline-preflight"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs animation rig skeleton avatar retarget clip import root motion and compression audit but must not publish deploy or invent PASS evidence",
+      "expected_skill": "animation-rigging-import-audit",
+      "type": "collision"
+    }
+  ]
+}

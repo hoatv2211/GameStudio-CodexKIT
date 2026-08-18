@@ -1,0 +1,264 @@
+schema_version: 1
+agent_roles:
+  - id: investigator
+    path: agents/investigator.toml
+    description: Read-only ownership and dependency discovery.
+    sandbox_mode: read-only
+    reasoning_effort: high
+  - id: implementer
+    path: agents/implementer.toml
+    description: Bounded implementation for one explicit write scope.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+  - id: verifier
+    path: agents/verifier.toml
+    description: Independent validation without source mutation.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+  - id: unity-csharp-client
+    path: agents/unity-csharp-client.toml
+    description: Unity C# client, scene, prefab, UI, and performance specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Unity client engineering
+    required_skills: [unity-ui-rendering-debugging, unity-asset-guid-meta-audit, unity-batchmode-build-verification, build-and-runtime-verification]
+    owned_scope_patterns: [client/**/Assets/**, client/**/ProjectSettings/**]
+    read_scope_patterns: [client/**, tests/**, docs/**]
+    forbidden_actions: [publish builds, stop services, edit generated localization output by hand]
+    validation_commands: [Unity EditMode tests, Unity PlayMode tests, console error review]
+    concurrency_group: unity-client-writer
+  - id: csharp-backend
+    path: agents/csharp-backend.toml
+    description: C# and .NET backend services, jobs, APIs, and tooling specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: C# backend engineering
+    required_skills: [evidence-first-debugging, build-and-runtime-verification, multi-service-local-environment-doctor]
+    owned_scope_patterns: [services/**/*.cs, services/**/*.csproj, tools/**/*.cs]
+    read_scope_patterns: [services/**, contracts/**, tests/**]
+    forbidden_actions: [rotate credentials, deploy services, change production data]
+    validation_commands: [dotnet test, dotnet build]
+    concurrency_group: csharp-backend-writer
+  - id: cpp-game-server
+    path: agents/cpp-game-server.toml
+    description: C++ authoritative game server, protocol, crash, and memory specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: xhigh
+    kind: specialist
+    discipline: C++ game server engineering
+    required_skills: [cpp-server-crash-triage, mmorpg-packet-protocol-review, build-and-runtime-verification]
+    owned_scope_patterns: [server/**/*.cpp, server/**/*.hpp, server/**/*.h, server/**/CMakeLists.txt]
+    read_scope_patterns: [server/**, client/**/protocol/**, tests/**]
+    forbidden_actions: [start production servers, publish binaries, patch generated protocol output by hand]
+    validation_commands: [focused C++ tests, server compile, symbol and protocol checks]
+    concurrency_group: cpp-server-writer
+  - id: golang-services
+    path: agents/golang-services.toml
+    description: Go services, gateways, concurrency, and observability specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Go service engineering
+    required_skills: [evidence-first-debugging, build-and-runtime-verification, multi-service-local-environment-doctor]
+    owned_scope_patterns: [services/**/*.go, cmd/**/*.go, internal/**/*.go]
+    read_scope_patterns: [services/**, cmd/**, internal/**, contracts/**, tests/**]
+    forbidden_actions: [deploy services, rotate credentials, mutate live queues]
+    validation_commands: [go test ./..., go vet ./...]
+    concurrency_group: golang-services-writer
+  - id: lua-gameplay
+    path: agents/lua-gameplay.toml
+    description: Lua gameplay, client-server contracts, and generated-config consumer specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Lua gameplay engineering
+    required_skills: [lua-client-server-contract-audit, mmorpg-packet-protocol-review, evidence-first-debugging]
+    owned_scope_patterns: [client/**/Lua/**/*.lua]
+    read_scope_patterns: [client/**/Lua/**, server/**, workbench*/**]
+    forbidden_actions: [edit generated config by hand, change protocol numbers without authority, publish client assets]
+    validation_commands: [Lua contract audit, focused Lua tests, consumer path review]
+    concurrency_group: lua-gameplay-writer
+  - id: game-data-engineer
+    path: agents/game-data-engineer.toml
+    description: Game schema, migration, configuration pipeline, and telemetry data specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: xhigh
+    kind: specialist
+    discipline: Game data engineering
+    required_skills: [game-database-migration-safety, save-data-schema-migration, telemetry-event-contract-review]
+    owned_scope_patterns: [data/**, database/**, migrations/**, telemetry/**]
+    read_scope_patterns: [data/**, database/**, migrations/**, telemetry/**, server/**, client/**]
+    forbidden_actions: [import databases, run destructive SQL, expose credentials]
+    validation_commands: [migration dry run, schema validation, telemetry contract tests]
+    concurrency_group: game-data-writer
+  - id: technical-artist
+    path: agents/technical-artist.toml
+    description: Shader, VFX, asset import, rendering, and content pipeline specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Technical art
+    required_skills: [unity-asset-guid-meta-audit, game-performance-budget, build-and-runtime-verification]
+    owned_scope_patterns: [client/**/Assets/**/*.shader, client/**/Assets/**/*.mat, client/**/Assets/**/*.prefab, art/**]
+    read_scope_patterns: [client/**/Assets/**, art/**, docs/**]
+    forbidden_actions: [overwrite source art, publish asset bundles, bulk reimport without approval]
+    validation_commands: [asset GUID audit, render budget review, Unity console review]
+    concurrency_group: technical-art-writer
+  - id: ui-localization-specialist
+    path: agents/ui-localization-specialist.toml
+    description: UI prefab, localization authority, font, overflow, and accessibility specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: UI localization engineering
+    required_skills: [localization-authority-audit, unity-ui-rendering-debugging, playtest-evidence]
+    owned_scope_patterns: [client/**/Assets/**/ui/**, localization/**, workbench*/**/localization/**]
+    read_scope_patterns: [client/**, localization/**, workbench*/**, tests/**]
+    forbidden_actions: [replace dynamic prefab text without tracing authority, edit generated overlays by hand, remove evidence to hide residue]
+    validation_commands: [strict localization audit, UI overflow audit, Unity PlayMode evidence]
+    concurrency_group: ui-localization-writer
+  - id: systems-game-designer
+    path: agents/systems-game-designer.toml
+    description: Economy, progression, balance, and content-system design specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Systems game design
+    required_skills: [game-feature-to-spec, economy-source-sink-model, balance-data-change-review]
+    owned_scope_patterns: [design/**, balance/**]
+    read_scope_patterns: [design/**, balance/**, data/**, telemetry/**]
+    forbidden_actions: [change live economy data, bypass data owners, publish balance changes]
+    validation_commands: [economy model review, balance delta review, design acceptance checks]
+    concurrency_group: systems-design-writer
+  - id: qa-automation
+    path: agents/qa-automation.toml
+    description: Unit, integration, PlayMode, browser, and regression evidence specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Game QA automation
+    required_skills: [playtest-evidence, build-and-runtime-verification, review-swarm]
+    owned_scope_patterns: [tests/**, qa/**]
+    read_scope_patterns: [tests/**, qa/**, client/**, server/**, services/**]
+    forbidden_actions: [edit production source to make tests pass, publish builds, delete failure evidence]
+    validation_commands: [focused tests, regression suite, artifact integrity check]
+    concurrency_group: qa-automation-writer
+  - id: build-release-engineer
+    path: agents/build-release-engineer.toml
+    description: Build, CI, packaging, rollback, and release-gate specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: xhigh
+    kind: specialist
+    discipline: Build and release engineering
+    required_skills: [release-candidate-preflight, unity-batchmode-build-verification, store-submission-checklist]
+    owned_scope_patterns: [.github/**, .circleci/**, build/**, scripts/release/**]
+    read_scope_patterns: [.github/**, .circleci/**, build/**, scripts/**, client/**, server/**]
+    forbidden_actions: [publish releases, sign production artifacts, rotate signing credentials]
+    validation_commands: [release preflight, packaging tests, rollback verification]
+    concurrency_group: build-release-writer
+  - id: liveops-sre
+    path: agents/liveops-sre.toml
+    description: Runtime health, incident, monitoring, recovery, and capacity specialist.
+    sandbox_mode: read-only
+    reasoning_effort: xhigh
+    kind: specialist
+    discipline: Live operations and SRE
+    required_skills: [liveops-incident-response, multi-service-local-environment-doctor, network-authority-and-exploit-review]
+    owned_scope_patterns: [observability/**, runbooks/**]
+    read_scope_patterns: [observability/**, runbooks/**, services/**, server/**]
+    forbidden_actions: [restart production services, change live configuration, publish player communications]
+    validation_commands: [read-only health checks, incident timeline validation, recovery evidence review]
+    concurrency_group: liveops-observer
+  - id: game-security-engineer
+    path: agents/game-security-engineer.toml
+    description: Network authority, exploit path, secrets, and trust-boundary specialist.
+    sandbox_mode: read-only
+    reasoning_effort: xhigh
+    kind: specialist
+    discipline: Game security engineering
+    required_skills: [network-authority-and-exploit-review, evidence-first-debugging, review-swarm]
+    owned_scope_patterns: [security/**, threat-models/**]
+    read_scope_patterns: [security/**, threat-models/**, client/**, server/**, services/**]
+    forbidden_actions: [exploit live systems, expose secrets, mutate production security controls]
+    validation_commands: [threat model review, authority audit, secret scan]
+    concurrency_group: game-security-observer
+  - id: producer
+    path: agents/producer.toml
+    description: Milestone scope, schedule, staffing, dependency, risk, and delivery governance specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Game production management
+    required_skills: [studio-production-planning, production-risk-and-dependency-review, studio-handoff]
+    owned_scope_patterns: [production/**, planning/**]
+    read_scope_patterns: [production/**, planning/**, design/**, tests/**, build/**]
+    forbidden_actions: [approve own milestone gate, publish builds, change production source]
+    validation_commands: [production plan review, dependency risk review, milestone evidence audit]
+    concurrency_group: production-planning-writer
+  - id: level-content-designer
+    path: agents/level-content-designer.toml
+    description: Level layout, encounter pacing, mission flow, content density, and progression specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Level and content design
+    required_skills: [level-and-content-design-review, game-feature-to-spec, playtest-evidence]
+    owned_scope_patterns: [design/levels/**, design/content/**]
+    read_scope_patterns: [design/**, client/**, data/**, telemetry/**]
+    forbidden_actions: [change live content data, publish levels, overwrite implementation ownership]
+    validation_commands: [level content review, playtest evidence review, design acceptance checks]
+    concurrency_group: level-content-writer
+  - id: narrative-designer
+    path: agents/narrative-designer.toml
+    description: Narrative, quest, dialogue, objective, cinematic, and localization contract specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Narrative and quest design
+    required_skills: [narrative-quest-content-contract, localization-authority-audit, telemetry-event-contract-review]
+    owned_scope_patterns: [design/narrative/**, design/quests/**, dialogue/**]
+    read_scope_patterns: [design/**, localization/**, data/**, client/**, server/**]
+    forbidden_actions: [change live quest data, publish localized content, invent implementation authority]
+    validation_commands: [narrative contract review, localization authority audit, quest state acceptance review]
+    concurrency_group: narrative-content-writer
+  - id: asset-pipeline-specialist
+    path: agents/asset-pipeline-specialist.toml
+    description: Source art, DCC export, engine import, LOD, collision, compression, and asset delivery specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Art asset pipeline
+    required_skills: [art-asset-pipeline-preflight, animation-rigging-import-audit, unity-asset-guid-meta-audit]
+    owned_scope_patterns: [art/**, assets/source/**, tools/art/**]
+    read_scope_patterns: [art/**, assets/**, client/**, build/**]
+    forbidden_actions: [overwrite source art, bulk reimport without approval, publish asset bundles]
+    validation_commands: [asset pipeline preflight, animation import audit, asset GUID audit]
+    concurrency_group: asset-pipeline-writer
+  - id: audio-engineer
+    path: agents/audio-engineer.toml
+    description: Music, voice, SFX, middleware, loudness, streaming, memory, and audio integration specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Game audio engineering
+    required_skills: [audio-content-pipeline-review, game-performance-budget, localization-authority-audit]
+    owned_scope_patterns: [audio/**, assets/audio/**, tools/audio/**]
+    read_scope_patterns: [audio/**, assets/**, client/**, localization/**, build/**]
+    forbidden_actions: [publish audio banks, replace licensed source, change live mixer configuration]
+    validation_commands: [audio pipeline review, loudness and loop audit, runtime audio budget review]
+    concurrency_group: audio-content-writer
+  - id: product-analyst
+    path: agents/product-analyst.toml
+    description: Product metrics, experiment design, segmentation, guardrails, and live content decision specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Game product analytics
+    required_skills: [product-analytics-experiment-review, telemetry-event-contract-review, liveops-content-rollout-and-rollback]
+    owned_scope_patterns: [analytics/**, experiments/**, product/**]
+    read_scope_patterns: [analytics/**, experiments/**, telemetry/**, design/**, liveops/**]
+    forbidden_actions: [launch experiments, change live segmentation, publish player data]
+    validation_commands: [experiment review, telemetry contract review, decision rule audit]
+    concurrency_group: product-analytics-writer

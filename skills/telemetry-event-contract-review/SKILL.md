@@ -19,7 +19,7 @@ metadata:
     required_evidence: [baseline-schema, proposed-schema, producer-consumer-map, privacy-classification]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

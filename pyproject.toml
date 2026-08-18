@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "gamestudio-codex-kit"
+version = "1.5.1"
+description = "Optional terminal adapter for GameStudio-CodexKIT project lifecycle commands."
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6"]
+
+[project.scripts]
+gamestudio = "scripts.gamestudio_cli:main"
+
+[tool.setuptools]
+packages = ["scripts"]

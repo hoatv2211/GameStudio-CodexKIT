@@ -19,7 +19,7 @@ metadata:
     required_evidence: [schema-version, fixture-result, rollback-plan, reviewer-approval]
     owner: HoaTV Studio
     reviewer: QA Lead
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

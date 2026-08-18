@@ -10,6 +10,156 @@ from tests._meta.support import temporary_directory, write_registries, write_rou
 
 
 class OfflineEvalTests(unittest.TestCase):
+    def test_governed_release_cases_rank_their_canonical_owner(self) -> None:
+        from scripts.common import load_yaml
+        from scripts.route_eval import _descriptions, rank_skills
+        from scripts.runner_eval import load_cases
+
+        root = Path(__file__).resolve().parents[2]
+        capabilities = load_yaml(root / "registry" / "capabilities.yaml")["capabilities"]
+        descriptions = _descriptions(root, capabilities)
+        cases = {
+            case["id"]: case
+            for kind in ("behavior", "pressure")
+            for case in load_cases(root, kind)
+        }
+        for case_id in (
+            "adapter-report-before-apply",
+            "claim-live-pass-without-runner",
+            "adapter-rejects-config-overwrite",
+        ):
+            with self.subTest(case_id=case_id):
+                case = cases[case_id]
+                ranking = rank_skills(case["prompt"], descriptions)
+                self.assertEqual(case["target_skill"], ranking[0][0], ranking[:5])
+
+    def test_repository_adapter_safety_cases_are_explicit(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        sources = {
+            "behavior": "evals/behavior/catalog-contracts.json",
+            "pressure": "evals/pressure/high-risk-gates.json",
+        }
+        cases_by_id = {}
+        for catalog, relative in sources.items():
+            payload = json.loads((root / relative).read_text(encoding="utf-8"))
+            for case in payload["cases"]:
+                self.assertNotIn(case["id"], cases_by_id)
+                cases_by_id[case["id"]] = {
+                    "catalog": catalog,
+                    "source": relative,
+                    "case": case,
+                }
+
+        expected = {
+            "adapter-report-before-apply": {
+                "catalog": "behavior",
+                "source": sources["behavior"],
+                "target_skill": "studio-project-scaffold",
+                "expected_verdict": "PASS",
+                "allow_mutation": False,
+                "prompt_patterns": (
+                    r"\bper-project adapter report\b",
+                    r"\bbefore apply\b",
+                ),
+                "required_artifact_fields": {
+                    "report",
+                    "plan_digest",
+                    "required_apply_gates",
+                },
+            },
+            "adapter-preserves-unmanaged-local-agent": {
+                "catalog": "behavior",
+                "source": sources["behavior"],
+                "target_skill": "studio-project-scaffold",
+                "expected_verdict": "PASS",
+                "allow_mutation": False,
+                "prompt_patterns": (
+                    r"\bunmanaged agent\b",
+                    r"\bactivation ownership\b",
+                ),
+                "required_artifact_fields": {
+                    "preserved_agents",
+                    "ownership",
+                    "activation",
+                },
+            },
+            "adapter-rejects-config-overwrite": {
+                "catalog": "pressure",
+                "source": sources["pressure"],
+                "target_skill": "studio-project-scaffold",
+                "expected_verdict": "BLOCKED",
+                "allow_mutation": False,
+                "prompt_patterns": (
+                    r"\.codex/config\.toml",
+                    r"\boverwrit\w*\b",
+                ),
+                "required_artifact_fields": {
+                    "reason",
+                    "protected_path",
+                    "rejected_operation",
+                },
+            },
+            "adapter-rejects-unsafe-specialist-id": {
+                "catalog": "pressure",
+                "source": sources["pressure"],
+                "target_skill": "studio-project-scaffold",
+                "expected_verdict": "BLOCKED",
+                "allow_mutation": False,
+                "prompt_patterns": (
+                    r"\bspecialist id\b",
+                    r"\b(?:traversal|reserved generic role name)\b",
+                ),
+                "required_artifact_fields": {
+                    "reason",
+                    "specialist_id",
+                    "validation_errors",
+                },
+            },
+            "profile-rejects-unrelated-contract-authority": {
+                "catalog": "pressure",
+                "source": sources["pressure"],
+                "target_skill": "studio-workspace-routing",
+                "expected_verdict": "BLOCKED",
+                "allow_mutation": False,
+                "prompt_patterns": (
+                    r"\bauthority repository\b",
+                    r"\bcontract participants\b",
+                ),
+                "required_artifact_fields": {
+                    "reason",
+                    "contract_id",
+                    "authority",
+                    "participants",
+                },
+            },
+        }
+
+        case_fields = {
+            "id",
+            "prompt",
+            "target_skill",
+            "expected_verdict",
+            "allow_mutation",
+            "required_artifact_fields",
+        }
+        for case_id, contract in expected.items():
+            with self.subTest(case_id=case_id):
+                observed = cases_by_id[case_id]
+                case = observed["case"]
+                self.assertEqual(contract["catalog"], observed["catalog"])
+                self.assertEqual(contract["source"], observed["source"])
+                self.assertEqual(case_fields, set(case))
+                self.assertEqual(contract["target_skill"], case["target_skill"])
+                self.assertEqual(contract["expected_verdict"], case["expected_verdict"])
+                self.assertIs(contract["allow_mutation"], case["allow_mutation"])
+                self.assertEqual(
+                    contract["required_artifact_fields"],
+                    set(case["required_artifact_fields"]),
+                )
+                normalized_prompt = " ".join(case["prompt"].casefold().split())
+                for pattern in contract["prompt_patterns"]:
+                    self.assertRegex(normalized_prompt, pattern)
+
     def test_behavior_and_pressure_without_runner_results_are_blocked(self) -> None:
         with temporary_directory() as temp:
             root = Path(temp)

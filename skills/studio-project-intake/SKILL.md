@@ -19,7 +19,7 @@ metadata:
     required_evidence: [file-list, git-status]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none
@@ -38,7 +38,7 @@ Use for new repositories, new sessions, cross-subsystem work, unclear ownership,
 Do not repeat full intake when a current task packet already has verified scope and the request is a micro-change inside that scope.
 
 ## Required inputs and context discovery
-Collect goal, user-visible success, repository path, branch, engine/version, runtime topology, exact subsystem, risk tier, owners, dependencies, do-not-touch paths, available commands, and blocked capabilities.
+Collect goal, user-visible success, workspace and nested Git roots, branch and dirty state per repository, engine/version, runtime topology, exact subsystem, risk tier, owners, dependencies, generated and excluded paths, do-not-touch paths, available commands, and blocked capabilities.
 
 ## Safety and risk level
 Intake is read-only. Inspect status and structure without starting services, opening editors, importing databases, or modifying project files.
@@ -52,8 +52,8 @@ Intake is read-only. Inspect status and structure without starting services, ope
    Completion criterion: each planned side effect has an approval and rollback requirement.
 4. Record engine/version, services, ports, database/schema, generated-source relationships, and test commands only when verified.
    Completion criterion: snapshots are separated from hypotheses.
-5. Select the next workflow skill and define its expected artifact.
-   Completion criterion: the task packet is executable by another session without rediscovery.
+5. Select the next workflow skill and, for verified multi-repository work, include a conservative project-profile draft with unknown owners and commands labeled.
+   Completion criterion: the task packet is executable without rediscovery and routes through `studio-workspace-routing` when applicable.
 
 ## Evidence and output contract
 Produce `task-packet.json` with goal, scope, risk, repository snapshot, owners, do-not-touch paths, dependencies, verification commands, expected artifacts, and BLOCKED items.

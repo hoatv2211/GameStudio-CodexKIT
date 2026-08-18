@@ -5,23 +5,32 @@
 Use this precedence order:
 
 1. `AGENTS.md` for operating, evidence, mutation, ownership, archive, and handoff rules.
-2. `registry/*.yaml` for capabilities, packs, personas, and upstream snapshot provenance.
-3. `skills/*/SKILL.md` for canonical workflows.
-4. `docs/architecture/overview.md` and `docs/authoring/skills.md` for maintained design guidance.
-5. Generated adapters as read-only optional export artifacts.
+2. `.agents/skills/*/SKILL.md` and `.codex/agents/*.toml` for repository-local maintenance behavior while working in this repository.
+3. `registry/*.yaml` for distributed capabilities, agent roles, packs, personas, skill resources, and upstream snapshot provenance.
+4. `skills/*/SKILL.md` for canonical distributed workflows.
+5. `docs/architecture/overview.md` and `docs/authoring/skills.md` for maintained design guidance.
+6. Generated adapters as read-only optional export artifacts.
 
 Files under the ignored local `.archive/` are optional historical context only and never active policy or distributable template content.
 
 ## Primary Distribution
 
 - Codex App/CLI and Hermes Agent are the only primary runtime targets. Treat every other export as optional maintenance output.
-- The repository root is the installable plugin; `skills/` remains the only canonical workflow source.
+- The repository root is the installable plugin; `skills/` remains the only canonical distributed workflow source.
 - `.codex-plugin/plugin.json` defines the plugin identity and exposes `./skills/` directly.
 - `.claude-plugin/marketplace.json` is the Codex-supported repository marketplace compatibility path used by the GitHub install flow.
 - Hermes Agent installs the same canonical catalog through `npx skills add <repo> -a hermes-agent`; the CLI copies individual skill directories, so runtime helpers must be bundled inside each skill.
-- Generated Hermes, Codex, pack, and per-project outputs are optional export artifacts. Never create a second hand-maintained plugin skill tree.
+- Generated Hermes, Codex, pack, and per-project outputs are optional export artifacts. Canonical agent-role templates live in `agents/` and are materialized project-locally; never create a second hand-maintained plugin skill tree.
 - Keep Codex plugin metadata, the Hermes Agent-discoverable root catalog, repository URL, and registry synchronized through `scripts/validate.py` and packaging tests.
 - Increment the plugin semantic version when a distributed plugin change must invalidate an installed cache.
+
+## Repository-Local Maintenance
+
+- `.agents/skills/` is the only allowed repository-local maintenance skill tree. It is tracked for maintainers, excluded from plugin skill exports, and never added to capability or pack registries.
+- `.codex/agents/` and `.codex/config.toml` may activate repository-local maintenance roles. These roles are never added to `registry/agent-roles.yaml` or project scaffold templates.
+- `workflows/repository-maintenance.md` is the maintained human-readable workflow for improving this kit.
+- Repository-local maintenance skills may route to distributed skills but must not duplicate their specialist procedures.
+- Keep internal IDs out of generated adapters, packs, project overlays, and installed game projects. Validate this boundary through `scripts/validate.py` and governance tests.
 
 ## Evidence
 
@@ -31,6 +40,13 @@ Files under the ignored local `.archive/` are optional historical context only a
 - Use `BLOCKED` when a tool, dependency, permission, live project, or model runner is unavailable. Never convert `BLOCKED` into `PASS`.
 - A PASS claim requires a command, exit code, and artifact path where applicable.
 - Compile success is not regression proof; performance claims require a baseline, scenario, hardware, sample count, and measured delta.
+## Maturity
+
+- Use `draft` or `experimental` before real studio adoption is confirmed.
+- Use `beta` for a catalog or workflow adopted in a real studio project. Maintainer confirmation may be recorded as `Snapshot`; beta does not claim that every skill has individual verified dogfood evidence.
+- `beta` does not require a per-skill promotion record. `stable` requires verified dogfood plus Tier-B, behavior, and pressure evidence; `release` additionally requires a runtime matrix and sanitized session history.
+- Keep maturity separate from task evidence: a beta skill must still report individual claims as `Verified`, `Snapshot`, `Unverified`, or `BLOCKED` according to what was observed.
+- A lifecycle audit may honestly remain `BLOCKED` for missing model, runtime, history, upstream, or KPI evidence while catalog beta maturity remains valid. Never treat that absence as `premature_maturity`; that gate applies to `stable` and `release`.
 
 ## Mutation
 

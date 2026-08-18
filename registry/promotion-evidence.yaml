@@ -1,0 +1,27 @@
+schema_version: 1
+records:
+- id: localization-authority-audit-experimental-to-beta-fpc
+  skill_id: localization-authority-audit
+  from_maturity: experimental
+  target_maturity: beta
+  profile: fpc-global-localization-static
+  case_ids:
+  - fpc-global-residue-authority
+  - fpc-localization-doctor
+  evidence:
+  - kind: dogfood-result
+    path: registry/promotion-artifacts/localization-authority-audit-fpc/results.json
+    sha256: 37948163613315e9921ddd64d2b72d52e495f882f0664f556df7a3c36a5f69cc
+  - kind: project-snapshot
+    path: registry/promotion-artifacts/localization-authority-audit-fpc/project-snapshot.json
+    sha256: 59ab5904aebdd7c253627810b6599f66efd0c32bfb0bf00c0e67300b31e6bc2e
+  owner: HoaTV Studio Localization
+  reviewer: Codex FPC dogfood session
+  reviewed_at: '2026-08-17'
+  runtime_targets:
+  - Codex App/CLI
+  restore: Remove this verified evidence record; retain catalog beta only while FPC studio adoption remains confirmed.
+  limitations:
+  - This verified beta evidence is bound to the static FPC profile; catalog-wide beta adoption is a separate maintainer Snapshot.
+  - Stable and release evidence tiers are not yet satisfied.
+  expires_at: '2027-02-17'

@@ -19,7 +19,7 @@ metadata:
     required_evidence: [incident-timeline, impact-assessment, command-authority, recovery-validation]
     owner: HoaTV Studio
     reviewer: Incident Commander
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

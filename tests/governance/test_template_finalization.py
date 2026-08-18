@@ -69,6 +69,130 @@ class TemplateFinalizationTests(unittest.TestCase):
             self.assertIn(required, text)
         self.assertNotIn("always-loaded root router", text)
         self.assertIn("--backup-root D:/path/to/game-project/.scaffold-backup", text)
+        self.assertIn(
+            "python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project",
+            text,
+        )
+        self.assertIn(
+            '$report = python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project | ConvertFrom-Json',
+            text,
+        )
+        self.assertIn("$report.plan_digest", text)
+        self.assertIn("--plan-digest $report.plan_digest", text)
+        self.assertIn("never overwrites `.codex/config.toml`", text)
+
+    def test_project_bootstrap_requires_adapter_report_review_before_apply(self) -> None:
+        text = (ROOT / "workflows" / "project-bootstrap.md").read_text(encoding="utf-8")
+        self.assertIn("report-only", text)
+        self.assertIn("Review the report before apply", text)
+        self.assertIn("plan_digest", text)
+        self.assertIn("--plan-digest", text)
+        self.assertIn("manually reviewed and merged", text)
+        self.assertIn("never overwrites `.codex/config.toml`", text)
+
+    def test_canonical_project_scaffold_skill_owns_adapter_lifecycle(self) -> None:
+        text = (ROOT / "skills" / "studio-project-scaffold" / "SKILL.md").read_text(
+            encoding="utf-8"
+        )
+        for required in (
+            "report-only first",
+            "`plan_digest`",
+            "`proposed`",
+            "`mutation_report.operations`",
+            "`collisions`",
+            "`activated_roles`",
+            "named reviewer",
+            "backup root",
+            "approved plan digest",
+            "leaves `.codex/config.toml` untouched",
+            "`.codex/agents.generated.toml`",
+            "inert",
+            "packaged generic agent templates",
+            "profile specialists",
+            "per-file ownership",
+            "hash-safe uninstall",
+            "`PARTIAL`",
+            "`preserved_drift`",
+            "`remaining_owned`",
+            "manual recovery",
+        ):
+            self.assertIn(required, text)
+        self.assertRegex(
+            text.casefold(),
+            r"(?s)report-only first.*apply.*named reviewer.*backup root.*approved plan digest",
+        )
+
+    def test_project_adapter_docs_expose_the_safe_lifecycle_contract(self) -> None:
+        contracts = {
+            "README.md": (
+                "report-only by default",
+                "named reviewer",
+                "backup root",
+                "approved plan digest",
+                "packaged generic agent templates",
+                "profile specialist overlay",
+                "leaves `.codex/config.toml` untouched",
+                "inert activation",
+                "per-file ownership",
+                "hash-safe",
+                "`PARTIAL` recovery",
+            ),
+            "docs/architecture/overview.md": (
+                "report-only by default",
+                "reviewer",
+                "backup root",
+                "approved plan digest",
+                "packaged generic agent templates",
+                "profile specialist overlay",
+                "leaves `.codex/config.toml` untouched",
+                "inert activation",
+                "Per-file ownership",
+                "hash-safe uninstall",
+                "`PARTIAL` recovery",
+            ),
+            "docs/authoring/skills.md": (
+                "report-only by default",
+                "named reviewer",
+                "backup root",
+                "approved plan digest",
+                "packaged generic agent templates",
+                "profile specialist overlay",
+                "leaves `.codex/config.toml` untouched",
+                "inert activation",
+                "per-file ownership",
+                "hash-safe uninstall",
+                "`PARTIAL` recovery",
+            ),
+            "workflows/project-bootstrap.md": (
+                "report-only by default",
+                "named reviewer",
+                "backup root",
+                "approved plan digest",
+                "packaged generic agent templates",
+                "profile specialist overlay",
+                "leaves `.codex/config.toml` untouched",
+                "inert activation",
+                "per-file ownership",
+                "Hash-safe uninstall",
+                "`PARTIAL` recovery",
+            ),
+        }
+        forbidden_patterns = {
+            "config overwrite": r"(?<!never )overwrit(?:e|es|ten)\s+`\.codex/config\.toml`",
+            "immediate activation": r"activat\w*\s+immediately",
+            "drift deletion": r"(?:delete|remove)\w*\s+(?:all\s+)?drifted",
+            "apply gate bypass": (
+                r"apply\s+without\s+(?:a\s+)?"
+                r"(?:named reviewer|backup root|approved plan digest)"
+            ),
+        }
+        for relative, required_markers in contracts.items():
+            with self.subTest(document=relative):
+                text = (ROOT / relative).read_text(encoding="utf-8")
+                for required in required_markers:
+                    self.assertIn(required, text)
+                for claim, pattern in forbidden_patterns.items():
+                    self.assertNotRegex(text, pattern, (relative, claim))
 
     def test_authoring_docs_use_an_executable_plugin_validator_command(self) -> None:
         text = (ROOT / "docs" / "authoring" / "skills.md").read_text(encoding="utf-8")

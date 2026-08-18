@@ -176,9 +176,33 @@ def write_registries(root: Path, skill_names: list[str]) -> None:
     (registry / "skill-resources.yaml").write_text(
         yaml.safe_dump(
             {
-                "schema_version": 1,
+                "schema_version": 2,
                 "bundled": {},
                 "repository_only": {},
+            },
+            sort_keys=False,
+        ),
+        encoding="utf-8",
+    )
+    agent_root = root / "agents"
+    agent_root.mkdir(parents=True, exist_ok=True)
+    (agent_root / "investigator.toml").write_text(
+        "name = 'investigator'\nmodel_reasoning_effort = 'high'\nsandbox_mode = 'read-only'\ndeveloper_instructions = 'Stay read-only.'\n",
+        encoding="utf-8",
+    )
+    (registry / "agent-roles.yaml").write_text(
+        yaml.safe_dump(
+            {
+                "schema_version": 1,
+                "agent_roles": [
+                    {
+                        "id": "investigator",
+                        "path": "agents/investigator.toml",
+                        "description": "Read-only investigation",
+                        "sandbox_mode": "read-only",
+                        "reasoning_effort": "high",
+                    }
+                ],
             },
             sort_keys=False,
         ),

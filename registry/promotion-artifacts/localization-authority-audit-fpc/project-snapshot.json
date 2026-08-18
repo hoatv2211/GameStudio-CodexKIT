@@ -1,0 +1,16 @@
+{
+  "repository": "FlyingPhoenixChronicles",
+  "repository_path": "<fpc-project>",
+  "branch": "dev/windown-server",
+  "head": "d621e4db13246d3e6e4da9eb4e1608d162b45c9e",
+  "dirty": true,
+  "dirty_digest": "0e96444cd494baf180dfdfae3890af36c0bed8080ee3ac64dbbfd36d33c4bd55",
+  "scope_paths": [
+    "client/LineRWebGL/Assets/Game/RunTimeRes",
+    "client/LineRWebGL/Assets/Game/Lua",
+    "tools/localization",
+    "tests/localization"
+  ],
+  "scope_digest": "75b3bcf768ef5e3cba622528f35e0b532806a427762b949b8a71c3e835165740",
+  "captured_at": "2026-08-17T14:39:26.465432+00:00"
+}

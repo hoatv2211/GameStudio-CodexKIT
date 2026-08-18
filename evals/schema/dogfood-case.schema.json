@@ -3,29 +3,58 @@
   "$id": "https://gamestudio-codexkit.local/schema/dogfood-case.schema.json",
   "type": "object",
   "additionalProperties": false,
-  "required": ["schema_version", "cases"],
+  "required": [
+    "schema_version",
+    "cases"
+  ],
   "properties": {
-    "schema_version": {"const": 1},
+    "schema_version": {
+      "const": 1
+    },
     "cases": {
       "type": "array",
       "minItems": 5,
-      "maxItems": 10,
+      "maxItems": 12,
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["id", "workflow", "project_kind", "prompt", "required_artifacts", "allow_mutation"],
+        "required": [
+          "id",
+          "workflow",
+          "project_kind",
+          "prompt",
+          "required_artifacts",
+          "allow_mutation"
+        ],
         "properties": {
-          "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-          "workflow": {"type": "string", "pattern": "^[a-z0-9-]+$"},
-          "project_kind": {"type": "string", "minLength": 1},
-          "prompt": {"type": "string", "minLength": 1},
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "workflow": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "project_kind": {
+            "type": "string",
+            "minLength": 1
+          },
+          "prompt": {
+            "type": "string",
+            "minLength": 1
+          },
           "required_artifacts": {
             "type": "array",
             "minItems": 1,
             "uniqueItems": true,
-            "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9-]+$"
+            }
           },
-          "allow_mutation": {"type": "boolean"}
+          "allow_mutation": {
+            "type": "boolean"
+          }
         }
       }
     }
