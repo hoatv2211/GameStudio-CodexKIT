@@ -13,7 +13,9 @@ from pathlib import Path
 from unittest import mock
 
 def temporary_directory() -> tempfile.TemporaryDirectory:
-    return tempfile.TemporaryDirectory(prefix="gamestudio-packaging-")
+    directory = tempfile.TemporaryDirectory(prefix="gamestudio-packaging-")
+    directory.name = str(Path(directory.name).resolve())
+    return directory
 
 
 def tree_digest(root: Path) -> str:

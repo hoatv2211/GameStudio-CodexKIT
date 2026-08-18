@@ -195,19 +195,19 @@ class SafeMutationTests(unittest.TestCase):
                 [{"path": "created.txt", "content": "applied\n"}],
                 root / ".backup",
             )
-            real_rename = safe_mutation.os.rename
+            real_atomic_rename = safe_mutation._atomic_rename_no_replace
             raced = False
 
-            def drift_during_quarantine(source: object, destination: object) -> None:
+            def drift_during_quarantine(source: Path, destination: Path) -> None:
                 nonlocal raced
-                if Path(source) == created and str(destination).endswith(".applied"):
+                if source == created and str(destination).endswith(".applied"):
                     raced = True
                     created.write_text("concurrent-owner\n", encoding="utf-8")
-                real_rename(source, destination)
+                real_atomic_rename(source, destination)
 
             with mock.patch.object(
-                safe_mutation.os,
-                "rename",
+                safe_mutation,
+                "_atomic_rename_no_replace",
                 side_effect=drift_during_quarantine,
             ):
                 with self.assertRaisesRegex(RuntimeError, "drifted"):
