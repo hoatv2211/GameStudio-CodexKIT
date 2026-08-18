@@ -195,6 +195,16 @@ The template does not claim that a Unity build, C++ server, database migration, 
 
 The authoritative capability list is `registry/capabilities.yaml`. Pack composition and persona routes live in `registry/packs.yaml` and `registry/personas.yaml`.
 
+## Maintain this repository
+
+A full repository clone exposes an internal maintenance bundle that is intentionally separate from the 47 distributed skills and 22 cataloged agent roles:
+
+- Invoke `codexkit-repository-maintenance` for CI, governance, catalog, generator, adapter, packaging, documentation, architecture, versioning, or release-readiness work on this repository.
+- Select the repository-local `codexkit-maintainer` agent when the task needs a bounded writer and integration owner.
+- The skill verifies `.codex-plugin/plugin.json`, `registry/capabilities.yaml`, `scripts/validate.py`, and `skills/`; another repository receives `BLOCKED: repository identity mismatch`.
+- Internal files live under `.agents/skills/` and `.codex/agents/`. They are excluded from registries, packs, generated adapters, project scaffold templates, and installed game projects.
+- Follow `workflows/repository-maintenance.md` and run the local gates below before handoff.
+
 ## Contributor requirements
 
 - Python 3.11+

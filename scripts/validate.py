@@ -93,6 +93,14 @@ PLUGIN_NAME = "game-studio-codex-kit"
 MARKETPLACE_NAME = "gamestudio-codex-kit"
 PLUGIN_REPOSITORY = "https://github.com/hoatv2211/GameStudio-CodexKIT"
 PLUGIN_GIT_URL = f"{PLUGIN_REPOSITORY}.git"
+REPOSITORY_MAINTENANCE_SKILL_ID = "codexkit-repository-maintenance"
+REPOSITORY_MAINTENANCE_AGENT_ID = "codexkit-maintainer"
+REPOSITORY_MAINTENANCE_PATHS = (
+    Path(".agents/skills/codexkit-repository-maintenance/SKILL.md"),
+    Path(".codex/agents/codexkit-maintainer.toml"),
+    Path(".codex/config.toml"),
+    Path("workflows/repository-maintenance.md"),
+)
 
 
 @dataclass(frozen=True)
@@ -996,6 +1004,177 @@ def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
                 )
 
 
+def _validate_repository_maintenance_bundle(root: Path, issues: list[Issue]) -> None:
+    paths = [root / relative for relative in REPOSITORY_MAINTENANCE_PATHS]
+    if not any(path.exists() for path in paths):
+        return
+
+    for path in paths:
+        if not path.is_file():
+            _issue(
+                issues,
+                "repository.maintenance.missing",
+                path,
+                "repository-local maintenance bundle requires all declared files",
+            )
+
+    skill_path, agent_path, config_path, workflow_path = paths
+    if skill_path.is_file():
+        try:
+            frontmatter, body = parse_frontmatter(skill_path)
+        except (OSError, ValueError) as error:
+            _issue(issues, "repository.maintenance.skill", skill_path, str(error))
+        else:
+            if frontmatter.get("name") != REPOSITORY_MAINTENANCE_SKILL_ID:
+                _issue(
+                    issues,
+                    "repository.maintenance.skill",
+                    skill_path,
+                    f"name must be {REPOSITORY_MAINTENANCE_SKILL_ID!r}",
+                )
+            description = frontmatter.get("description")
+            if not isinstance(description, str) or not description.startswith("Use when "):
+                _issue(
+                    issues,
+                    "repository.maintenance.skill",
+                    skill_path,
+                    "description must start with 'Use when '",
+                )
+            for marker in (
+                ".codex-plugin/plugin.json",
+                PLUGIN_NAME,
+                "registry/capabilities.yaml",
+                "scripts/validate.py",
+                "skills/",
+                "BLOCKED: repository identity mismatch",
+            ):
+                if marker not in body:
+                    _issue(
+                        issues,
+                        "repository.maintenance.skill",
+                        skill_path,
+                        f"missing repository identity marker: {marker}",
+                    )
+
+    if agent_path.is_file():
+        try:
+            agent = tomllib.loads(agent_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "repository.maintenance.agent", agent_path, str(error))
+        else:
+            expected_values = {
+                "name": REPOSITORY_MAINTENANCE_AGENT_ID,
+                "sandbox_mode": "workspace-write",
+            }
+            for field, expected in expected_values.items():
+                if agent.get(field) != expected:
+                    _issue(
+                        issues,
+                        "repository.maintenance.agent",
+                        agent_path,
+                        f"{field} must be {expected!r}",
+                    )
+            for field in ("description", "model_reasoning_effort", "developer_instructions"):
+                if not isinstance(agent.get(field), str) or not agent[field].strip():
+                    _issue(
+                        issues,
+                        "repository.maintenance.agent",
+                        agent_path,
+                        f"missing non-empty {field}",
+                    )
+
+    if config_path.is_file():
+        try:
+            config = tomllib.loads(config_path.read_text(encoding="utf-8-sig"))
+        except (OSError, UnicodeError, tomllib.TOMLDecodeError) as error:
+            _issue(issues, "repository.maintenance.activation", config_path, str(error))
+        else:
+            agents = config.get("agents")
+            activation = (
+                agents.get(REPOSITORY_MAINTENANCE_AGENT_ID, {})
+                if isinstance(agents, dict)
+                else {}
+            )
+            if activation.get("config_file") != "./agents/codexkit-maintainer.toml":
+                _issue(
+                    issues,
+                    "repository.maintenance.activation",
+                    config_path,
+                    "codexkit-maintainer must reference './agents/codexkit-maintainer.toml'",
+                )
+            if not isinstance(activation.get("description"), str) or not activation[
+                "description"
+            ].strip():
+                _issue(
+                    issues,
+                    "repository.maintenance.activation",
+                    config_path,
+                    "codexkit-maintainer activation requires a description",
+                )
+
+    if workflow_path.is_file():
+        try:
+            workflow = workflow_path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            _issue(issues, "repository.maintenance.workflow", workflow_path, str(error))
+        else:
+            for stage in ("Intake", "Root cause", "Canonical edit", "Local gates", "Handoff"):
+                if stage not in workflow:
+                    _issue(
+                        issues,
+                        "repository.maintenance.workflow",
+                        workflow_path,
+                        f"missing workflow stage: {stage}",
+                    )
+
+    distributed_paths = (
+        root / "registry" / "capabilities.yaml",
+        root / "registry" / "packs.yaml",
+        root / "registry" / "agent-roles.yaml",
+        root / "registry" / "skill-resources.yaml",
+    )
+    for path in distributed_paths:
+        if not path.is_file():
+            continue
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (OSError, UnicodeError) as error:
+            _issue(issues, "repository.maintenance.distribution", path, str(error))
+            continue
+        for internal_id in (
+            REPOSITORY_MAINTENANCE_SKILL_ID,
+            REPOSITORY_MAINTENANCE_AGENT_ID,
+        ):
+            if internal_id in text:
+                _issue(
+                    issues,
+                    "repository.maintenance.distribution",
+                    path,
+                    f"repository-local id must not be distributed: {internal_id}",
+                )
+
+    scaffold_root = root / "skills" / "studio-project-scaffold" / "templates"
+    if scaffold_root.is_dir():
+        for path in scaffold_root.rglob("*"):
+            if not path.is_file():
+                continue
+            try:
+                text = path.read_text(encoding="utf-8", errors="replace")
+            except OSError as error:
+                _issue(issues, "repository.maintenance.distribution", path, str(error))
+                continue
+            for internal_id in (
+                REPOSITORY_MAINTENANCE_SKILL_ID,
+                REPOSITORY_MAINTENANCE_AGENT_ID,
+            ):
+                if internal_id in text:
+                    _issue(
+                        issues,
+                        "repository.maintenance.distribution",
+                        path,
+                        f"repository-local id must not enter scaffold templates: {internal_id}",
+                    )
+
 def validate_repository(root: Path | str) -> list[Issue]:
     root_path = Path(root).resolve()
     issues: list[Issue] = []
@@ -1021,6 +1200,7 @@ def validate_repository(root: Path | str) -> list[Issue]:
     capability_ids = _validate_registries(root_path, issues)
     _validate_agent_roles(root_path, issues, capability_ids)
     _validate_skill_resources(root_path, issues)
+    _validate_repository_maintenance_bundle(root_path, issues)
     _validate_plugin_package(root_path, capability_ids, issues)
     return sorted(issues, key=lambda issue: (str(issue.path), issue.code, issue.message))
 

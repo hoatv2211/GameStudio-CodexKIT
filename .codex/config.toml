@@ -1,0 +1,3 @@
+[agents.codexkit-maintainer]
+description = "Repository-local maintainer for GameStudio-CodexKIT architecture, governance, CI, packaging, documentation, and release readiness."
+config_file = "./agents/codexkit-maintainer.toml"

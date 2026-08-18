@@ -44,6 +44,76 @@ class ValidateRepositoryTests(unittest.TestCase):
         resource_path.write_text(yaml.safe_dump(resources, sort_keys=False), encoding="utf-8")
         write_plugin_package(self.root)
 
+    def write_internal_maintenance_bundle(self) -> None:
+        skill_path = (
+            self.root
+            / ".agents"
+            / "skills"
+            / "codexkit-repository-maintenance"
+            / "SKILL.md"
+        )
+        skill_path.parent.mkdir(parents=True)
+        skill_path.write_text(
+            "---\n"
+            "name: codexkit-repository-maintenance\n"
+            "description: Use when maintaining the GameStudio-CodexKIT source repository.\n"
+            "---\n"
+            "# Maintenance\n\n"
+            ".codex-plugin/plugin.json game-studio-codex-kit registry/capabilities.yaml "
+            "scripts/validate.py skills/ BLOCKED: repository identity mismatch\n",
+            encoding="utf-8",
+        )
+        agent_path = self.root / ".codex" / "agents" / "codexkit-maintainer.toml"
+        agent_path.parent.mkdir(parents=True)
+        agent_path.write_text(
+            "name = 'codexkit-maintainer'\n"
+            "description = 'Repository-local maintainer.'\n"
+            "model_reasoning_effort = 'xhigh'\n"
+            "sandbox_mode = 'workspace-write'\n"
+            "developer_instructions = 'Maintain only the assigned repository scope.'\n",
+            encoding="utf-8",
+        )
+        (self.root / ".codex" / "config.toml").write_text(
+            "[agents.codexkit-maintainer]\n"
+            "description = 'Repository-local maintainer.'\n"
+            "config_file = './agents/codexkit-maintainer.toml'\n",
+            encoding="utf-8",
+        )
+        workflow_path = self.root / "workflows" / "repository-maintenance.md"
+        workflow_path.parent.mkdir(parents=True)
+        workflow_path.write_text(
+            "# Repository maintenance\n\n"
+            "Intake Root cause Canonical edit Local gates Handoff\n",
+            encoding="utf-8",
+        )
+
+    def test_rejects_incomplete_repository_maintenance_bundle(self) -> None:
+        self.make_valid()
+        skill_path = (
+            self.root
+            / ".agents"
+            / "skills"
+            / "codexkit-repository-maintenance"
+            / "SKILL.md"
+        )
+        skill_path.parent.mkdir(parents=True)
+        skill_path.write_text(
+            "---\nname: codexkit-repository-maintenance\n---\n",
+            encoding="utf-8",
+        )
+
+        self.assertIn("repository.maintenance.missing", self.codes())
+
+    def test_rejects_invalid_repository_maintenance_activation(self) -> None:
+        self.make_valid()
+        self.write_internal_maintenance_bundle()
+        (self.root / ".codex" / "config.toml").write_text(
+            "[agents.codexkit-maintainer]\nconfig_file = './agents/wrong.toml'\n",
+            encoding="utf-8",
+        )
+
+        self.assertIn("repository.maintenance.activation", self.codes())
+
     def test_accepts_a_valid_repository(self) -> None:
         self.make_valid()
         self.assertEqual([], self.issues())
