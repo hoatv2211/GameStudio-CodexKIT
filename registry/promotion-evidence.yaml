@@ -11,7 +11,7 @@ records:
   evidence:
   - kind: dogfood-result
     path: registry/promotion-artifacts/localization-authority-audit-fpc/results.json
-    sha256: 6ce275810f18b03d39d78b766581b9add2f341cebdd53459ba2ad7719c3a73c1
+    sha256: 37948163613315e9921ddd64d2b72d52e495f882f0664f556df7a3c36a5f69cc
   - kind: project-snapshot
     path: registry/promotion-artifacts/localization-authority-audit-fpc/project-snapshot.json
     sha256: 59ab5904aebdd7c253627810b6599f66efd0c32bfb0bf00c0e67300b31e6bc2e

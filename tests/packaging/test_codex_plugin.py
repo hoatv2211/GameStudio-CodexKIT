@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
 import unittest
 from pathlib import Path
 
@@ -76,6 +77,21 @@ class CodexPluginPackagingTests(unittest.TestCase):
 
         self.assertTrue(re.fullmatch(r"[a-z0-9]+(?:-[a-z0-9]+)*", manifest["name"]))
         self.assertEqual(manifest["name"], marketplace["plugins"][0]["name"])
+
+    def test_promotion_artifacts_are_checked_out_with_lf_endings(self) -> None:
+        paths = [
+            "registry/promotion-artifacts/localization-authority-audit-fpc/project-snapshot.json",
+            "registry/promotion-artifacts/localization-authority-audit-fpc/fpc-global-residue-authority/localization-report.txt",
+        ]
+        result = subprocess.run(
+            ["git", "check-attr", "eol", "--", *paths],
+            cwd=ROOT,
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+        for path in paths:
+            self.assertIn(f"{path}: eol: lf", result.stdout)
 
 
 if __name__ == "__main__":
