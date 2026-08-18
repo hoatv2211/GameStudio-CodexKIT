@@ -19,7 +19,7 @@ metadata:
     required_evidence: [hierarchy-path, render-order, prefab-reference]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none

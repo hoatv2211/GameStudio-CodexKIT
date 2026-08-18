@@ -1,0 +1,37 @@
+{
+  "target_skill": "product-analytics-experiment-review",
+  "cases": [
+    {
+      "prompt": "Create a product analytics experiment hypothesis metric guardrail segmentation significance and decision review",
+      "expected_skill": "product-analytics-experiment-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for product analytics experiment hypothesis metric guardrail segmentation significance and decision review without executing production actions",
+      "expected_skill": "product-analytics-experiment-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for product analytics experiment hypothesis metric guardrail segmentation significance and decision review with owners blockers and verification",
+      "expected_skill": "product-analytics-experiment-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by telemetry-event-contract-review",
+      "expected_skill": "telemetry-event-contract-review",
+      "type": "negative",
+      "owner": "telemetry-event-contract-review"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs product analytics experiment hypothesis metric guardrail segmentation significance and decision review but must not publish deploy or invent PASS evidence",
+      "expected_skill": "product-analytics-experiment-review",
+      "type": "collision"
+    }
+  ]
+}

@@ -1,0 +1,37 @@
+{
+  "target_skill": "liveops-content-rollout-and-rollback",
+  "cases": [
+    {
+      "prompt": "Create a liveops content rollout cohort canary monitoring rollback trigger and recovery plan",
+      "expected_skill": "liveops-content-rollout-and-rollback",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for liveops content rollout cohort canary monitoring rollback trigger and recovery plan without executing production actions",
+      "expected_skill": "liveops-content-rollout-and-rollback",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for liveops content rollout cohort canary monitoring rollback trigger and recovery plan with owners blockers and verification",
+      "expected_skill": "liveops-content-rollout-and-rollback",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by liveops-incident-response",
+      "expected_skill": "liveops-incident-response",
+      "type": "negative",
+      "owner": "liveops-incident-response"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs liveops content rollout cohort canary monitoring rollback trigger and recovery plan but must not publish deploy or invent PASS evidence",
+      "expected_skill": "liveops-content-rollout-and-rollback",
+      "type": "collision"
+    }
+  ]
+}

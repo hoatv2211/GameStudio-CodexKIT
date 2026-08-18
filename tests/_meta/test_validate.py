@@ -48,7 +48,7 @@ class ValidateRepositoryTests(unittest.TestCase):
         self.make_valid()
         self.assertEqual([], self.issues())
 
-    def test_rejects_non_experimental_maturity_without_promotion_record(self) -> None:
+    def test_accepts_beta_maturity_without_promotion_record(self) -> None:
         self.make_valid()
         capability_path = self.root / "registry" / "capabilities.yaml"
         capabilities = yaml.safe_load(capability_path.read_text(encoding="utf-8"))
@@ -63,8 +63,24 @@ class ValidateRepositoryTests(unittest.TestCase):
             "schema_version: 1\nrecords: []\n", encoding="utf-8"
         )
 
-        self.assertIn("registry.promotion.missing", self.codes())
+        self.assertNotIn("registry.promotion.missing", self.codes())
 
+    def test_rejects_stable_maturity_without_promotion_record(self) -> None:
+        self.make_valid()
+        capability_path = self.root / "registry" / "capabilities.yaml"
+        capabilities = yaml.safe_load(capability_path.read_text(encoding="utf-8"))
+        capabilities["capabilities"][0]["maturity"] = "stable"
+        capability_path.write_text(yaml.safe_dump(capabilities, sort_keys=False), encoding="utf-8")
+        skill_path = self.root / "skills" / "example-skill" / "SKILL.md"
+        skill_path.write_text(
+            skill_path.read_text(encoding="utf-8").replace("maturity: draft", "maturity: stable"),
+            encoding="utf-8",
+        )
+        (self.root / "registry" / "promotion-evidence.yaml").write_text(
+            "schema_version: 1\nrecords: []\n", encoding="utf-8"
+        )
+
+        self.assertIn("registry.promotion.missing", self.codes())
     def test_rejects_missing_plugin_manifest(self) -> None:
         self.make_valid()
         (self.root / ".codex-plugin" / "plugin.json").unlink()

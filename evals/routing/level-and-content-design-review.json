@@ -1,0 +1,37 @@
+{
+  "target_skill": "level-and-content-design-review",
+  "cases": [
+    {
+      "prompt": "Create a level layout encounter pacing content density progression gates and player flow review",
+      "expected_skill": "level-and-content-design-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for level layout encounter pacing content density progression gates and player flow review without executing production actions",
+      "expected_skill": "level-and-content-design-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for level layout encounter pacing content density progression gates and player flow review with owners blockers and verification",
+      "expected_skill": "level-and-content-design-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by game-feature-to-spec",
+      "expected_skill": "game-feature-to-spec",
+      "type": "negative",
+      "owner": "game-feature-to-spec"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs level layout encounter pacing content density progression gates and player flow review but must not publish deploy or invent PASS evidence",
+      "expected_skill": "level-and-content-design-review",
+      "type": "collision"
+    }
+  ]
+}

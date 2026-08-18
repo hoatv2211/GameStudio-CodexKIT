@@ -19,7 +19,7 @@ metadata:
     required_evidence: [critical-path, ownership-map, role-contracts]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-14
     provenance:
       derived_from: none

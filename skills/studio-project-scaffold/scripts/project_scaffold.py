@@ -3,9 +3,12 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import os
+import shutil
 import sys
+import uuid
 
 import yaml
 
@@ -13,10 +16,18 @@ from pathlib import Path
 from typing import Iterable
 
 try:
+    from scripts.agent_overlay import plan_agent_overlay
+    from scripts.codegraph_adapter import CommandRunner, inspect_codegraph
+    from scripts.project_complexity import analyze_project_complexity
     from scripts.project_profile import render_validation_matrix, render_workspace_map
+    from scripts.project_skill_overlay import plan_project_skill_overlay
     from scripts.safe_mutation import apply_mutation, report_mutation
 except ModuleNotFoundError:
+    from agent_overlay import plan_agent_overlay
+    from codegraph_adapter import CommandRunner, inspect_codegraph
+    from project_complexity import analyze_project_complexity
     from project_profile import render_validation_matrix, render_workspace_map
+    from project_skill_overlay import plan_project_skill_overlay
     from safe_mutation import apply_mutation, report_mutation
 
 
@@ -194,17 +205,23 @@ def _profile_git_roots(profile: dict[str, object]) -> list[str]:
 def scaffold_files(
     root: Path | str,
     profile: dict[str, object] | None = None,
+    local_skill_ids: Iterable[str] = (),
 ) -> dict[Path, str]:
     root_path = Path(root).resolve()
     profile = draft_project_profile(root_path) if profile is None else profile
     subsystems = _profile_subsystems(profile)
     subsystem_text = ", ".join(subsystems) if subsystems else "unclassified"
     skill_root = root_path / ".agents" / "skills"
-    local_skills = sorted(
-        directory.name
-        for directory in skill_root.iterdir()
-        if directory.is_dir() and (directory / "SKILL.md").is_file()
-    ) if skill_root.exists() else []
+    existing_local_skills = (
+        {
+            directory.name
+            for directory in skill_root.iterdir()
+            if directory.is_dir() and (directory / "SKILL.md").is_file()
+        }
+        if skill_root.exists()
+        else set()
+    )
+    local_skills = sorted(existing_local_skills.union(local_skill_ids))
     agents = f"""<!-- {GENERATED_HEADER} -->
 # Project Agent Contract
 
@@ -275,32 +292,150 @@ Inspect this repository read-only, verify the scaffold snapshot, and create a bo
     }
 
 
+def _sha256_text(text: str) -> str:
+    return hashlib.sha256(text.encode("utf-8")).hexdigest()
+
+
+def _plan_digest(mutation_report: dict[str, object]) -> str:
+    operations = sorted(
+        (
+            {
+                "path": str(item["path"]).replace("\\", "/"),
+                "action": item["action"],
+                "before_sha256": item["before_sha256"],
+                "after_sha256": item["after_sha256"],
+            }
+            for item in mutation_report["operations"]
+        ),
+        key=lambda item: item["path"],
+    )
+    payload = {"root": mutation_report["root"], "operations": operations}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _install_manifest_content(root: Path, operations: list[dict[str, str]]) -> str:
+    files = [
+        {"path": operation["path"], "sha256": _sha256_text(operation["content"])}
+        for operation in sorted(operations, key=lambda item: item["path"])
+        if operation["path"] != ".agents/gamestudio-install.json"
+    ]
+    payload = {
+        "_generated": GENERATED_HEADER,
+        "schema_version": 1,
+        "root": str(root.resolve()),
+        "files": files,
+    }
+    return json.dumps(payload, indent=2) + "\n"
+
+
+def _agent_template_root() -> Path:
+    script_path = Path(__file__).resolve()
+    candidates = (
+        script_path.parent.parent / "templates" / "agents",
+        script_path.parent.parent / "skills" / "studio-project-scaffold" / "templates" / "agents",
+    )
+    for candidate in candidates:
+        if candidate.is_dir():
+            return candidate
+    raise FileNotFoundError("studio-project-scaffold agent templates are unavailable")
+
+
 def _scaffold_operations(
     root: Path,
     profile: dict[str, object] | None = None,
-) -> tuple[list[dict[str, str]], list[str], dict[str, object]]:
+) -> tuple[
+    list[dict[str, str]],
+    list[str],
+    dict[str, object],
+    dict[str, object],
+    dict[str, object],
+]:
     project_profile = draft_project_profile(root) if profile is None else profile
-    operations: list[dict[str, str]] = []
-    preserved: list[str] = []
-    for path, content in scaffold_files(root, project_profile).items():
+    skill_plan = plan_project_skill_overlay(root, project_profile)
+    agent_plan = plan_agent_overlay(
+        root,
+        template_root=_agent_template_root(),
+        profile=project_profile,
+        known_skills={"studio-project-intake", *skill_plan["skill_ids"]},
+        project_skills=skill_plan["skills"],
+    )
+    operations: list[dict[str, str]] = [
+        *skill_plan["operations"],
+        *agent_plan["operations"],
+    ]
+    preserved: list[str] = [
+        *skill_plan["preserved"],
+        *agent_plan["preserved"],
+    ]
+    for path, content in scaffold_files(
+        root,
+        project_profile,
+        local_skill_ids=skill_plan["skill_ids"],
+    ).items():
         relative = path.relative_to(root).as_posix()
         if path.exists():
             preserved.append(relative)
             continue
         operations.append({"path": relative, "content": content})
-    return operations, sorted(preserved), project_profile
+    manifest_relative = ".agents/gamestudio-install.json"
+    manifest_path = root / manifest_relative
+    existing_manifest = (
+        manifest_path.read_text(encoding="utf-8", errors="replace")
+        if manifest_path.is_file()
+        else ""
+    )
+    if manifest_path.exists() and GENERATED_HEADER not in existing_manifest:
+        preserved.append(manifest_relative)
+        skill_plan["collisions"].append(
+            {"path": manifest_relative, "kind": "unmanaged-install-manifest"}
+        )
+    else:
+        operations.append(
+            {
+                "path": manifest_relative,
+                "content": _install_manifest_content(root, operations),
+            }
+        )
+    operations.sort(key=lambda operation: operation["path"])
+    return operations, sorted(set(preserved)), project_profile, skill_plan, agent_plan
 
-def scaffold_project(root: Path | str) -> dict[str, object]:
+def scaffold_project(
+    root: Path | str,
+    *,
+    codegraph_runner: CommandRunner | None = None,
+    codegraph_preference: str | None = None,
+) -> dict[str, object]:
     root_path = Path(root).resolve()
-    operations, preserved, profile = _scaffold_operations(root_path)
+    operations, preserved, profile, skill_plan, agent_plan = _scaffold_operations(root_path)
     report = report_mutation(root_path, operations)
+    plan_digest = _plan_digest(report)
+    complexity = analyze_project_complexity(
+        root_path,
+        git_roots=_profile_git_roots(profile),
+        subsystems=_profile_subsystems(profile),
+    )
+    codegraph = inspect_codegraph(
+        root_path,
+        runner=codegraph_runner,
+        preference=codegraph_preference,
+    )
     return {
         "status": "REPORT_ONLY",
         "root": str(root_path),
+        "plan_digest": plan_digest,
         "proposed": sorted(operation["path"] for operation in operations),
         "preserved": preserved,
         "subsystems": _profile_subsystems(profile),
         "git_roots": _profile_git_roots(profile),
+        "complexity": complexity.to_dict(),
+        "codegraph": codegraph.to_dict(),
+        "project_skills": skill_plan,
+        "project_agents": agent_plan,
+        "collisions": sorted(
+            [*skill_plan["collisions"], *agent_plan["collisions"]],
+            key=lambda collision: collision["path"],
+        ),
         "mutation_report": report,
     }
 
@@ -310,20 +445,51 @@ def apply_scaffold(
     *,
     reviewer: str,
     backup_root: Path | str,
+    approved_plan_digest: str | None = None,
+    codegraph_runner: CommandRunner | None = None,
+    codegraph_preference: str | None = None,
 ) -> dict[str, object]:
     if not reviewer.strip():
         raise ValueError("reviewer is required for scaffold apply")
     root_path = Path(root).resolve()
-    operations, preserved, profile = _scaffold_operations(root_path)
-    manifest_path = apply_mutation(root_path, operations, backup_root)
+    operations, preserved, profile, skill_plan, agent_plan = _scaffold_operations(root_path)
+    mutation_report = report_mutation(root_path, operations)
+    plan_digest = _plan_digest(mutation_report)
+    if approved_plan_digest is not None and approved_plan_digest.strip() != plan_digest:
+        raise ValueError("scaffold plan changed since report; review the new plan digest")
+    manifest_path = apply_mutation(
+        root_path,
+        operations,
+        backup_root,
+        expected_operations=mutation_report["operations"],
+    )
+    complexity = analyze_project_complexity(
+        root_path,
+        git_roots=_profile_git_roots(profile),
+        subsystems=_profile_subsystems(profile),
+    )
+    codegraph = inspect_codegraph(
+        root_path,
+        runner=codegraph_runner,
+        preference=codegraph_preference,
+    )
     restore_script = Path(__file__).resolve().with_name("safe_mutation.py")
     return {
         "status": "PASS",
         "root": str(root_path),
+        "plan_digest": plan_digest,
         "created": sorted(operation["path"] for operation in operations),
         "preserved": preserved,
         "subsystems": _profile_subsystems(profile),
         "git_roots": _profile_git_roots(profile),
+        "complexity": complexity.to_dict(),
+        "codegraph": codegraph.to_dict(),
+        "project_skills": skill_plan,
+        "project_agents": agent_plan,
+        "collisions": sorted(
+            [*skill_plan["collisions"], *agent_plan["collisions"]],
+            key=lambda collision: collision["path"],
+        ),
         "reviewer": reviewer,
         "manifest": str(manifest_path),
         "restore_argv": [
@@ -336,6 +502,109 @@ def apply_scaffold(
             "--manifest",
             str(manifest_path),
         ],
+    }
+
+
+def _load_install_manifest(root: Path) -> dict[str, object] | None:
+    path = root / ".agents" / "gamestudio-install.json"
+    if not path.is_file():
+        return None
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or data.get("_generated") != GENERATED_HEADER:
+        raise ValueError("unmanaged or invalid GameStudio install manifest")
+    return data
+
+
+def scaffold_status(root: Path | str) -> dict[str, object]:
+    root_path = Path(root).resolve()
+    manifest = _load_install_manifest(root_path)
+    if manifest is None:
+        return {"status": "NOT_INITIALIZED", "root": str(root_path), "owned": [], "drift": []}
+    owned: list[str] = []
+    drift: list[str] = []
+    for item in manifest.get("files", []):
+        relative = str(item["path"])
+        target = root_path / relative
+        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+            owned.append(relative)
+        else:
+            drift.append(relative)
+    return {
+        "status": "DRIFTED" if drift else "HEALTHY",
+        "root": str(root_path),
+        "owned": sorted(owned),
+        "drift": sorted(drift),
+    }
+
+
+def uninit_scaffold(
+    root: Path | str,
+    *,
+    apply: bool = False,
+    reviewer: str | None = None,
+    backup_root: Path | str | None = None,
+) -> dict[str, object]:
+    root_path = Path(root).resolve()
+    manifest = _load_install_manifest(root_path)
+    if manifest is None:
+        return {"status": "NOT_INITIALIZED", "root": str(root_path), "removable": [], "preserved_drift": []}
+    removable: list[str] = []
+    drift: list[str] = []
+    for item in manifest.get("files", []):
+        relative = str(item["path"])
+        target = root_path / relative
+        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+            removable.append(relative)
+        else:
+            drift.append(relative)
+    preview = {
+        "status": "REPORT_ONLY",
+        "root": str(root_path),
+        "removable": sorted(removable),
+        "preserved_drift": sorted(drift),
+    }
+    if not apply:
+        return preview
+    if not reviewer or not reviewer.strip() or backup_root is None:
+        raise ValueError("uninit apply requires reviewer and backup_root")
+    backup_path = Path(backup_root).resolve() / f"gamestudio-uninit-{uuid.uuid4().hex}"
+    if backup_path == root_path:
+        raise ValueError("uninit backup root must be disjoint from project root")
+    copied: list[tuple[Path, Path]] = []
+    targets = [*removable, ".agents/gamestudio-install.json"]
+    try:
+        for relative in targets:
+            source = (root_path / relative).resolve()
+            source.relative_to(root_path)
+            if not source.is_file():
+                continue
+            destination = backup_path / relative
+            destination.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(source, destination)
+            copied.append((source, destination))
+        for source, _destination in copied:
+            source.unlink()
+        for relative in sorted(targets, key=lambda value: len(Path(value).parts), reverse=True):
+            parent = (root_path / relative).parent
+            while parent != root_path and parent.is_dir():
+                try:
+                    parent.rmdir()
+                except OSError:
+                    break
+                parent = parent.parent
+    except BaseException:
+        for source, destination in reversed(copied):
+            if destination.is_file() and not source.exists():
+                source.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(destination, source)
+        raise
+    return {
+        "status": "PARTIAL" if drift else "PASS",
+        "root": str(root_path),
+        "reviewer": reviewer.strip(),
+        "removed": sorted(removable),
+        "preserved_drift": sorted(drift),
+        "backup": str(backup_path),
     }
 
 

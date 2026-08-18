@@ -1,0 +1,37 @@
+{
+  "target_skill": "narrative-quest-content-contract",
+  "cases": [
+    {
+      "prompt": "Create a quest narrative dialogue state objective reward localization and implementation contract",
+      "expected_skill": "narrative-quest-content-contract",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for quest narrative dialogue state objective reward localization and implementation contract without executing production actions",
+      "expected_skill": "narrative-quest-content-contract",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for quest narrative dialogue state objective reward localization and implementation contract with owners blockers and verification",
+      "expected_skill": "narrative-quest-content-contract",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by game-feature-to-spec",
+      "expected_skill": "game-feature-to-spec",
+      "type": "negative",
+      "owner": "game-feature-to-spec"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs quest narrative dialogue state objective reward localization and implementation contract but must not publish deploy or invent PASS evidence",
+      "expected_skill": "narrative-quest-content-contract",
+      "type": "collision"
+    }
+  ]
+}

@@ -22,6 +22,12 @@ SPECIALIST_IDS = {
     "build-release-engineer",
     "liveops-sre",
     "game-security-engineer",
+    "producer",
+    "level-content-designer",
+    "narrative-designer",
+    "asset-pipeline-specialist",
+    "audio-engineer",
+    "product-analyst",
 }
 
 
@@ -33,7 +39,7 @@ class SpecialistAgentCatalogTests(unittest.TestCase):
         )
         self.roles = {entry["id"]: entry for entry in registry["agent_roles"]}
 
-    def test_registry_contains_the_thirteen_opt_in_specialists(self) -> None:
+    def test_registry_contains_the_nineteen_opt_in_specialists(self) -> None:
         self.assertEqual(SPECIALIST_IDS, set(self.roles) - {"investigator", "implementer", "verifier"})
         for role_id in SPECIALIST_IDS:
             self.assertEqual("specialist", self.roles[role_id]["kind"])

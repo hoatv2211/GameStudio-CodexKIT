@@ -19,7 +19,7 @@ metadata:
     required_evidence: [platform-requirements, candidate-package, metadata-review, human-approval]
     owner: HoaTV Studio
     reviewer: Release Manager
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

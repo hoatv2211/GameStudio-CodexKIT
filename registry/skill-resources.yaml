@@ -32,6 +32,10 @@ bundled:
   studio-project-scaffold:
   - agent_overlay.py
   - project_scaffold.py
+  - project_complexity.py
+  - codegraph_adapter.py
+  - project_skill_overlay.py
+  - gamestudio_cli.py
   - safe_mutation.py
   - project_profile.py
   - source: agents/investigator.toml
@@ -66,6 +70,18 @@ bundled:
     destination: templates/specialists/liveops-sre.toml
   - source: agents/game-security-engineer.toml
     destination: templates/specialists/game-security-engineer.toml
+  - source: agents/producer.toml
+    destination: templates/specialists/producer.toml
+  - source: agents/level-content-designer.toml
+    destination: templates/specialists/level-content-designer.toml
+  - source: agents/narrative-designer.toml
+    destination: templates/specialists/narrative-designer.toml
+  - source: agents/asset-pipeline-specialist.toml
+    destination: templates/specialists/asset-pipeline-specialist.toml
+  - source: agents/audio-engineer.toml
+    destination: templates/specialists/audio-engineer.toml
+  - source: agents/product-analyst.toml
+    destination: templates/specialists/product-analyst.toml
   telemetry-event-contract-review:
   - telemetry_contract.py
   unity-asset-guid-meta-audit:

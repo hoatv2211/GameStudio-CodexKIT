@@ -401,7 +401,7 @@ def audit_catalog(
         if reviewed_date < cutoff:
             stale.append(capability["id"])
         if (
-            capability["maturity"] in {"beta", "stable", "release"}
+            capability["maturity"] in {"stable", "release"}
             and (capability["id"], capability["maturity"])
             not in verified_promotion_targets
         ):
@@ -435,7 +435,7 @@ def audit_catalog(
         promotion_ready = [
             capability["id"]
             for capability in registry.get("capabilities", [])
-            if capability["maturity"] in {"draft", "experimental"}
+            if capability["maturity"] in {"draft", "experimental", "beta"}
             and capability["id"] in verified_workflows
             and all(
                 capability["id"] in covered_by_kind[kind]

@@ -19,7 +19,7 @@ metadata:
     required_evidence: [dry-run-report, backup-manifest, verification-output, restore-path]
     owner: HoaTV Studio
     reviewer: QA Lead
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from:

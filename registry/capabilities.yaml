@@ -6,7 +6,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on: []
 - id: studio-project-intake
   path: skills/studio-project-intake/SKILL.md
@@ -14,7 +14,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - using-game-studio-skills
 - id: studio-workspace-routing
@@ -23,7 +23,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: studio-agent-orchestration
@@ -32,7 +32,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-workspace-routing
 - id: safe-project-mutation
@@ -41,7 +41,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: medium
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: build-and-runtime-verification
@@ -50,7 +50,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: evidence-first-debugging
@@ -59,7 +59,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
   - build-and-runtime-verification
@@ -69,7 +69,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - build-and-runtime-verification
 - id: review-swarm
@@ -78,7 +78,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: bug-hunt-swarm
@@ -87,7 +87,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: game-feature-brainstorming
@@ -96,7 +96,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: game-feature-to-spec
@@ -105,7 +105,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - game-feature-brainstorming
 - id: feature-to-work-packets
@@ -114,7 +114,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - game-feature-to-spec
 - id: skill-authoring-and-audit
@@ -123,7 +123,7 @@ capabilities:
   packs:
   - studio-core
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - review-swarm
 - id: studio-project-scaffold
@@ -134,7 +134,7 @@ capabilities:
   - unity
   - cpp-lua-mmorpg
   risk_level: medium
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
   - safe-project-mutation
@@ -144,7 +144,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-project-intake
 - id: game-database-migration-safety
@@ -153,7 +153,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: high
-  maturity: experimental
+  maturity: beta
   depends_on:
   - multi-service-local-environment-doctor
   - safe-project-mutation
@@ -163,7 +163,7 @@ capabilities:
   packs:
   - unity
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: unity-ui-rendering-debugging
@@ -172,7 +172,7 @@ capabilities:
   packs:
   - unity
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: lua-client-server-contract-audit
@@ -181,7 +181,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: localization-authority-audit
@@ -200,7 +200,7 @@ capabilities:
   packs:
   - unity
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: unity-batchmode-build-verification
@@ -209,7 +209,7 @@ capabilities:
   packs:
   - unity
   risk_level: low
-  maturity: experimental
+  maturity: beta
   depends_on:
   - build-and-runtime-verification
 - id: cpp-server-crash-triage
@@ -218,7 +218,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: mmorpg-packet-protocol-review
@@ -227,7 +227,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - lua-client-server-contract-audit
 - id: network-authority-and-exploit-review
@@ -236,7 +236,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - review-swarm
 - id: save-data-schema-migration
@@ -245,7 +245,7 @@ capabilities:
   packs:
   - cpp-lua-mmorpg
   risk_level: high
-  maturity: experimental
+  maturity: beta
   depends_on:
   - safe-project-mutation
 - id: playtest-evidence
@@ -254,7 +254,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - game-feature-to-spec
 - id: game-performance-budget
@@ -263,7 +263,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - build-and-runtime-verification
 - id: economy-source-sink-model
@@ -272,7 +272,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - game-feature-to-spec
 - id: balance-data-change-review
@@ -281,7 +281,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - review-swarm
 - id: release-candidate-preflight
@@ -290,7 +290,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - build-and-runtime-verification
   - studio-handoff
@@ -300,7 +300,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: high
-  maturity: experimental
+  maturity: beta
   depends_on:
   - release-candidate-preflight
 - id: liveops-incident-response
@@ -309,7 +309,7 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: high
-  maturity: experimental
+  maturity: beta
   depends_on:
   - studio-handoff
 - id: telemetry-event-contract-review
@@ -318,6 +318,90 @@ capabilities:
   packs:
   - production-design-liveops
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - game-feature-to-spec
+- id: studio-production-planning
+  path: skills/studio-production-planning/SKILL.md
+  type: workflow
+  packs: [production-management]
+  risk_level: low
+  maturity: beta
+  depends_on: [feature-to-work-packets]
+- id: production-risk-and-dependency-review
+  path: skills/production-risk-and-dependency-review/SKILL.md
+  type: gate
+  packs: [production-management]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [studio-production-planning]
+- id: level-and-content-design-review
+  path: skills/level-and-content-design-review/SKILL.md
+  type: workflow
+  packs: [content-production]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [game-feature-to-spec]
+- id: narrative-quest-content-contract
+  path: skills/narrative-quest-content-contract/SKILL.md
+  type: workflow
+  packs: [content-production]
+  risk_level: low
+  maturity: beta
+  depends_on: [game-feature-to-spec]
+- id: art-asset-pipeline-preflight
+  path: skills/art-asset-pipeline-preflight/SKILL.md
+  type: gate
+  packs: [content-production]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [unity-asset-guid-meta-audit]
+- id: animation-rigging-import-audit
+  path: skills/animation-rigging-import-audit/SKILL.md
+  type: diagnostic
+  packs: [content-production]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [art-asset-pipeline-preflight]
+- id: audio-content-pipeline-review
+  path: skills/audio-content-pipeline-review/SKILL.md
+  type: diagnostic
+  packs: [content-production]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [game-performance-budget]
+- id: qa-test-strategy-and-coverage
+  path: skills/qa-test-strategy-and-coverage/SKILL.md
+  type: workflow
+  packs: [production-management]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [build-and-runtime-verification]
+- id: platform-device-compatibility-matrix
+  path: skills/platform-device-compatibility-matrix/SKILL.md
+  type: gate
+  packs: [production-management]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [store-submission-checklist]
+- id: load-soak-capacity-verification
+  path: skills/load-soak-capacity-verification/SKILL.md
+  type: gate
+  packs: [production-management]
+  risk_level: medium
+  maturity: beta
+  depends_on: [game-performance-budget]
+- id: product-analytics-experiment-review
+  path: skills/product-analytics-experiment-review/SKILL.md
+  type: workflow
+  packs: [product-analytics]
+  risk_level: read-only
+  maturity: beta
+  depends_on: [telemetry-event-contract-review]
+- id: liveops-content-rollout-and-rollback
+  path: skills/liveops-content-rollout-and-rollback/SKILL.md
+  type: gate
+  packs: [product-analytics]
+  risk_level: high
+  maturity: beta
+  depends_on: [liveops-incident-response, release-candidate-preflight]

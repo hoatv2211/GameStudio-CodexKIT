@@ -6,7 +6,7 @@
 
 **Agent skills for operating live game projects — not writing new ones.**
 
-[![Skills](https://img.shields.io/badge/skills-35%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-204%2F204-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-276%2F276-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -43,7 +43,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
     <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
   </tr>
   <tr>
-    <td align="center"><strong>One studio catalog</strong><br><sub>35 canonical skills, four packs, six thin persona lenses, and three generated agent roles.</sub></td>
+    <td align="center"><strong>One studio catalog</strong><br><sub>47 canonical skills, seven packs, six thin persona lenses, and 22 canonical agent roles.</sub></td>
     <td align="center"><strong>Trust is explicit state</strong><br><sub><code>BLOCKED</code> is never converted into <code>PASS</code>.</sub></td>
   </tr>
   <tr>
@@ -153,7 +153,7 @@ The repository root is the plugin package. `.codex-plugin/plugin.json` exposes t
 
 ## Install in Hermes Agent
 
-Install all 35 skills globally with the Agent Skills CLI:
+Install all 47 skills globally with the Agent Skills CLI:
 
 ```bash
 npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y
@@ -171,16 +171,16 @@ Repository governance tools such as the catalog validator, originality audit, an
 
 ## Current state
 
-- 35 canonical skills, including one root entry router and 34 routed workflow or domain skills.
-- 204/204 deterministic Tier-A routing cases.
+- 47 canonical skills, including one root entry router and 46 routed workflow or domain skills.
+- 276/276 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
 - 12 governed real-project dogfood scenarios with strict PASS/BLOCKED evidence validation.
-- Four installable packs and six thin personas.
+- Seven installable packs, six thin personas, and 22 canonical agent roles.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
 - Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
 - Optional generated exports for manual Hermes, Codex, pack, project-local `.agents/` skills, and `.codex/agents/` role overlays.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
-- All skills remain `experimental` until governed model evaluation and verified studio dogfood evidence exist. First dogfood evidence: the localization case study above.
+- All 47 canonical skills are `beta` based on maintainer-confirmed use in the FPC studio project (`Snapshot`). Deterministic gates and the localization case study are `Verified`; per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
 
@@ -365,7 +365,7 @@ Use update-first authoring:
 4. Update `registry/skill-resources.yaml` and regenerate bundled helpers when a skill uses a root helper.
 5. Run all local gates.
 6. Validate the native plugin and regenerate any packs or adapters being distributed.
-7. Keep maturity `draft` or `experimental` until governed evidence supports promotion.
+7. Keep new skills `draft` or `experimental` until studio adoption is confirmed; use `beta` for adopted workflows, and require governed promotion evidence for `stable` or `release`.
 
 ## License
 

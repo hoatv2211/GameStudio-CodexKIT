@@ -19,7 +19,7 @@ metadata:
     required_evidence: [git-status, command-summary, changed-file-list]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from:

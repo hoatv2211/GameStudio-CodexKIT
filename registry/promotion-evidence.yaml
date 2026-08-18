@@ -20,8 +20,8 @@ records:
   reviewed_at: '2026-08-17'
   runtime_targets:
   - Codex App/CLI
-  restore: Remove this record and return the capability and skill maturity to experimental.
+  restore: Remove this verified evidence record; retain catalog beta only while FPC studio adoption remains confirmed.
   limitations:
-  - This beta promotion is bound to the static FPC profile; Unity MCP runtime evidence is governed separately.
+  - This verified beta evidence is bound to the static FPC profile; catalog-wide beta adoption is a separate maintainer Snapshot.
   - Stable and release evidence tiers are not yet satisfied.
   expires_at: '2027-02-17'

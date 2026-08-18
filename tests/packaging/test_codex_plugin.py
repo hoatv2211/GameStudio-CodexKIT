@@ -22,7 +22,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.4.0", manifest["version"])
+        self.assertEqual("1.5.1", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])
@@ -38,12 +38,13 @@ class CodexPluginPackagingTests(unittest.TestCase):
 
         capabilities = load_yaml(ROOT / "registry" / "capabilities.yaml")["capabilities"]
         registered = {entry["id"] for entry in capabilities}
+        self.assertEqual({"beta"}, {entry["maturity"] for entry in capabilities})
         packaged = {
             directory.name
             for directory in (ROOT / manifest["skills"]).iterdir()
             if directory.is_dir() and (directory / "SKILL.md").is_file()
         }
-        self.assertEqual(35, len(registered))
+        self.assertEqual(47, len(registered))
         self.assertEqual(registered, packaged)
 
     def test_repo_marketplace_exposes_the_root_github_plugin(self) -> None:

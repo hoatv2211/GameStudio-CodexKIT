@@ -1,0 +1,37 @@
+{
+  "target_skill": "studio-production-planning",
+  "cases": [
+    {
+      "prompt": "Create a production milestone planning schedule staffing dependencies and delivery forecast",
+      "expected_skill": "studio-production-planning",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for production milestone planning schedule staffing dependencies and delivery forecast without executing production actions",
+      "expected_skill": "studio-production-planning",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for production milestone planning schedule staffing dependencies and delivery forecast with owners blockers and verification",
+      "expected_skill": "studio-production-planning",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by feature-to-work-packets",
+      "expected_skill": "feature-to-work-packets",
+      "type": "negative",
+      "owner": "feature-to-work-packets"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs production milestone planning schedule staffing dependencies and delivery forecast but must not publish deploy or invent PASS evidence",
+      "expected_skill": "studio-production-planning",
+      "type": "collision"
+    }
+  ]
+}

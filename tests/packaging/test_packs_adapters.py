@@ -637,7 +637,7 @@ class PackagingTests(unittest.TestCase):
             self.assertEqual(first_digest, second_digest)
             self.assertEqual(first, second)
             self.assertEqual(
-                {"studio-core", "unity", "cpp-lua-mmorpg", "production-design-liveops"},
+                {"studio-core", "unity", "cpp-lua-mmorpg", "production-design-liveops", "production-management", "content-production", "product-analytics"},
                 set(first),
             )
             manifest = json.loads((output / "studio-core" / "manifest.json").read_text(encoding="utf-8"))
@@ -2865,7 +2865,7 @@ print(json.dumps({
                 self.assertEqual(first, tree_digest(output))
                 self.assertTrue((output / "registry.json").exists())
                 registry = json.loads((output / "registry.json").read_text(encoding="utf-8"))
-                self.assertEqual(35, len(registry["skills"]))
+                self.assertEqual(47, len(registry["skills"]))
                 generated_skill = output / "skills" / "studio-project-intake" / "SKILL.md"
                 generated_skill_lines = generated_skill.read_text(encoding="utf-8").splitlines()
                 self.assertEqual("---", generated_skill_lines[0])
@@ -5799,7 +5799,7 @@ print(json.dumps({
                 files = [path for path in adapter.rglob("*") if path.is_file()]
                 self.assertEqual(source_file_count + 1, len(files), target)
                 registry = json.loads((adapter / "registry.json").read_text(encoding="utf-8"))
-                self.assertEqual(35, len(registry["skills"]), target)
+                self.assertEqual(47, len(registry["skills"]), target)
                 first_digest = tree_digest(adapter)
                 generate_adapter(source_root, target, adapter)
                 self.assertEqual(first_digest, tree_digest(adapter), target)

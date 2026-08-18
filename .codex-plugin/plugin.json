@@ -1,7 +1,7 @@
 {
   "name": "game-studio-codex-kit",
-  "version": "1.4.0",
-  "description": "Evidence-first game studio workflows for Codex across multi-repository routing, agent orchestration, Unity, C++, Lua, MMORPG services, release, and live operations.",
+  "version": "1.5.1",
+  "description": "Evidence-first full game studio workflows for Codex across project init, production, content, engineering, QA, product analytics, release, and live operations.",
   "author": {
     "name": "hoatv2211",
     "url": "https://github.com/hoatv2211"

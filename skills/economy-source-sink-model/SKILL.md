@@ -19,7 +19,7 @@ metadata:
     required_evidence: [currency-definitions, source-rates, sink-rates, player-segments]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-08
     provenance:
       derived_from: none

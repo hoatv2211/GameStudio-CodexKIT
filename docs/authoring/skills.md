@@ -31,18 +31,20 @@ Historical roadmap influence may be named as an archived origin, but active work
 
 ## Maturity
 
-New or changed skills stay `draft` or `experimental` until a matching record in
-`registry/promotion-evidence.yaml` binds the adjacent transition to a named dogfood
-profile, exact cases, owner/reviewer, restore text, expiry, and SHA-256 artifacts.
-`beta` may use fresh verified static dogfood; `stable` additionally requires Tier-B,
-behavior, and pressure evidence; `release` additionally requires a runtime matrix
-and session history. Missing runners, live builds, Unity MCP, or operational KPIs
-remain `BLOCKED`; targets are never treated as observed metrics.
+New or changed skills stay `draft` or `experimental` until the maintainer confirms
+real studio adoption or a governed dogfood result demonstrates use. `beta` marks a
+workflow that has been applied in a real studio project; it does not claim that every
+skill has an individual verified dogfood case.
 
-The current FPC rollout promotes only `localization-authority-audit` to `beta` from
-the read-only static profile. Runtime/editor verification remains explicitly
-`BLOCKED`, so no stable or release promotion is recorded.
+`stable` requires a matching record in `registry/promotion-evidence.yaml` with fresh
+verified dogfood plus Tier-B, behavior, and pressure evidence. `release` additionally
+requires a runtime matrix and session history. Missing runners, live builds, Unity MCP,
+or operational KPIs remain `BLOCKED`; targets are never treated as observed metrics.
 
+The current catalog is `beta` based on maintainer-confirmed application in FPC
+(`Snapshot`). `localization-authority-audit` additionally has verified static FPC
+dogfood artifacts. This catalog-wide beta status does not promote missing runtime or
+model evidence to `Verified` and does not satisfy the `stable` gate.
 ## Deployment checklist
 
 ```text

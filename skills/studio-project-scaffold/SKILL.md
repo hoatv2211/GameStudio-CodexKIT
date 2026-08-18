@@ -1,6 +1,6 @@
 ---
 name: studio-project-scaffold
-description: Use when bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project governance, a subsystem registry, or a per-project adapter report, plan digest, named reviewer, backup root, generated agent overlay, apply, uninstall, and .codex/config.toml preservation.
+description: Use when running gamestudio init, status, or uninit, or bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project governance, a subsystem registry, or a per-project adapter report, plan digest, named reviewer, backup root, generated agent overlay, apply, uninstall, and .codex/config.toml preservation.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -19,7 +19,7 @@ metadata:
     required_evidence: [detected-subsystems, created-file-list, preserved-file-list]
     owner: HoaTV Studio
     reviewer: Producer
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-07
     provenance:
       derived_from: none
@@ -46,19 +46,19 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
 ## Workflow
 1. Scan structure read-only and detect Unity, server, Lua, database, tooling, and generated subsystems.
    Completion criterion: detected subsystems and unknown areas are reported.
-2. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
+3. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
    Completion criterion: every existing governance artifact is marked preserve, merge, or BLOCKED.
-3. Render the minimum scaffold with evidence, ownership, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
+4. Render the minimum scaffold with evidence, ownership, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
    Completion criterion: `scaffold-report.json` lists exact proposed and preserved scaffold files without writes.
-4. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
+5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
    Completion criterion: the reviewed adapter report identifies every proposed write and collision without mutation.
-5. Apply only that reviewed adapter plan with a named reviewer, a disjoint project-local backup root, and the approved plan digest. Generate and review a new report when the digest is stale.
+6. Apply only that reviewed adapter plan with a named reviewer, a disjoint project-local backup root, and the approved plan digest. Generate and review a new report when the digest is stale.
    Completion criterion: apply uses all three gates and returns its manifest and restore command.
-6. Materialize roles from packaged generic agent templates plus profile specialists under `.codex/agents/`. The generated `.codex/agents.generated.toml` file remains inert until manual merge, and the adapter leaves `.codex/config.toml` untouched.
+7. Materialize roles from packaged generic agent templates plus profile specialists under `.codex/agents/`. The generated `.codex/agents.generated.toml` file remains inert until manual merge, and the adapter leaves `.codex/config.toml` untouched.
    Completion criterion: unmanaged agents and active configuration remain preserved.
-7. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
+8. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
    Completion criterion: scaffold output is parseable and unresolved runtime facts remain Unverified or BLOCKED.
-8. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
+9. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
    Completion criterion: uninstall never deletes unmanaged or drifted project content.
 
 ## Evidence and output contract
@@ -87,4 +87,4 @@ Record project path, detected subsystems, existing local skills and agents, crea
 - [ ] Runtime facts remain Unverified or BLOCKED until checked.
 
 ## References and scripts
-Use the bundled [scripts/project_scaffold.py](scripts/project_scaffold.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.
+Use the bundled [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.

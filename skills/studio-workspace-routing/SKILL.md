@@ -19,7 +19,7 @@ metadata:
     required_evidence: [project-profile, repository-owner, validation-slice]
     owner: HoaTV Studio
     reviewer: null
-    maturity: experimental
+    maturity: beta
     last_reviewed: 2026-08-14
     provenance:
       derived_from: none

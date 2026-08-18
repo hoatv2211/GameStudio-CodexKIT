@@ -69,7 +69,7 @@ LIFECYCLE_STAGES = {"discover", "define", "plan", "build", "verify", "review", "
 RISK_LEVELS = {"read-only", "low", "medium", "high"}
 SIDE_EFFECTS = {"none", "files", "assets", "database", "network", "external_publish"}
 MATURITY_LEVELS = {"draft", "experimental", "beta", "stable", "release", "deprecated", "archived"}
-PROMOTED_MATURITY_LEVELS = {"beta", "stable", "release"}
+PROMOTED_MATURITY_LEVELS = {"stable", "release"}
 PERMISSIVE_LICENSES = {
     "MIT",
     "BSD-2-Clause",

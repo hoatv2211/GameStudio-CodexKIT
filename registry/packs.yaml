@@ -61,3 +61,15 @@ packs:
   - telemetry-event-contract-review
   depends_on:
   - studio-core
+- id: production-management
+  description: Production planning, dependency risk, QA strategy, compatibility, and capacity verification workflows.
+  skills: [studio-production-planning, production-risk-and-dependency-review, qa-test-strategy-and-coverage, platform-device-compatibility-matrix, load-soak-capacity-verification]
+  depends_on: [studio-core]
+- id: content-production
+  description: Level, narrative, art, animation, and audio content production review workflows.
+  skills: [level-and-content-design-review, narrative-quest-content-contract, art-asset-pipeline-preflight, animation-rigging-import-audit, audio-content-pipeline-review]
+  depends_on: [studio-core]
+- id: product-analytics
+  description: Product experimentation and governed live content rollout workflows.
+  skills: [product-analytics-experiment-review, liveops-content-rollout-and-rollback]
+  depends_on: [production-design-liveops]

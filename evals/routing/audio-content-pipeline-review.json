@@ -1,0 +1,37 @@
+{
+  "target_skill": "audio-content-pipeline-review",
+  "cases": [
+    {
+      "prompt": "Create a audio voice music SFX loudness codec streaming memory and middleware pipeline review",
+      "expected_skill": "audio-content-pipeline-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Review evidence for audio voice music SFX loudness codec streaming memory and middleware pipeline review without executing production actions",
+      "expected_skill": "audio-content-pipeline-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Need an explicit artifact for audio voice music SFX loudness codec streaming memory and middleware pipeline review with owners blockers and verification",
+      "expected_skill": "audio-content-pipeline-review",
+      "type": "positive"
+    },
+    {
+      "prompt": "Use the narrower workflow owned by game-performance-budget",
+      "expected_skill": "game-performance-budget",
+      "type": "negative",
+      "owner": "game-performance-budget"
+    },
+    {
+      "prompt": "Run a generic project intake and detect repositories",
+      "expected_skill": "studio-project-intake",
+      "type": "negative",
+      "owner": "studio-project-intake"
+    },
+    {
+      "prompt": "The team needs audio voice music SFX loudness codec streaming memory and middleware pipeline review but must not publish deploy or invent PASS evidence",
+      "expected_skill": "audio-content-pipeline-review",
+      "type": "collision"
+    }
+  ]
+}
