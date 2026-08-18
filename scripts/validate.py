@@ -14,9 +14,15 @@ from typing import Any, Iterable
 
 try:
     from scripts.common import load_yaml, parse_frontmatter
+    from scripts.dogfood_eval import load_profile
+    from scripts.promotion_evidence import load_promotion_records, validate_promotion_record
+    from scripts.release_preflight import load_release_preflight_schema
     from scripts.sync_skill_resources import load_skill_resources, sync_skill_resources
 except ModuleNotFoundError:
     from common import load_yaml, parse_frontmatter
+    from dogfood_eval import load_profile
+    from promotion_evidence import load_promotion_records, validate_promotion_record
+    from release_preflight import load_release_preflight_schema
     from sync_skill_resources import load_skill_resources, sync_skill_resources
 
 
@@ -62,7 +68,8 @@ SKILL_TYPES = {
 LIFECYCLE_STAGES = {"discover", "define", "plan", "build", "verify", "review", "ship", "operate"}
 RISK_LEVELS = {"read-only", "low", "medium", "high"}
 SIDE_EFFECTS = {"none", "files", "assets", "database", "network", "external_publish"}
-MATURITY_LEVELS = {"draft", "experimental", "beta", "stable", "deprecated", "archived"}
+MATURITY_LEVELS = {"draft", "experimental", "beta", "stable", "release", "deprecated", "archived"}
+PROMOTED_MATURITY_LEVELS = {"beta", "stable", "release"}
 PERMISSIVE_LICENSES = {
     "MIT",
     "BSD-2-Clause",
@@ -123,6 +130,12 @@ def _is_reparse_point(path: Path) -> bool:
     attributes = getattr(info, "st_file_attributes", 0)
     reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
     return path.is_symlink() or bool(attributes & reparse_flag)
+
+
+def _string_list(value: object) -> bool:
+    return isinstance(value, list) and bool(value) and all(
+        isinstance(item, str) and item.strip() for item in value
+    )
 
 def _safe_agent_role_path(root: Path, value: object) -> Path:
     if not isinstance(value, str) or not value:
@@ -532,7 +545,109 @@ def _validate_registries(root: Path, issues: list[Issue]) -> set[str]:
         _issue(issues, "registry.dependency.cycle", capabilities_path, " -> ".join(cycle))
     for cycle in _find_cycles(pack_graph):
         _issue(issues, "registry.dependency.cycle", packs_path, " -> ".join(cycle))
+    if "release-candidate-preflight" in capability_set:
+        schema_path = root / "evals" / "schema" / "release-preflight.schema.json"
+        try:
+            load_release_preflight_schema(schema_path)
+        except (OSError, ValueError) as error:
+            _issue(issues, "eval.release_preflight.schema", schema_path, str(error))
+    _validate_promotion_evidence(root, capabilities, issues)
     return capability_set
+
+
+def _validate_promotion_evidence(
+    root: Path,
+    capabilities: list[dict[str, Any]],
+    issues: list[Issue],
+) -> None:
+    promotion_path = root / "registry" / "promotion-evidence.yaml"
+    promoted = {
+        str(entry.get("id", "")): str(entry.get("maturity", ""))
+        for entry in capabilities
+        if entry.get("maturity") in PROMOTED_MATURITY_LEVELS
+    }
+    if not promotion_path.is_file():
+        for skill_id, maturity in sorted(promoted.items()):
+            _issue(
+                issues,
+                "registry.promotion.missing",
+                promotion_path,
+                f"capability {skill_id} at {maturity} requires promotion evidence",
+            )
+        return
+
+    try:
+        records = load_promotion_records(promotion_path)
+    except (OSError, ValueError) as error:
+        _issue(issues, "registry.promotion.invalid", promotion_path, str(error))
+        records = []
+
+    profile_cases: dict[str, set[str]] = {}
+    profiles_root = root / "evals" / "dogfood" / "profiles"
+    for profile_path in sorted(profiles_root.glob("*.json")):
+        try:
+            profile = load_profile(root, profile_path.stem)
+        except (OSError, ValueError) as error:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                profile_path,
+                f"promotion profile cannot be loaded: {error}",
+            )
+            continue
+        profile_cases[profile_path.stem] = set(profile["case_ids"])
+
+    known_skills = {
+        str(entry.get("id", ""))
+        for entry in capabilities
+        if isinstance(entry.get("id"), str) and entry.get("id")
+    }
+    valid_targets: set[tuple[str, str]] = set()
+    record_ids: list[str] = []
+    for index, record in enumerate(records):
+        record_id = record.get("id")
+        if isinstance(record_id, str) and record_id.strip():
+            record_ids.append(record_id)
+        else:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                promotion_path,
+                f"promotion record {index} requires a non-empty id",
+            )
+        errors = validate_promotion_record(
+            record,
+            known_skills=known_skills,
+            known_profiles=profile_cases,
+            profile_cases=profile_cases,
+            artifact_root=root,
+            repository_root=root,
+        )
+        for message in errors:
+            _issue(
+                issues,
+                "registry.promotion.invalid",
+                promotion_path,
+                f"promotion record {record_id or index}: {message}",
+            )
+        if not errors:
+            valid_targets.add((str(record.get("skill_id")), str(record.get("target_maturity"))))
+
+    for duplicate in _duplicates(record_ids):
+        _issue(
+            issues,
+            "registry.promotion.invalid",
+            promotion_path,
+            f"duplicate promotion record id: {duplicate}",
+        )
+    for skill_id, maturity in sorted(promoted.items()):
+        if (skill_id, maturity) not in valid_targets:
+            _issue(
+                issues,
+                "registry.promotion.missing",
+                promotion_path,
+                f"capability {skill_id} at {maturity} requires a valid matching promotion record",
+            )
 
 
 def _load_json_object(path: Path, issues: list[Issue], code_prefix: str) -> dict[str, Any] | None:
@@ -628,7 +743,11 @@ def _validate_plugin_package(root: Path, capability_ids: set[str], issues: list[
             _issue(issues, "plugin.marketplace.entry", marketplace_path, "category must be 'Productivity'")
 
 
-def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
+def _validate_agent_roles(
+    root: Path,
+    issues: list[Issue],
+    capability_ids: set[str] | None = None,
+) -> None:
     registry_path = root / "registry" / "agent-roles.yaml"
     entries = _load_registry(
         registry_path,
@@ -648,12 +767,22 @@ def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
             registry_path,
             f"duplicate agent role id: {duplicate}",
         )
-    expected_fields = {
+    base_fields = {
         "id",
         "path",
         "description",
         "sandbox_mode",
         "reasoning_effort",
+    }
+    specialist_fields = {
+        "kind",
+        "discipline",
+        "required_skills",
+        "owned_scope_patterns",
+        "read_scope_patterns",
+        "forbidden_actions",
+        "validation_commands",
+        "concurrency_group",
     }
     for index, entry in enumerate(entries):
         if not isinstance(entry, dict):
@@ -665,6 +794,8 @@ def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
             )
             continue
         role_id = str(entry.get("id", ""))
+        kind = entry.get("kind")
+        expected_fields = base_fields | specialist_fields if kind == "specialist" else base_fields
         if set(entry) != expected_fields:
             _issue(
                 issues,
@@ -673,6 +804,48 @@ def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
                 f"agent role {role_id or '<missing>'} must contain {sorted(expected_fields)}",
             )
             continue
+        if kind not in {None, "generic", "specialist"}:
+            _issue(
+                issues,
+                "registry.agent_role.value",
+                registry_path,
+                f"invalid agent role kind for {role_id}: {kind}",
+            )
+        if kind == "specialist":
+            for field in (
+                "discipline",
+                "concurrency_group",
+            ):
+                if not isinstance(entry.get(field), str) or not entry[field].strip():
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        registry_path,
+                        f"specialist {role_id} requires non-empty {field}",
+                    )
+            for field in (
+                "required_skills",
+                "owned_scope_patterns",
+                "read_scope_patterns",
+                "forbidden_actions",
+                "validation_commands",
+            ):
+                if not _string_list(entry.get(field)):
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        registry_path,
+                        f"specialist {role_id} requires a non-empty string list for {field}",
+                    )
+            if capability_ids is not None:
+                for skill_id in entry.get("required_skills", []) or []:
+                    if skill_id not in capability_ids:
+                        _issue(
+                            issues,
+                            "registry.agent_role.reference",
+                            registry_path,
+                            f"unknown required skill for {role_id}: {skill_id}",
+                        )
         relative = str(entry.get("path", ""))
         if (
             not role_id
@@ -747,6 +920,23 @@ def _validate_agent_roles(root: Path, issues: list[Issue]) -> None:
                 template_path,
                 f"template developer instructions are required for {role_id}",
             )
+        if kind == "specialist":
+            for field in (
+                "discipline",
+                "required_skills",
+                "owned_scope_patterns",
+                "read_scope_patterns",
+                "forbidden_actions",
+                "validation_commands",
+                "concurrency_group",
+            ):
+                if template.get(field) != entry.get(field):
+                    _issue(
+                        issues,
+                        "registry.agent_role.value",
+                        template_path,
+                        f"template {field} does not match registry for {role_id}",
+                    )
 
 
 def _validate_skill_resources(root: Path, issues: list[Issue]) -> None:
@@ -829,7 +1019,7 @@ def validate_repository(root: Path | str) -> list[Issue]:
     for skill_path in sorted((root_path / "skills").glob("*/SKILL.md")):
         _validate_skill(skill_path, issues)
     capability_ids = _validate_registries(root_path, issues)
-    _validate_agent_roles(root_path, issues)
+    _validate_agent_roles(root_path, issues, capability_ids)
     _validate_skill_resources(root_path, issues)
     _validate_plugin_package(root_path, capability_ids, issues)
     return sorted(issues, key=lambda issue: (str(issue.path), issue.code, issue.message))

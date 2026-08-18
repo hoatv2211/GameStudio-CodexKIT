@@ -191,7 +191,7 @@ capabilities:
   - unity
   - cpp-lua-mmorpg
   risk_level: read-only
-  maturity: experimental
+  maturity: beta
   depends_on:
   - evidence-first-debugging
 - id: unity-asset-guid-meta-audit

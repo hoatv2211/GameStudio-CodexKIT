@@ -23,6 +23,8 @@ bundled:
   - authority_review.py
   release-candidate-preflight:
   - release_preflight.py
+  - source: evals/schema/release-preflight.schema.json
+    destination: schemas/release-preflight.schema.json
   safe-project-mutation:
   - safe_mutation.py
   save-data-schema-migration:
@@ -38,6 +40,32 @@ bundled:
     destination: templates/agents/implementer.toml
   - source: agents/verifier.toml
     destination: templates/agents/verifier.toml
+  - source: agents/unity-csharp-client.toml
+    destination: templates/specialists/unity-csharp-client.toml
+  - source: agents/csharp-backend.toml
+    destination: templates/specialists/csharp-backend.toml
+  - source: agents/cpp-game-server.toml
+    destination: templates/specialists/cpp-game-server.toml
+  - source: agents/golang-services.toml
+    destination: templates/specialists/golang-services.toml
+  - source: agents/lua-gameplay.toml
+    destination: templates/specialists/lua-gameplay.toml
+  - source: agents/game-data-engineer.toml
+    destination: templates/specialists/game-data-engineer.toml
+  - source: agents/technical-artist.toml
+    destination: templates/specialists/technical-artist.toml
+  - source: agents/ui-localization-specialist.toml
+    destination: templates/specialists/ui-localization-specialist.toml
+  - source: agents/systems-game-designer.toml
+    destination: templates/specialists/systems-game-designer.toml
+  - source: agents/qa-automation.toml
+    destination: templates/specialists/qa-automation.toml
+  - source: agents/build-release-engineer.toml
+    destination: templates/specialists/build-release-engineer.toml
+  - source: agents/liveops-sre.toml
+    destination: templates/specialists/liveops-sre.toml
+  - source: agents/game-security-engineer.toml
+    destination: templates/specialists/game-security-engineer.toml
   telemetry-event-contract-review:
   - telemetry_contract.py
   unity-asset-guid-meta-audit:

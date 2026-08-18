@@ -199,9 +199,10 @@ The authoritative capability list is `registry/capabilities.yaml`. Pack composit
 
 - Python 3.11+
 - PyYAML
+- jsonschema
 - Git
 
-Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ and may require PyYAML when they validate or render YAML-backed project profiles. A full clone requires PyYAML for repository validation, routing, policy, profile, and generation tools. The project uses standard-library `unittest`; pytest is not required.
+Codex users need a supported Codex surface with plugin marketplace support and Git. Hermes Agent users need Node.js/npm for the `npx skills` installer. Bundled deterministic helpers use Python 3.11+ and may require PyYAML when they validate or render YAML-backed project profiles. A full clone requires PyYAML for repository validation, routing, policy, profile, and generation tools, plus jsonschema for governed dogfood result validation. The project uses standard-library `unittest`; pytest is not required.
 
 ## Verify the kit
 
@@ -308,15 +309,15 @@ python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl
 python -B scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json
 ```
 
-The dogfood pack contains ten real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, and project intake. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
+The dogfood pack contains twelve real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, project intake, workspace routing, and agent orchestration. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
 
-After a governed runner produces the complete result array, validate it and generate promotion-eligible summaries:
+After a governed runner produces the strict `{"results": [...]}` object and stores hashed artifacts under an approved root, validate it and generate promotion-eligible summaries:
 
 ```bash
-python -B scripts/dogfood_eval.py . --results evidence/local/dogfood-results.json --summary-dir evidence/local/dogfood
+python -B scripts/dogfood_eval.py . --results evidence/local/dogfood-results.json --artifact-root evidence/local --summary-dir evidence/local/dogfood
 ```
 
-The evaluator rejects bare PASS labels, missing artifact paths, non-zero exits, missing reviewers or project snapshots, unauthorized writes, and incomplete case coverage. See `docs/authoring/dogfood.md` for the runner contract.
+The evaluator rejects bare PASS labels, schema drift, unsafe or missing artifact paths, digest mismatches, non-zero exits, missing reviewers or project snapshots, unauthorized writes, and incomplete case coverage. Legacy array results remain diagnostic-only and cannot generate promotion summaries. See `docs/authoring/dogfood.md` for the runner contract.
 
 When a runner, live project, engine, service, or permission is unavailable, the correct verdict is `BLOCKED`, never a fabricated PASS.
 

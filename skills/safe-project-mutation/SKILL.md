@@ -39,7 +39,7 @@ Separate inspection from mutation. Every applied file change must be scoped, rev
 Use for scripted edits, bulk normalization, generated files, project scaffolding, config rewrites, asset metadata operations, or any medium-risk file mutation.
 
 ## When NOT to use
-Do not use this skill to authorize database writes, service control, publishing, credential changes, destructive cleanup, or edits outside the user-approved repository.
+Do not use this skill as the primary owner for a scaffold or per-project adapter; use `studio-project-scaffold` and keep mutation safety as its dependency. Do not use it to authorize database writes, service control, publishing, credential changes, destructive cleanup, or edits outside the user-approved repository.
 
 ## Required inputs and context discovery
 Require repository root, exact operations, owned paths, excluded paths, expected before/after state, process/editor locks, reviewer, verification command, backup location, and restore objective.

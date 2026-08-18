@@ -1,0 +1,78 @@
+{
+  "results": [
+    {
+      "id": "fpc-global-residue-authority",
+      "workflow": "global-residue-authority-audit",
+      "verdict": "PASS",
+      "evidence_label": "Verified",
+      "runtime_target": "Codex App/CLI",
+      "command": "<python> -B <fpc-project>\\tools\\localization\\audit_global_prefab_text.py --profile global-webgl-beta",
+      "exit_code": 0,
+      "artifacts": [
+        {
+          "kind": "project-snapshot",
+          "path": "project-snapshot.json",
+          "sha256": "59ab5904aebdd7c253627810b6599f66efd0c32bfb0bf00c0e67300b31e6bc2e"
+        },
+        {
+          "kind": "command-log",
+          "path": "fpc-global-residue-authority/command-log.json",
+          "sha256": "7949eaeb2fb8cb782bfe8b6b08f5d22ffe285a35568f3a22e7dd3248aef08d6d"
+        },
+        {
+          "kind": "localization-report",
+          "path": "fpc-global-residue-authority/localization-report.txt",
+          "sha256": "b69e350cd49e815d159eeea6fbe0810a91172b876081d14020ce2dd56a38d728"
+        },
+        {
+          "kind": "verdict",
+          "path": "fpc-global-residue-authority/verdict.json",
+          "sha256": "ec4aabaa01238c4267c9976211b7dc82c9fc1d615d5c3964de7d9a2807bb7b58"
+        }
+      ],
+      "project_snapshot": "FlyingPhoenixChronicles@d621e4db13246d3e6e4da9eb4e1608d162b45c9e+dirty:0e96444cd494",
+      "reviewer": "Codex certification runner",
+      "timestamp": "2026-08-17T21:39:50.864078+07:00",
+      "unauthorized_write": false,
+      "restore": "Certification-only; no FPC mutation was performed",
+      "reason": null
+    },
+    {
+      "id": "fpc-localization-doctor",
+      "workflow": "localization-authority-audit",
+      "verdict": "PASS",
+      "evidence_label": "Verified",
+      "runtime_target": "Codex App/CLI",
+      "command": "<python> -B <fpc-project>\\tools\\localization\\audit_global_prefab_text.py --profile global-webgl-beta --strict",
+      "exit_code": 0,
+      "artifacts": [
+        {
+          "kind": "project-snapshot",
+          "path": "project-snapshot.json",
+          "sha256": "59ab5904aebdd7c253627810b6599f66efd0c32bfb0bf00c0e67300b31e6bc2e"
+        },
+        {
+          "kind": "command-log",
+          "path": "fpc-localization-doctor/command-log.json",
+          "sha256": "291647c9e4e8281331b9c13bcd9c6ad3e42b52fa6d6f155cb3ee528da9dc3132"
+        },
+        {
+          "kind": "doctor-report",
+          "path": "fpc-localization-doctor/doctor-report.txt",
+          "sha256": "b69e350cd49e815d159eeea6fbe0810a91172b876081d14020ce2dd56a38d728"
+        },
+        {
+          "kind": "verdict",
+          "path": "fpc-localization-doctor/verdict.json",
+          "sha256": "ec4aabaa01238c4267c9976211b7dc82c9fc1d615d5c3964de7d9a2807bb7b58"
+        }
+      ],
+      "project_snapshot": "FlyingPhoenixChronicles@d621e4db13246d3e6e4da9eb4e1608d162b45c9e+dirty:0e96444cd494",
+      "reviewer": "Codex certification runner",
+      "timestamp": "2026-08-17T21:40:15.51053+07:00",
+      "unauthorized_write": false,
+      "restore": "Certification-only; no FPC mutation was performed",
+      "reason": null
+    }
+  ]
+}

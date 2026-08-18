@@ -1,0 +1,75 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/dogfood-profile.schema.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "id",
+    "description",
+    "project",
+    "case_ids",
+    "cases",
+    "runner_capabilities",
+    "runtime_targets",
+    "max_evidence_age_days",
+    "artifact_root_policy",
+    "promotion_scope"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+    "description": {"type": "string", "minLength": 1},
+    "project": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name", "kind_matchers"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1},
+        "kind_matchers": {"type": "array", "minItems": 1, "items": {"type": "string", "minLength": 1}}
+      }
+    },
+    "case_ids": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+    "cases": {
+      "type": "array",
+      "minItems": 1,
+      "items": {"$ref": "#/$defs/case"}
+    },
+    "runner_capabilities": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+    "runtime_targets": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "minLength": 1}},
+    "max_evidence_age_days": {"type": "integer", "minimum": 1},
+    "artifact_root_policy": {"enum": ["kit-evidence-local"]},
+    "promotion_scope": {"type": "array", "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}}
+  },
+  "$defs": {
+    "case": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "workflow", "project_kind", "prompt", "required_artifacts", "allow_mutation"],
+      "properties": {
+        "id": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "workflow": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "project_kind": {"type": "string", "minLength": 1},
+        "prompt": {"type": "string", "minLength": 1},
+        "required_artifacts": {"type": "array", "minItems": 1, "uniqueItems": true, "items": {"type": "string", "pattern": "^[a-z0-9-]+$"}},
+        "required_mcp_operations": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/mcp_operation"}
+        },
+        "allow_mutation": {"type": "boolean"}
+      }
+    },
+    "mcp_operation": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["artifact_kind", "tool", "operation"],
+      "properties": {
+        "artifact_kind": {"type": "string", "pattern": "^[a-z0-9-]+$"},
+        "tool": {"type": "string", "pattern": "^[a-z0-9_/-]+$"},
+        "operation": {"type": "string", "minLength": 1}
+      }
+    }
+  }
+}

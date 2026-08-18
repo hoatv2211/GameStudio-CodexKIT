@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import hashlib
 import json
 import unittest
 from pathlib import Path
@@ -51,11 +52,22 @@ class GovernanceTests(unittest.TestCase):
     def write_dogfood_summary(self, path: Path, workflow: str, *, complete: bool = True) -> None:
         payload = {"label": "Verified", "exit_code": 0, "workflow": workflow}
         if complete:
+            artifact_root = path.parent / "artifacts"
+            artifact_root.mkdir(parents=True, exist_ok=True)
+            artifact = artifact_root / "verdict.json"
+            artifact.write_text(f"{workflow}:verified\n", encoding="utf-8")
             payload.update(
                 {
                     "case_id": f"{workflow}-case",
                     "command": "hermes run governed-dogfood",
-                    "artifacts": [{"kind": "verdict", "path": "artifacts/verdict.json"}],
+                    "artifact_root": str(artifact_root.resolve()),
+                    "artifacts": [
+                        {
+                            "kind": "verdict",
+                            "path": artifact.name,
+                            "sha256": hashlib.sha256(artifact.read_bytes()).hexdigest(),
+                        }
+                    ],
                     "project_snapshot": "game@abc123",
                     "reviewer": "QA Lead",
                     "timestamp": "2026-08-08T12:00:00+07:00",
@@ -287,7 +299,7 @@ class GovernanceTests(unittest.TestCase):
             self.assertEqual([], report["promotion_ready"])
             self.assertEqual([], report["verified_dogfood_summaries"])
 
-    def test_catalog_promotes_only_the_workflow_named_by_verified_dogfood(self) -> None:
+    def test_catalog_promotes_only_verified_workflow_with_intact_artifact(self) -> None:
         from scripts.catalog_audit import audit_catalog
 
         with temporary_directory() as temp:
@@ -333,6 +345,14 @@ class GovernanceTests(unittest.TestCase):
             report = audit_catalog(root, history_path=history)
 
             self.assertEqual(["alpha-skill"], report["promotion_ready"])
+
+            (evidence / "artifacts" / "verdict.json").write_text(
+                "changed-after-summary\n",
+                encoding="utf-8",
+            )
+            drifted = audit_catalog(root, history_path=history)
+            self.assertEqual([], drifted["verified_dogfood_summaries"])
+            self.assertTrue(drifted["invalid_dogfood_summaries"])
 
     def test_catalog_rejects_bare_verified_dogfood_summary(self) -> None:
         from scripts.catalog_audit import audit_catalog

@@ -1,19 +1,26 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from collections import Counter
 from datetime import date, datetime, timedelta
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any
 
 try:
     from scripts.common import load_yaml, parse_frontmatter
+    from scripts.dogfood_eval import load_profile
+    from scripts.promotion_evidence import load_promotion_records, validate_promotion_record
+    from scripts.release_preflight import load_release_preflight_schema
     from scripts.route_eval import evaluate_repository
     from scripts.validate import validate_repository
 except ModuleNotFoundError:
     from common import load_yaml, parse_frontmatter
+    from dogfood_eval import load_profile
+    from promotion_evidence import load_promotion_records, validate_promotion_record
+    from release_preflight import load_release_preflight_schema
     from route_eval import evaluate_repository
     from validate import validate_repository
 
@@ -37,6 +44,7 @@ DOGFOOD_FIELDS = {
     "case_id",
     "exit_code",
     "command",
+    "artifact_root",
     "artifacts",
     "project_snapshot",
     "reviewer",
@@ -208,6 +216,14 @@ def _history_report(history_path: Path | str | None) -> dict[str, Any]:
     return audit_session_history(payload if isinstance(payload, dict) else {})
 
 
+def _sha256_path(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def _valid_dogfood_summary(payload: Any) -> bool:
     if not isinstance(payload, dict) or not DOGFOOD_FIELDS.issubset(payload):
         return False
@@ -220,23 +236,108 @@ def _valid_dogfood_summary(payload: Any) -> bool:
         return False
     if payload.get("unauthorized_write") is not False:
         return False
+    artifact_root_value = payload.get("artifact_root")
+    if not isinstance(artifact_root_value, str) or not artifact_root_value.strip():
+        return False
+    artifact_root = Path(artifact_root_value).resolve()
+    if not artifact_root.is_dir():
+        return False
     artifacts = payload.get("artifacts")
     if not isinstance(artifacts, list) or not artifacts:
         return False
-    if any(
-        not isinstance(item, dict)
-        or not isinstance(item.get("kind"), str)
-        or not item["kind"].strip()
-        or not isinstance(item.get("path"), str)
-        or not item["path"].strip()
-        for item in artifacts
-    ):
-        return False
+    seen_kinds: set[str] = set()
+    for item in artifacts:
+        if (
+            not isinstance(item, dict)
+            or not isinstance(item.get("kind"), str)
+            or not item["kind"].strip()
+            or item["kind"] in seen_kinds
+            or not isinstance(item.get("path"), str)
+            or not item["path"].strip()
+            or not isinstance(item.get("sha256"), str)
+            or len(item["sha256"]) != 64
+        ):
+            return False
+        seen_kinds.add(item["kind"])
+        normalized = item["path"].replace("\\", "/")
+        pure = PurePosixPath(normalized)
+        windows = PureWindowsPath(item["path"])
+        if (
+            pure.is_absolute()
+            or windows.is_absolute()
+            or windows.drive
+            or not pure.parts
+            or "." in pure.parts
+            or ".." in pure.parts
+        ):
+            return False
+        artifact = artifact_root.joinpath(*pure.parts).resolve()
+        try:
+            artifact.relative_to(artifact_root)
+        except ValueError:
+            return False
+        if not artifact.is_file() or _sha256_path(artifact) != item["sha256"]:
+            return False
     try:
         datetime.fromisoformat(str(payload.get("timestamp")))
     except ValueError:
         return False
     return True
+
+
+def _promotion_evidence_audit(root: Path, capabilities: list[dict[str, Any]]) -> dict[str, list[str]]:
+    report = {"verified": [], "stale": [], "invalid": [], "unsupported": []}
+    registry_path = root / "registry" / "promotion-evidence.yaml"
+    if not registry_path.is_file():
+        return report
+    try:
+        records = load_promotion_records(registry_path)
+    except (OSError, ValueError):
+        return {"verified": [], "stale": [], "invalid": ["<registry>"], "unsupported": []}
+
+    profile_cases: dict[str, set[str]] = {}
+    for profile_path in sorted((root / "evals" / "dogfood" / "profiles").glob("*.json")):
+        try:
+            profile_cases[profile_path.stem] = set(load_profile(root, profile_path.stem)["case_ids"])
+        except (OSError, ValueError):
+            continue
+    known_skills = {
+        str(capability.get("id"))
+        for capability in capabilities
+        if isinstance(capability.get("id"), str) and capability.get("id")
+    }
+    maturity_by_skill = {
+        str(capability.get("id")): capability.get("maturity")
+        for capability in capabilities
+    }
+    today = date.today()
+    for index, record in enumerate(records):
+        record_id = str(record.get("id") or f"record-{index}")
+        errors = validate_promotion_record(
+            record,
+            known_skills=known_skills,
+            known_profiles=profile_cases,
+            profile_cases=profile_cases,
+            artifact_root=root,
+            repository_root=root,
+        )
+        if errors:
+            report["invalid"].append(record_id)
+            continue
+        try:
+            expires_at = date.fromisoformat(str(record["expires_at"]))
+        except ValueError:
+            report["invalid"].append(record_id)
+            continue
+        skill_id = str(record["skill_id"])
+        target = str(record["target_maturity"])
+        if expires_at < today:
+            report["stale"].append(record_id)
+        elif maturity_by_skill.get(skill_id) != target:
+            report["unsupported"].append(record_id)
+        else:
+            report["verified"].append(record_id)
+    return {key: sorted(value) for key, value in report.items()}
 
 
 def audit_catalog(
@@ -250,6 +351,31 @@ def audit_catalog(
     pressure = _runner_status(root_path, "pressure")
     history = _history_report(history_path)
     registry = load_yaml(root_path / "registry" / "capabilities.yaml")
+    capabilities = registry.get("capabilities", []) if isinstance(registry, dict) else []
+    release_schema = {"verdict": "NOT_APPLICABLE", "path": None, "reason": None}
+    if any(capability.get("id") == "release-candidate-preflight" for capability in capabilities):
+        release_schema_path = root_path / "evals" / "schema" / "release-preflight.schema.json"
+        release_schema["path"] = release_schema_path.relative_to(root_path).as_posix()
+        try:
+            load_release_preflight_schema(release_schema_path)
+            release_schema["verdict"] = "PASS"
+        except (OSError, ValueError) as error:
+            release_schema["verdict"] = "FAIL"
+            release_schema["reason"] = str(error)
+    promotion_evidence = _promotion_evidence_audit(root_path, capabilities)
+    verified_promotion_ids = set(promotion_evidence["verified"])
+    verified_promotion_targets: set[tuple[str, str]] = set()
+    try:
+        promotion_records = load_promotion_records(
+            root_path / "registry" / "promotion-evidence.yaml"
+        )
+    except (OSError, ValueError):
+        promotion_records = []
+    for record in promotion_records:
+        if record.get("id") in verified_promotion_ids:
+            verified_promotion_targets.add(
+                (str(record.get("skill_id")), str(record.get("target_maturity")))
+            )
     stale: list[str] = []
     premature: list[str] = []
     cutoff = date.today() - timedelta(days=90)
@@ -260,7 +386,7 @@ def audit_catalog(
         status["kind"]: set(status.get("covered_skills", []))
         for status in (tier_b, behavior, pressure)
     }
-    for capability in registry.get("capabilities", []):
+    for capability in capabilities:
         skill_path = root_path / capability["path"]
         if not skill_path.exists():
             continue
@@ -274,7 +400,11 @@ def audit_catalog(
         )
         if reviewed_date < cutoff:
             stale.append(capability["id"])
-        if capability["maturity"] in {"beta", "stable"} and not runner_ready:
+        if (
+            capability["maturity"] in {"beta", "stable", "release"}
+            and (capability["id"], capability["maturity"])
+            not in verified_promotion_targets
+        ):
             premature.append(capability["id"])
 
     validation_errors = len([issue for issue in validation if issue.severity == "error"])
@@ -345,6 +475,8 @@ def audit_catalog(
     status_reasons: list[str] = []
     if not deterministic_ready:
         status_reasons.append("deterministic validation or routing failed")
+    if release_schema["verdict"] == "FAIL":
+        status_reasons.append("release preflight schema is invalid")
     if premature:
         status_reasons.append("one or more skills have premature maturity")
     for runner_status in (tier_b, behavior, pressure):
@@ -384,6 +516,8 @@ def audit_catalog(
         "stale_skills": sorted(stale),
         "premature_maturity": sorted(premature),
         "promotion_ready": sorted(promotion_ready),
+        "promotion_evidence": promotion_evidence,
+        "release_preflight_schema": release_schema,
         "dogfood_summaries": [path.relative_to(root_path).as_posix() for path in dogfood_summaries],
         "invalid_dogfood_summaries": [
             path.relative_to(root_path).as_posix() for path in invalid_dogfood_summaries

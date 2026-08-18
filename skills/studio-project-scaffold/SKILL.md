@@ -1,6 +1,6 @@
 ---
 name: studio-project-scaffold
-description: Use when bootstrapping a new or newly adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, a subsystem registry, ownership rules, and preserved project-local skills.
+description: Use when bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project governance, a subsystem registry, or a per-project adapter report, plan digest, named reviewer, backup root, generated agent overlay, apply, uninstall, and .codex/config.toml preservation.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT

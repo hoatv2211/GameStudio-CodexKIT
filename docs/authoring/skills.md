@@ -31,7 +31,17 @@ Historical roadmap influence may be named as an archived origin, but active work
 
 ## Maturity
 
-New or changed skills stay `draft` or `experimental`. Promotion requires deterministic gates, governed behavior/pressure/Tier-B PASS, complete workflow coverage, and verified dogfood evidence. Missing runners, live builds, or operational KPIs remain `BLOCKED`; targets are not observed metrics.
+New or changed skills stay `draft` or `experimental` until a matching record in
+`registry/promotion-evidence.yaml` binds the adjacent transition to a named dogfood
+profile, exact cases, owner/reviewer, restore text, expiry, and SHA-256 artifacts.
+`beta` may use fresh verified static dogfood; `stable` additionally requires Tier-B,
+behavior, and pressure evidence; `release` additionally requires a runtime matrix
+and session history. Missing runners, live builds, Unity MCP, or operational KPIs
+remain `BLOCKED`; targets are never treated as observed metrics.
+
+The current FPC rollout promotes only `localization-authority-audit` to `beta` from
+the read-only static profile. Runtime/editor verification remains explicitly
+`BLOCKED`, so no stable or release promotion is recorded.
 
 ## Deployment checklist
 

@@ -1,0 +1,33 @@
+{
+  "schema_version": 1,
+  "id": "fpc-global-localization-static",
+  "description": "Fresh read-only FPC global localization and residue certification without Unity MCP.",
+  "project": {
+    "name": "FlyingPhoenixChronicles",
+    "kind_matchers": ["Flying Phoenix Chronicles", "Unity MMORPG"]
+  },
+  "case_ids": ["fpc-global-residue-authority", "fpc-localization-doctor"],
+  "cases": [
+    {
+      "id": "fpc-global-residue-authority",
+      "workflow": "global-residue-authority-audit",
+      "project_kind": "Flying Phoenix Chronicles",
+      "prompt": "Audit current Unity prefab, catalog, Lua, and evidence authority for Global English residue without mutation.",
+      "required_artifacts": ["command-log", "project-snapshot", "localization-report", "verdict"],
+      "allow_mutation": false
+    },
+    {
+      "id": "fpc-localization-doctor",
+      "workflow": "localization-authority-audit",
+      "project_kind": "Flying Phoenix Chronicles",
+      "prompt": "Run the strict available localization audit and static localization tests, recording source/catalog/overlay limitations.",
+      "required_artifacts": ["command-log", "project-snapshot", "doctor-report", "verdict"],
+      "allow_mutation": false
+    }
+  ],
+  "runner_capabilities": ["file-audit"],
+  "runtime_targets": ["Codex App/CLI"],
+  "max_evidence_age_days": 30,
+  "artifact_root_policy": "kit-evidence-local",
+  "promotion_scope": ["localization-authority-audit"]
+}

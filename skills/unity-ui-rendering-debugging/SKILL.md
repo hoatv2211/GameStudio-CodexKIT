@@ -1,6 +1,6 @@
 ---
 name: unity-ui-rendering-debugging
-description: Use when Unity UI or NGUI content is missing, clipped, behind another canvas, wrongly sorted, disconnected from a prefab or atlas, misanchored, or invisible despite correct gameplay state.
+description: Use when a Unity UI, HUD, screen item, or NGUI widget is missing, clipped, behind another canvas, wrongly sorted, disconnected from a prefab or atlas, misanchored, or invisible despite correct gameplay state.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT

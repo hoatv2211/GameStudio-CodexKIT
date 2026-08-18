@@ -1,6 +1,6 @@
 ---
 name: skill-authoring-and-audit
-description: Use when authoring or auditing GameStudio-CodexKIT skills with update-first preflight, trigger collision checks, provenance, routing and pressure evals, lifecycle rules, and session-history gap detection.
+description: Use when creating or revising a GameStudio-CodexKIT skill, resolving ambiguous skill triggers, auditing provenance or lifecycle maturity, or deriving reusable capabilities from session history.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -39,7 +39,7 @@ One governance skill supports two modes: `author` creates or updates a needed wo
 Use when a recurring workflow needs codification, a skill trigger is ambiguous, session history reveals repeated failures, or catalog lifecycle and provenance need review.
 
 ## When NOT to use
-Do not author a skill for a one-off task, duplicate an existing capability, copy noncommercial content, or promote maturity without eval and dogfood evidence.
+Do not use this skill merely to execute or report an existing evaluation, and do not author a skill for a one-off task, duplicate an existing capability, copy noncommercial content, or promote maturity without eval and dogfood evidence.
 
 ## Required inputs and context discovery
 Collect requested mode, catalog and registries, existing descriptions, project-local skills and agent roles, routing cases, session or issue evidence, provenance source/license/SHA, owner, reviewer, risk, and target pack.

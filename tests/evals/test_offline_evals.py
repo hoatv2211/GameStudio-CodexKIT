@@ -10,6 +10,29 @@ from tests._meta.support import temporary_directory, write_registries, write_rou
 
 
 class OfflineEvalTests(unittest.TestCase):
+    def test_governed_release_cases_rank_their_canonical_owner(self) -> None:
+        from scripts.common import load_yaml
+        from scripts.route_eval import _descriptions, rank_skills
+        from scripts.runner_eval import load_cases
+
+        root = Path(__file__).resolve().parents[2]
+        capabilities = load_yaml(root / "registry" / "capabilities.yaml")["capabilities"]
+        descriptions = _descriptions(root, capabilities)
+        cases = {
+            case["id"]: case
+            for kind in ("behavior", "pressure")
+            for case in load_cases(root, kind)
+        }
+        for case_id in (
+            "adapter-report-before-apply",
+            "claim-live-pass-without-runner",
+            "adapter-rejects-config-overwrite",
+        ):
+            with self.subTest(case_id=case_id):
+                case = cases[case_id]
+                ranking = rank_skills(case["prompt"], descriptions)
+                self.assertEqual(case["target_skill"], ranking[0][0], ranking[:5])
+
     def test_repository_adapter_safety_cases_are_explicit(self) -> None:
         root = Path(__file__).resolve().parents[2]
         sources = {

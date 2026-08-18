@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import argparse
+import json
 import re
 import stat
 import sys
@@ -29,6 +30,7 @@ GENERATED_MARKERS_BY_SUFFIX = {
     ".sh": HASH_GENERATED_MARKER,
     ".md": HTML_GENERATED_MARKER,
     ".txt": HTML_GENERATED_MARKER,
+    ".json": GENERATION_NOTICE,
 }
 SUPPORTED_SUFFIXES = frozenset(GENERATED_MARKERS_BY_SUFFIX)
 SKILL_ID = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -171,7 +173,24 @@ def generated_marker(path: Path) -> str:
 
 
 def generated_header(path: Path) -> str:
+    if path.suffix.casefold() == ".json":
+        raise ValueError("JSON resources use a $comment ownership marker instead of a header")
     return f"{generated_marker(path)}\n\n"
+
+
+def render_generated_resource(path: Path, content: str) -> str:
+    if path.suffix.casefold() != ".json":
+        return generated_header(path) + content
+    try:
+        payload = json.loads(content)
+    except json.JSONDecodeError as error:
+        raise ValueError(f"invalid JSON resource: {path}: {error}") from error
+    if not isinstance(payload, dict):
+        raise ValueError(f"JSON resource must contain an object: {path}")
+    if "$comment" in payload:
+        raise ValueError(f"JSON resource already owns $comment: {path}")
+    generated = {"$comment": GENERATION_NOTICE, **payload}
+    return json.dumps(generated, indent=2, ensure_ascii=True) + "\n"
 
 
 def _read_resource_text(path: Path) -> str:
@@ -185,6 +204,12 @@ def _read_resource_text(path: Path) -> str:
 
 
 def _is_owned_generated_resource(path: Path, content: str) -> bool:
+    if path.suffix.casefold() == ".json":
+        try:
+            payload = json.loads(content)
+        except json.JSONDecodeError:
+            return False
+        return isinstance(payload, dict) and payload.get("$comment") == GENERATION_NOTICE
     try:
         marker = generated_marker(path)
     except ValueError:
@@ -250,7 +275,10 @@ def sync_skill_resources(root: Path | str, *, check: bool = False) -> list[Path]
     drift: list[Path] = []
 
     for resource in bundled:
-        expected = generated_header(resource.destination) + _read_resource_text(resource.source)
+        expected = render_generated_resource(
+            resource.destination,
+            _read_resource_text(resource.source),
+        )
         observed = (
             _read_resource_text(resource.destination)
             if resource.destination.is_file()

@@ -136,6 +136,33 @@ def _load_generic_roles(template_root: Path) -> list[dict[str, str]]:
     return sorted(roles, key=lambda role: role["id"])
 
 
+def _load_specialist_templates(template_root: Path) -> dict[str, dict[str, Any]]:
+    templates: dict[str, dict[str, Any]] = {}
+    if not template_root.is_dir():
+        return templates
+    for template_path in sorted(template_root.glob("*.toml")):
+        parsed = tomllib.loads(template_path.read_text(encoding="utf-8"))
+        role_id = _validate_role_id(parsed.get("name"), label="specialist template")
+        if role_id in templates:
+            raise ValueError(f"duplicate specialist template id: {role_id}")
+        for field in (
+            "name",
+            "description",
+            "developer_instructions",
+            "discipline",
+            "required_skills",
+            "owned_scope_patterns",
+            "read_scope_patterns",
+            "forbidden_actions",
+            "validation_commands",
+            "concurrency_group",
+        ):
+            if field not in parsed:
+                raise ValueError(f"specialist template {role_id} requires {field}")
+        templates[role_id] = parsed
+    return templates
+
+
 def _activation_text(roles: list[dict[str, str]]) -> str:
     lines = [f"# {MARKER}", ""]
     for role in roles:
@@ -177,28 +204,55 @@ def _unmanaged_agent_paths(
 def _specialist_role(
     specialist: dict[str, Any],
     repository: dict[str, Any],
+    canonical: dict[str, Any] | None = None,
 ) -> dict[str, str]:
     role_id = str(specialist["id"])
     repository_id = str(repository["id"])
     repository_path = str(repository["path"])
     constraints = [str(item) for item in specialist["constraints"]]
-    instructions = [
-        f"Own only repository {repository_id} at {repository_path} and the exact files assigned by the main thread.",
-        "Preserve project-profile ownership, validation, generated-file, and do-not-touch rules.",
-        *constraints,
-        "Do not revert concurrent edits, expand into sibling repositories, or create child agents.",
-        "Return changed paths, commands, exit codes, artifacts, and remaining rollout risk.",
-    ]
-    description = f"Project specialist for {repository_id} ({repository_path})."
+    description = str(
+        canonical.get("description")
+        if canonical is not None
+        else f"Project specialist for {repository_id} ({repository_path})."
+    )
+    metadata = ""
+    if canonical is not None:
+        metadata = "\n".join(
+            [
+                f"discipline = {json.dumps(canonical['discipline'])}",
+                f"required_skills = {json.dumps(canonical['required_skills'])}",
+                f"owned_scope_patterns = {json.dumps(canonical['owned_scope_patterns'])}",
+                f"read_scope_patterns = {json.dumps(canonical['read_scope_patterns'])}",
+                f"forbidden_actions = {json.dumps(canonical['forbidden_actions'])}",
+                f"validation_commands = {json.dumps(canonical['validation_commands'])}",
+                f"concurrency_group = {json.dumps(canonical['concurrency_group'])}",
+            ]
+        )
+    canonical_instructions = (
+        str(canonical.get("developer_instructions", "")).strip()
+        if canonical is not None
+        else ""
+    )
+    instruction_text = "\n".join(
+        [
+            f"Own only repository {repository_id} at {repository_path} and the exact files assigned by the main thread.",
+            "Preserve project-profile ownership, validation, generated-file, and do-not-touch rules.",
+            canonical_instructions,
+            *constraints,
+            "Do not revert concurrent edits, expand into sibling repositories, or create child agents.",
+            "Return changed paths, commands, exit codes, artifacts, and remaining rollout risk.",
+        ]
+    )
     content = "\n".join(
         [
             f"# {MARKER}",
             "",
             f"name = {json.dumps(role_id)}",
             f"description = {json.dumps(description)}",
-            f"model_reasoning_effort = '{specialist['reasoning_effort']}'",
-            "sandbox_mode = 'workspace-write'",
-            f"developer_instructions = {json.dumps(chr(10).join(instructions))}",
+            f"model_reasoning_effort = '{canonical.get('model_reasoning_effort', specialist['reasoning_effort']) if canonical else specialist['reasoning_effort']}'",
+            f"sandbox_mode = '{canonical.get('sandbox_mode', 'workspace-write') if canonical else 'workspace-write'}'",
+            metadata,
+            f"developer_instructions = {json.dumps(instruction_text)}",
             "",
         ]
     )
@@ -216,6 +270,7 @@ def plan_agent_overlay(
     generic_roles = _load_generic_roles(Path(template_root))
     roles = list(generic_roles)
     generic_role_ids = {role["id"] for role in generic_roles}
+    specialist_templates = _load_specialist_templates(Path(template_root).parent / "specialists")
     if profile_path is not None and Path(profile_path).is_file():
         profile = load_project_profile(profile_path, known_skills=known_skills)
         repositories = {
@@ -226,7 +281,13 @@ def plan_agent_overlay(
             if specialist_id in generic_role_ids:
                 raise ValueError(f"specialist id collides with generic role: {specialist_id}")
             repository = repositories[str(specialist["repository"])]
-            roles.append(_specialist_role(specialist, repository))
+            roles.append(
+                _specialist_role(
+                    specialist,
+                    repository,
+                    specialist_templates.get(specialist_id),
+                )
+            )
     roles.sort(key=lambda role: role["id"])
     operations: list[dict[str, str]] = []
     planned_paths = {

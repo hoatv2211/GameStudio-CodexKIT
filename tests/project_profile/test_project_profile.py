@@ -353,6 +353,47 @@ class ProjectProfileTests(unittest.TestCase):
         self.assertIn("unknown contract authority for reward-flow: database", errors)
         self.assertNotIn("contract authority must participate in reward-flow: database", errors)
 
+    def test_accepts_optional_specialist_scope_metadata(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["agents"]["specialists"][0]["owned_scope_patterns"] = ["server/src/**"]
+        profile["agents"]["specialists"][0]["read_scope_patterns"] = ["server/tests/**"]
+
+        errors = validate_project_profile(profile)
+
+        self.assertEqual([], errors)
+
+    def test_rejects_overlapping_active_specialist_writer_scopes(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["agents"]["specialists"] = [
+            {
+                "id": "server-specialist",
+                "repository": "server",
+                "reasoning_effort": "high",
+                "constraints": ["preserve protocol compatibility"],
+                "owned_scope_patterns": ["server/src/**"],
+                "read_scope_patterns": ["server/tests/**"],
+            },
+            {
+                "id": "server-qa",
+                "repository": "server",
+                "reasoning_effort": "high",
+                "constraints": ["preserve test evidence"],
+                "owned_scope_patterns": ["server/src/game/**"],
+                "read_scope_patterns": ["server/tests/**"],
+            },
+        ]
+
+        errors = validate_project_profile(profile)
+
+        self.assertIn(
+            "overlapping active specialist writer scopes: server-specialist and server-qa",
+            errors,
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

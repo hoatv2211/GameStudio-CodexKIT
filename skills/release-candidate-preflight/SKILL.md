@@ -75,4 +75,4 @@ Record the exact candidate, decision meeting owner, unresolved blockers, approve
 - [ ] No external release action was performed.
 
 ## References and scripts
-Use the bundled [scripts/release_preflight.py](scripts/release_preflight.py) for normalized evidence completeness checks and project release runbooks for authorized execution.
+Use the bundled [scripts/release_preflight.py](scripts/release_preflight.py) with Python 3.11+ and the `jsonschema` package for normalized evidence completeness checks. The helper loads its bundled strict schema from [schemas/release-preflight.schema.json](schemas/release-preflight.schema.json); use project release runbooks only for authorized execution.

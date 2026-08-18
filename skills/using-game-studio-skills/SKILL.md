@@ -1,6 +1,6 @@
 ---
 name: using-game-studio-skills
-description: Use when starting any GameStudio-CodexKIT task to apply the operating contract, choose evidence labels, route to a workflow skill, and prevent unsupported PASS claims.
+description: Use when starting any GameStudio-CodexKIT task or when a model runner is unavailable and someone requests a confidence-based PASS.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
