@@ -1,10 +1,12 @@
 <p align="center">
-  <img src="docs/assets/banner.svg" alt="GameStudio-CodexKIT — Agent skills for operating live game projects" width="100%">
+  <img src="docs/assets/banner.svg" alt="MOStudio Kit — Agent skills for operating live game projects" width="100%">
 </p>
 
-# GameStudio-CodexKIT
+# MOStudio Kit
 
 **Agent skills for operating live game projects — not writing new ones.**
+
+MOStudio Kit is distributed from the `GameStudio-CodexKIT` repository. Repository URLs, install commands, and the stable plugin ID `game-studio-codex-kit` intentionally keep that technical name.
 
 [![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-276%2F276-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
@@ -26,7 +28,7 @@ That last line is the point. Every claim carries one of four labels — `Verifie
 The kit connects a live game, its studio stack, and its operating evidence into one routed workflow. No dashboard theater: every page below maps to a real contract in the catalog.
 
 <p align="center">
-  <img src="docs/assets/showcase-handcrafted/slide-01.webp" alt="GameStudio-CodexKIT operates live games with evidence instead of faking success" width="100%">
+  <img src="docs/assets/showcase-handcrafted/slide-01.webp" alt="MOStudio Kit operates live games with evidence instead of faking success" width="100%">
 </p>
 
 <table>
@@ -60,13 +62,13 @@ The kit connects a live game, its studio stack, and its operating evidence into 
   <summary><strong>Install paths — Codex App/CLI and Hermes Agent</strong></summary>
   <br>
   <p align="center">
-    <img src="docs/assets/showcase-handcrafted/slide-08.webp" alt="Install GameStudio-CodexKIT in Codex or Hermes Agent" width="100%">
+    <img src="docs/assets/showcase-handcrafted/slide-08.webp" alt="Install MOStudio Kit in Codex or Hermes Agent" width="100%">
   </p>
 </details>
 
 ## Why this kit is different
 
-| | Typical skill packs | GameStudio-CodexKIT |
+| | Typical skill packs | MOStudio Kit |
 |---|---|---|
 | Target | Writing new code | Operating a live, fragile, revenue-bearing game |
 | Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
@@ -95,7 +97,7 @@ Choose one primary runtime. A repository clone is not required for normal use.
 
 | Runtime | Install |
 |---|---|
-| Codex App/CLI | `codex plugin marketplace add hoatv2211/GameStudio-CodexKIT`, then install **GameStudio Codex Kit** from `/plugins` or the App Plugins UI |
+| Codex App/CLI | `codex plugin marketplace add hoatv2211/GameStudio-CodexKIT`, then install **MOStudio Kit** from `/plugins` or the App Plugins UI |
 | Hermes Agent | `npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y` |
 
 Start a new Codex or Hermes session after installation, then ask for the outcome directly. The root router selects the smallest matching studio workflow.
@@ -127,9 +129,9 @@ codex plugin marketplace add hoatv2211/GameStudio-CodexKIT
 codex
 ```
 
-In the Codex CLI session, enter `/plugins`, select the **GameStudio Codex Kit** marketplace, open **GameStudio Codex Kit**, and install it. Start a new CLI session before using the bundled skills.
+In the Codex CLI session, enter `/plugins`, select the **MOStudio Kit** marketplace, open **MOStudio Kit**, and install it. Start a new CLI session before using the bundled skills.
 
-In the ChatGPT desktop app, open **Plugins** from Codex, select the **GameStudio Codex Kit** marketplace, install the plugin, and start a new task. Ask for the outcome directly or invoke the plugin with `@game-studio-codex-kit` when you want an explicit route.
+In the ChatGPT desktop app, open **Plugins** from Codex, select the **MOStudio Kit** marketplace, install the plugin, and start a new task. Ask for the outcome directly or invoke the plugin with `@game-studio-codex-kit` when you want an explicit route.
 
 Example first request:
 

@@ -32,6 +32,10 @@ class CodexPluginPackagingTests(unittest.TestCase):
         self.assertIn(f"{agent_count} AGENTS", banner)
         self.assertIn(f"{pack_count} PACKS", banner)
         self.assertIn(f"ROUTING {routing.passed}/{routing.total}", banner)
+        self.assertIn("MOStudio Kit", banner)
+        self.assertIn("<title>MOStudio Kit · Operate live games</title>", landing)
+        self.assertIn("# MOStudio Kit", readme)
+        self.assertIn("`GameStudio-CodexKIT` repository", readme)
         self.assertIn(f">{skill_count}</span><span class=\"stat-label\">canonical skills", landing)
         self.assertIn(f">{agent_count}</span><span class=\"stat-label\">canonical agents", landing)
         self.assertIn(f">{pack_count}</span><span class=\"stat-label\">installable packs", landing)
@@ -43,7 +47,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.5.1", manifest["version"])
+        self.assertEqual("1.5.2", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])
@@ -51,7 +55,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         self.assertTrue(manifest["author"]["name"])
 
         interface = manifest["interface"]
-        self.assertEqual("GameStudio Codex Kit", interface["displayName"])
+        self.assertEqual("MOStudio Kit", interface["displayName"])
         self.assertEqual("HoaTV Studio", interface["developerName"])
         self.assertLessEqual(len(interface["defaultPrompt"]), 3)
         for prompt in interface["defaultPrompt"]:
@@ -74,7 +78,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         marketplace = json.loads(marketplace_path.read_text(encoding="utf-8"))
 
         self.assertEqual(MARKETPLACE_NAME, marketplace["name"])
-        self.assertEqual("GameStudio Codex Kit", marketplace["interface"]["displayName"])
+        self.assertEqual("MOStudio Kit", marketplace["interface"]["displayName"])
         self.assertEqual(1, len(marketplace["plugins"]))
 
         entry = marketplace["plugins"][0]

@@ -8,6 +8,10 @@ Active authority flows from `AGENTS.md` to registries, canonical skills, and mai
 
 The catalog contains 47 canonical skills across seven additive packs: `studio-core`, `unity`, `cpp-lua-mmorpg`, `production-design-liveops`, `production-management`, `content-production`, and `product-analytics`. Shared skills may appear in more than one pack without duplicating canonical source text. The registry also defines 22 canonical agent roles. `.codex-plugin/plugin.json` exposes the canonical skill catalog directly.
 
+## Naming contract
+
+`MOStudio Kit` is the public display name used in plugin interfaces, landing pages, banners, screenshots, and user-facing installation guidance. `GameStudio-CodexKIT` remains the source repository name and therefore stays unchanged in repository URLs, GitHub Pages paths, install commands, source-repository maintenance instructions, stable adapter identifiers, and historical or provenance records. The plugin ID `game-studio-codex-kit` is also stable and is not derived from the display name.
+
 ## Layers
 
 1. Policy: evidence, mutation, ownership, archive, and handoff contracts in `AGENTS.md`.

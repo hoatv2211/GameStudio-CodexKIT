@@ -6,7 +6,7 @@ Names below are lightly sanitized; every number, command shape, exit code, and v
 
 ## Why this case matters
 
-This is the exact scenario GameStudio-CodexKIT is built for: an agent asked to "review and fix all mixed-Chinese text and UI to English" on a **live game project** where the naive approach — grep for Han characters and bulk-replace — would corrupt generated files, break placeholder contracts, fight other agent sessions for file ownership, and produce a confident "done!" with no proof.
+This is the exact scenario MOStudio Kit is built for: an agent asked to "review and fix all mixed-Chinese text and UI to English" on a **live game project** where the naive approach — grep for Han characters and bulk-replace — would corrupt generated files, break placeholder contracts, fight other agent sessions for file ownership, and produce a confident "done!" with no proof.
 
 Instead, the task was forced through skill routing, evidence labels, risk gates, and lock ownership. The result: real fixes with verifiable artifacts, honest `BLOCKED` verdicts where verification was impossible, and zero collateral damage across ~10 concurrent session lock namespaces.
 

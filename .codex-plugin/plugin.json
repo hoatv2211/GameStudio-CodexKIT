@@ -1,6 +1,6 @@
 {
   "name": "game-studio-codex-kit",
-  "version": "1.5.1",
+  "version": "1.5.2",
   "description": "Evidence-first full game studio workflows for Codex across project init, production, content, engineering, QA, product analytics, release, and live operations.",
   "author": {
     "name": "hoatv2211",
@@ -18,7 +18,7 @@
   ],
   "skills": "./skills/",
   "interface": {
-    "displayName": "GameStudio Codex Kit",
+    "displayName": "MOStudio Kit",
     "shortDescription": "Evidence-first workflows for game studios",
     "longDescription": "Plan, route, delegate, build, review, ship, and operate game projects with project-profile-aware Codex skills for multi-repository workspaces, bounded agents, Unity, C++, Lua, MMORPG services, release, and live operations.",
     "developerName": "HoaTV Studio",

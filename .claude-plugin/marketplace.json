@@ -1,7 +1,7 @@
 {
   "name": "gamestudio-codex-kit",
   "interface": {
-    "displayName": "GameStudio Codex Kit"
+    "displayName": "MOStudio Kit"
   },
   "plugins": [
     {

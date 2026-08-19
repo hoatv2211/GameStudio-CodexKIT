@@ -6,7 +6,7 @@ Approved for implementation on 2026-08-18.
 
 ## Goal
 
-Add a safe, reversible project-adoption interface for GameStudio-CodexKIT, optionally enhanced by CodeGraph, while expanding the canonical catalog with the highest-value production, content, QA, analytics, and live-operations capabilities missing from a full game studio.
+Add a safe, reversible project-adoption interface for MOStudio Kit, optionally enhanced by CodeGraph, while expanding the canonical catalog with the highest-value production, content, QA, analytics, and live-operations capabilities missing from a full game studio.
 
 ## Decisions
 
@@ -57,7 +57,7 @@ When complexity is HIGH and CodeGraph is unavailable, an interactive run offers 
 
 ## CodeGraph Ownership
 
-An existing `.codegraph/` directory is user-owned. A CodeGraph index created after an approved external plan remains CodeGraph-owned; GameStudio-CodexKIT records provenance but does not include the database in its owned-file deletion set. Core init succeeds when CodeGraph is missing, stale, broken, or disabled.
+An existing `.codegraph/` directory is user-owned. A CodeGraph index created after an approved external plan remains CodeGraph-owned; MOStudio Kit records provenance but does not include the database in its owned-file deletion set. Core init succeeds when CodeGraph is missing, stale, broken, or disabled.
 
 The adapter consumes structured `codegraph status --json` output. Tests use a fake runner and never download, install, initialize, or remove CodeGraph.
 

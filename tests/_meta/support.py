@@ -224,7 +224,7 @@ def write_plugin_package(root: Path) -> None:
                 "license": "MIT",
                 "skills": "./skills/",
                 "interface": {
-                    "displayName": "GameStudio Codex Kit",
+                    "displayName": "MOStudio Kit",
                     "developerName": "Fixture",
                     "category": "Productivity",
                 },
