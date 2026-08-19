@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Production Planning"
+  short_description: "Evidence-first Studio Production Planning workflow"
+  default_prompt: "Use $studio-production-planning to apply the Studio Production Planning workflow to this game-studio task."

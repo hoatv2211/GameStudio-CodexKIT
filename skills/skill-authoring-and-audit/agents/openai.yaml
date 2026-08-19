@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Skill Authoring and Audit"
+  short_description: "Evidence-first Skill Authoring and Audit workflow"
+  default_prompt: "Use $skill-authoring-and-audit to apply the Skill Authoring and Audit workflow to this game-studio task."

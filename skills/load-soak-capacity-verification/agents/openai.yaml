@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Load Soak Capacity Verification"
+  short_description: "Evidence-first Load Soak Capacity Verification workflow"
+  default_prompt: "Use $load-soak-capacity-verification to apply the Load Soak Capacity Verification workflow to this game-studio task."

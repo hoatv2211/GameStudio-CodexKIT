@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Agent Orchestration"
+  short_description: "Evidence-first Studio Agent Orchestration workflow"
+  default_prompt: "Use $studio-agent-orchestration to apply the Studio Agent Orchestration workflow to this game-studio task."

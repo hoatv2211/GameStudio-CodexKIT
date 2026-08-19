@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Save Data Schema Migration"
+  short_description: "Evidence-first Save Data Schema Migration workflow"
+  default_prompt: "Use $save-data-schema-migration to apply the Save Data Schema Migration workflow to this game-studio task."

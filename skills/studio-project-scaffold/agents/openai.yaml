@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Project Scaffold"
+  short_description: "Evidence-first Studio Project Scaffold workflow"
+  default_prompt: "Use $studio-project-scaffold to apply the Studio Project Scaffold workflow to this game-studio task."

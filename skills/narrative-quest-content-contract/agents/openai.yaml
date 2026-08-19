@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Narrative Quest Content Contract"
+  short_description: "Evidence-first Narrative Quest Content Contract workflow"
+  default_prompt: "Use $narrative-quest-content-contract to apply the Narrative Quest Content Contract workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Build and Runtime Verification"
+  short_description: "Evidence-first Build and Runtime Verification workflow"
+  default_prompt: "Use $build-and-runtime-verification to apply the Build and Runtime Verification workflow to this game-studio task."

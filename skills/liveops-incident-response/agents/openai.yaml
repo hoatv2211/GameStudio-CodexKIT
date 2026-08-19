@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Liveops Incident Response"
+  short_description: "Evidence-first Liveops Incident Response workflow"
+  default_prompt: "Use $liveops-incident-response to apply the Liveops Incident Response workflow to this game-studio task."

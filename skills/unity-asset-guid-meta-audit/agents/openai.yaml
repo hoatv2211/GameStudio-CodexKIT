@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Unity Asset GUID Meta Audit"
+  short_description: "Evidence-first Unity Asset GUID Meta Audit workflow"
+  default_prompt: "Use $unity-asset-guid-meta-audit to apply the Unity Asset GUID Meta Audit workflow to this game-studio task."

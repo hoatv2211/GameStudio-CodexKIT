@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: QA Test Strategy and Coverage"
+  short_description: "Evidence-first QA Test Strategy and Coverage workflow"
+  default_prompt: "Use $qa-test-strategy-and-coverage to apply the QA Test Strategy and Coverage workflow to this game-studio task."

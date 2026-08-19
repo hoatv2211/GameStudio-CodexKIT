@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Feature to Work Packets"
+  short_description: "Evidence-first Feature to Work Packets workflow"
+  default_prompt: "Use $feature-to-work-packets to apply the Feature to Work Packets workflow to this game-studio task."

@@ -12,6 +12,8 @@ The catalog contains 47 canonical skills across seven additive packs: `studio-co
 
 `MOStudio Kit` is the public display name used in plugin interfaces, landing pages, banners, screenshots, and user-facing installation guidance. `GameStudio-CodexKIT` remains the source repository name and therefore stays unchanged in repository URLs, GitHub Pages paths, install commands, source-repository maintenance instructions, stable adapter identifiers, and historical or provenance records. The plugin ID `game-studio-codex-kit` is also stable and is not derived from the display name.
 
+Every canonical skill owns `agents/openai.yaml` for Codex-facing UI metadata. Its `display_name` follows `MOStudio Kit: <skill heading>`; otherwise Codex falls back to humanizing the stable namespaced skill ID and exposes the repository-derived `Game Studio Codex Kit: ...` label in the picker.
+
 ## Layers
 
 1. Policy: evidence, mutation, ownership, archive, and handoff contracts in `AGENTS.md`.

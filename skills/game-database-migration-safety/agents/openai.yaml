@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Game Database Migration Safety"
+  short_description: "Evidence-first Game Database Migration Safety workflow"
+  default_prompt: "Use $game-database-migration-safety to apply the Game Database Migration Safety workflow to this game-studio task."

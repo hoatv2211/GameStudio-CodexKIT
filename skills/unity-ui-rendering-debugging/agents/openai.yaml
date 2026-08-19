@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Unity UI Rendering Debugging"
+  short_description: "Evidence-first Unity UI Rendering Debugging workflow"
+  default_prompt: "Use $unity-ui-rendering-debugging to apply the Unity UI Rendering Debugging workflow to this game-studio task."

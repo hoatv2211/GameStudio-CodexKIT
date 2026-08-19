@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Review Swarm"
+  short_description: "Evidence-first Review Swarm workflow"
+  default_prompt: "Use $review-swarm to apply the Review Swarm workflow to this game-studio task."

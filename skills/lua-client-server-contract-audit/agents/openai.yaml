@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Lua Client Server Contract Audit"
+  short_description: "Evidence-first Lua Client Server Contract Audit workflow"
+  default_prompt: "Use $lua-client-server-contract-audit to apply the Lua Client Server Contract Audit workflow to this game-studio task."

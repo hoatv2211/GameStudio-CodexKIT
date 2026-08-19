@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Animation Rigging Import Audit"
+  short_description: "Evidence-first Animation Rigging Import Audit workflow"
+  default_prompt: "Use $animation-rigging-import-audit to apply the Animation Rigging Import Audit workflow to this game-studio task."

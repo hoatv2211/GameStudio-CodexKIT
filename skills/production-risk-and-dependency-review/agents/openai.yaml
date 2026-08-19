@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Production Risk and Dependency Review"
+  short_description: "Evidence-first Production Risk and Dependency Review workflow"
+  default_prompt: "Use $production-risk-and-dependency-review to apply the Production Risk and Dependency Review workflow to this game-studio task."

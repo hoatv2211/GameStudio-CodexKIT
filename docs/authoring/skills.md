@@ -8,12 +8,13 @@ Use `skill-authoring-and-audit` in `author` mode before creating or changing a c
 2. Classify Adopt, Adapt, or Write-new and record provenance.
 3. Add a failing routing, behavior, pressure, or deterministic regression case before editing behavior.
 4. Update the smallest complete skill using the closed frontmatter schema enforced by `scripts/validate.py`.
-5. Include required body sections and a completion criterion for every workflow step.
-6. Add at least 3 positive, 2 negative with owner, and 1 collision routing case; root skills are exempt and require `Negative scope`.
-7. If the skill uses a deterministic helper, update the canonical root script and `registry/skill-resources.yaml`, then run `scripts/sync_skill_resources.py`; never patch `skills/*/scripts/` by hand.
-8. For execution-heavy workflows, add a progressively loaded `references/commands.md` with platform-specific commands, evidence fields, and mutation boundaries.
-9. Validate repository-root discovery for Codex, per-skill copying for Hermes Agent, and project-local role materialization from `registry/agent-roles.yaml`, then regenerate only the packs or adapter exports being distributed.
-10. Run structural validation, routing, external-catalog collision, secret, policy, cross-agent packaging, and full unittest discovery.
+5. Add `agents/openai.yaml` with `display_name: "MOStudio Kit: <skill heading>"`, a 25-64 character `short_description`, and a `default_prompt` that explicitly mentions `$<skill-id>`.
+6. Include required body sections and a completion criterion for every workflow step.
+7. Add at least 3 positive, 2 negative with owner, and 1 collision routing case; root skills are exempt and require `Negative scope`.
+8. If the skill uses a deterministic helper, update the canonical root script and `registry/skill-resources.yaml`, then run `scripts/sync_skill_resources.py`; never patch `skills/*/scripts/` by hand.
+9. For execution-heavy workflows, add a progressively loaded `references/commands.md` with platform-specific commands, evidence fields, and mutation boundaries.
+10. Validate repository-root discovery for Codex, per-skill copying for Hermes Agent, and project-local role materialization from `registry/agent-roles.yaml`, then regenerate only the packs or adapter exports being distributed.
+11. Run structural validation, routing, external-catalog collision, secret, policy, cross-agent packaging, and full unittest discovery.
 
 ## Project adapter contract
 

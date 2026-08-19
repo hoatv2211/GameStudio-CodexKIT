@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Project Intake"
+  short_description: "Evidence-first Studio Project Intake workflow"
+  default_prompt: "Use $studio-project-intake to apply the Studio Project Intake workflow to this game-studio task."

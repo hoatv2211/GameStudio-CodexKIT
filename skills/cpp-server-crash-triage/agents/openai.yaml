@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Cpp Server Crash Triage"
+  short_description: "Evidence-first Cpp Server Crash Triage workflow"
+  default_prompt: "Use $cpp-server-crash-triage to apply the Cpp Server Crash Triage workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Unity Batchmode Build Verification"
+  short_description: "Evidence-first Unity Batchmode Build Verification workflow"
+  default_prompt: "Use $unity-batchmode-build-verification to apply the Unity Batchmode Build Verification workflow to this game-studio task."

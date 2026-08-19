@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Store Submission Checklist"
+  short_description: "Evidence-first Store Submission Checklist workflow"
+  default_prompt: "Use $store-submission-checklist to apply the Store Submission Checklist workflow to this game-studio task."
