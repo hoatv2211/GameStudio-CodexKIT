@@ -1,4 +1,4 @@
-<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="GameStudio-CodexKIT — Agent skills for operating live game projects">
+<svg width="1280" height="320" viewBox="0 0 1280 320" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="MOStudio Kit — Agent skills for operating live game projects">
   <defs>
     <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
       <stop offset="0%" stop-color="#0b1220"/>
@@ -37,7 +37,7 @@
   </g>
 
   <!-- title -->
-  <text x="640" y="132" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="1" fill="url(#title)">GameStudio-CodexKIT</text>
+  <text x="640" y="132" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="58" font-weight="800" letter-spacing="1" fill="url(#title)">MOStudio Kit</text>
   <text x="640" y="176" text-anchor="middle" font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="22" font-weight="400" fill="#94a3b8">Agent skills for operating live game projects — not writing new ones</text>
 
   <!-- catalog stat chips -->
