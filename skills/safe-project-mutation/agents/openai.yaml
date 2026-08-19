@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Safe Project Mutation"
+  short_description: "Evidence-first Safe Project Mutation workflow"
+  default_prompt: "Use $safe-project-mutation to apply the Safe Project Mutation workflow to this game-studio task."

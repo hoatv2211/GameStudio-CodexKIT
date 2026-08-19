@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Telemetry Event Contract Review"
+  short_description: "Evidence-first Telemetry Event Contract Review workflow"
+  default_prompt: "Use $telemetry-event-contract-review to apply the Telemetry Event Contract Review workflow to this game-studio task."

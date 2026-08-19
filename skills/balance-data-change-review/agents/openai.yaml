@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Balance Data Change Review"
+  short_description: "Evidence-first Balance Data Change Review workflow"
+  default_prompt: "Use $balance-data-change-review to apply the Balance Data Change Review workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Game Performance Budget"
+  short_description: "Evidence-first Game Performance Budget workflow"
+  default_prompt: "Use $game-performance-budget to apply the Game Performance Budget workflow to this game-studio task."

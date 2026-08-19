@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Game Feature Brainstorming"
+  short_description: "Evidence-first Game Feature Brainstorming workflow"
+  default_prompt: "Use $game-feature-brainstorming to apply the Game Feature Brainstorming workflow to this game-studio task."

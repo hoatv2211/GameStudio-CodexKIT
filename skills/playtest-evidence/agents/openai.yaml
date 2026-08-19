@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Playtest Evidence"
+  short_description: "Evidence-first Playtest Evidence workflow"
+  default_prompt: "Use $playtest-evidence to apply the Playtest Evidence workflow to this game-studio task."

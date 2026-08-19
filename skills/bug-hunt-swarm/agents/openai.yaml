@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Bug Hunt Swarm"
+  short_description: "Evidence-first Bug Hunt Swarm workflow"
+  default_prompt: "Use $bug-hunt-swarm to apply the Bug Hunt Swarm workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Unity Client Offline Debugging"
+  short_description: "Evidence-first Unity Client Offline Debugging workflow"
+  default_prompt: "Use $unity-client-offline-debugging to apply the Unity Client Offline Debugging workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Using Game Studio Skills"
+  short_description: "Evidence-first Using Game Studio Skills workflow"
+  default_prompt: "Use $using-game-studio-skills to apply the Using Game Studio Skills workflow to this game-studio task."

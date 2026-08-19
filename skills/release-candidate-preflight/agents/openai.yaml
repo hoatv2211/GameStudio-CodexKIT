@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Release Candidate Preflight"
+  short_description: "Evidence-first Release Candidate Preflight workflow"
+  default_prompt: "Use $release-candidate-preflight to apply the Release Candidate Preflight workflow to this game-studio task."

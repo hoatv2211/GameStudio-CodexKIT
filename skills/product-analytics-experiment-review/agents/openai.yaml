@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Product Analytics Experiment Review"
+  short_description: "Evidence-first Product Analytics Experiment Review workflow"
+  default_prompt: "Use $product-analytics-experiment-review to apply the Product Analytics Experiment Review workflow to this game-studio task."

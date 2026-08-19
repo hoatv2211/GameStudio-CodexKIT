@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Evidence-First Debugging"
+  short_description: "Evidence-first Evidence-First Debugging workflow"
+  default_prompt: "Use $evidence-first-debugging to apply the Evidence-First Debugging workflow to this game-studio task."

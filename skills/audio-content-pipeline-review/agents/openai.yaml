@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Audio Content Pipeline Review"
+  short_description: "Evidence-first Audio Content Pipeline Review workflow"
+  default_prompt: "Use $audio-content-pipeline-review to apply the Audio Content Pipeline Review workflow to this game-studio task."

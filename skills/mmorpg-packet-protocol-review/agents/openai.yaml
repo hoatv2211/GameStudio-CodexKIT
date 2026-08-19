@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: MMORPG Packet Protocol Review"
+  short_description: "Evidence-first MMORPG Packet Protocol Review workflow"
+  default_prompt: "Use $mmorpg-packet-protocol-review to apply the MMORPG Packet Protocol Review workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: LiveOps Content Rollout and Rollback"
+  short_description: "Evidence-first LiveOps Content Rollout and Rollback workflow"
+  default_prompt: "Use $liveops-content-rollout-and-rollback to apply the LiveOps Content Rollout and Rollback workflow to this game-studio task."

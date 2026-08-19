@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Platform Device Compatibility Matrix"
+  short_description: "Evidence-first Platform Device Compatibility Matrix workflow"
+  default_prompt: "Use $platform-device-compatibility-matrix to apply the Platform Device Compatibility Matrix workflow to this game-studio task."

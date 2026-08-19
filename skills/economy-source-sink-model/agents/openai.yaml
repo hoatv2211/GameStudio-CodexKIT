@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Economy Source Sink Model"
+  short_description: "Evidence-first Economy Source Sink Model workflow"
+  default_prompt: "Use $economy-source-sink-model to apply the Economy Source Sink Model workflow to this game-studio task."

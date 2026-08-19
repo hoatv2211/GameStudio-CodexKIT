@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Handoff"
+  short_description: "Evidence-first Studio Handoff workflow"
+  default_prompt: "Use $studio-handoff to apply the Studio Handoff workflow to this game-studio task."

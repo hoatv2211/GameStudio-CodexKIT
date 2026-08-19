@@ -47,7 +47,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.5.2", manifest["version"])
+        self.assertEqual("1.5.3", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])
@@ -71,6 +71,29 @@ class CodexPluginPackagingTests(unittest.TestCase):
         }
         self.assertEqual(47, len(registered))
         self.assertEqual(registered, packaged)
+
+    def test_packaged_skills_expose_branded_codex_ui_metadata(self) -> None:
+        capabilities = load_yaml(ROOT / "registry" / "capabilities.yaml")["capabilities"]
+
+        for capability in capabilities:
+            skill_id = capability["id"]
+            skill_dir = ROOT / "skills" / skill_id
+            skill_text = (skill_dir / "SKILL.md").read_text(encoding="utf-8")
+            heading_match = re.search(r"^#\s+(.+)$", skill_text, re.MULTILINE)
+            self.assertIsNotNone(heading_match, skill_id)
+
+            metadata_path = skill_dir / "agents" / "openai.yaml"
+            self.assertTrue(metadata_path.is_file(), metadata_path)
+            interface = load_yaml(metadata_path)["interface"]
+
+            self.assertEqual(
+                f"MOStudio Kit: {heading_match.group(1).strip()}",
+                interface["display_name"],
+                skill_id,
+            )
+            self.assertGreaterEqual(len(interface["short_description"]), 25, skill_id)
+            self.assertLessEqual(len(interface["short_description"]), 64, skill_id)
+            self.assertIn(f"${skill_id}", interface["default_prompt"], skill_id)
 
     def test_repo_marketplace_exposes_the_root_github_plugin(self) -> None:
         marketplace_path = ROOT / ".claude-plugin" / "marketplace.json"

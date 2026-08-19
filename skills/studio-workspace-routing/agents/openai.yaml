@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Workspace Routing"
+  short_description: "Evidence-first Studio Workspace Routing workflow"
+  default_prompt: "Use $studio-workspace-routing to apply the Studio Workspace Routing workflow to this game-studio task."

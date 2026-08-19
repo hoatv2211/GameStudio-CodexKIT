@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Game Feature to Spec"
+  short_description: "Evidence-first Game Feature to Spec workflow"
+  default_prompt: "Use $game-feature-to-spec to apply the Game Feature to Spec workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Multi-Service Local Environment Doctor"
+  short_description: "Evidence-first Multi-Service Local Environment Doctor workflow"
+  default_prompt: "Use $multi-service-local-environment-doctor to apply the Multi-Service Local Environment Doctor workflow to this game-studio task."

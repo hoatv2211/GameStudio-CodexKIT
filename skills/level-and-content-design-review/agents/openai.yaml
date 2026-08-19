@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Level and Content Design Review"
+  short_description: "Evidence-first Level and Content Design Review workflow"
+  default_prompt: "Use $level-and-content-design-review to apply the Level and Content Design Review workflow to this game-studio task."

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Art Asset Pipeline Preflight"
+  short_description: "Evidence-first Art Asset Pipeline Preflight workflow"
+  default_prompt: "Use $art-asset-pipeline-preflight to apply the Art Asset Pipeline Preflight workflow to this game-studio task."

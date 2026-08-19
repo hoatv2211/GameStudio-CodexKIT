@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Localization Authority Audit"
+  short_description: "Evidence-first Localization Authority Audit workflow"
+  default_prompt: "Use $localization-authority-audit to apply the Localization Authority Audit workflow to this game-studio task."
