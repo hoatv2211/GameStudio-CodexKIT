@@ -25,6 +25,11 @@ except ModuleNotFoundError:
     from release_preflight import load_release_preflight_schema
     from sync_skill_resources import load_skill_resources, sync_skill_resources
 
+try:
+    from scripts.catalog_graph import resolve_pack_skill_closure
+except ModuleNotFoundError:
+    from catalog_graph import resolve_pack_skill_closure
+
 
 TOP_LEVEL_FIELDS = {
     "name",
@@ -427,6 +432,28 @@ def _find_cycles(graph: dict[str, list[str]]) -> list[list[str]]:
     return cycles
 
 
+def _valid_relationship_ids(value: Any) -> list[str]:
+    if not isinstance(value, list):
+        return []
+    return [item for item in value if isinstance(item, str) and item.strip()]
+
+
+def _pack_closure_issue_code(message: str) -> str | None:
+    if message.startswith("pack dependency cycle:"):
+        return None
+    if " is missing capability " in message and " required by " in message:
+        return "registry.pack.dependency.missing"
+    if (
+        message.startswith("invalid ")
+        or " must be a list" in message
+        or " must be a nonblank string" in message
+    ):
+        return "registry.schema"
+    if message.startswith("unknown pack") or " references unknown " in message:
+        return None
+    return "registry.schema"
+
+
 def _load_registry(
     path: Path,
     top_key: str,
@@ -513,7 +540,7 @@ def _validate_registries(root: Path, issues: list[Issue]) -> set[str]:
         for pack_id in entry.get("packs", []) or []:
             if pack_id not in pack_set:
                 _issue(issues, "registry.reference.missing", capabilities_path, f"unknown pack: {pack_id}")
-        dependencies = [str(item) for item in (entry.get("depends_on") or [])]
+        dependencies = _valid_relationship_ids(entry.get("depends_on"))
         capability_graph[capability_id] = dependencies
         for dependency in dependencies:
             if dependency not in capability_set:
@@ -524,10 +551,10 @@ def _validate_registries(root: Path, issues: list[Issue]) -> set[str]:
         expected = {"id", "description", "skills", "depends_on"}
         if set(entry) != expected:
             _issue(issues, "registry.schema", packs_path, f"invalid fields for pack {pack_id}")
-        for skill_id in entry.get("skills", []) or []:
+        for skill_id in _valid_relationship_ids(entry.get("skills")):
             if skill_id not in capability_set:
                 _issue(issues, "registry.reference.missing", packs_path, f"unknown capability: {skill_id}")
-        dependencies = [str(item) for item in (entry.get("depends_on") or [])]
+        dependencies = _valid_relationship_ids(entry.get("depends_on"))
         pack_graph[pack_id] = dependencies
         for dependency in dependencies:
             if dependency not in pack_set:
@@ -551,8 +578,30 @@ def _validate_registries(root: Path, issues: list[Issue]) -> set[str]:
 
     for cycle in _find_cycles(capability_graph):
         _issue(issues, "registry.dependency.cycle", capabilities_path, " -> ".join(cycle))
-    for cycle in _find_cycles(pack_graph):
+    pack_cycles = _find_cycles(pack_graph)
+    for cycle in pack_cycles:
         _issue(issues, "registry.dependency.cycle", packs_path, " -> ".join(cycle))
+    resolver_issues: set[tuple[str, str]] = set()
+    for pack_id in pack_ids:
+        try:
+            resolve_pack_skill_closure(packs, capabilities, pack_id)
+        except ValueError as error:
+            message = str(error)
+            code = _pack_closure_issue_code(message)
+            if code is None:
+                continue
+            defect = (code, message)
+            if defect in resolver_issues:
+                continue
+            resolver_issues.add(defect)
+            issue_path = (
+                capabilities_path
+                if message.startswith(
+                    ("capability ", "invalid capability ", "invalid or duplicate capability ")
+                )
+                else packs_path
+            )
+            _issue(issues, code, issue_path, message)
     if "release-candidate-preflight" in capability_set:
         schema_path = root / "evals" / "schema" / "release-preflight.schema.json"
         try:

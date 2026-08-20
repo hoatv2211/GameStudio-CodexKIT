@@ -36,8 +36,13 @@ bundled:
   - codegraph_adapter.py
   - project_skill_overlay.py
   - gamestudio_cli.py
+  - studio_experience.py
   - safe_mutation.py
   - project_profile.py
+  - source: evals/schema/studio-task-packet.schema.json
+    destination: schemas/studio-task-packet.schema.json
+  - source: evals/schema/studio-evidence-card.schema.json
+    destination: schemas/studio-evidence-card.schema.json
   - source: agents/investigator.toml
     destination: templates/agents/investigator.toml
   - source: agents/implementer.toml
@@ -90,6 +95,12 @@ bundled:
   - build_evidence.py
   studio-workspace-routing:
   - project_profile.py
+  using-game-studio-skills:
+  - studio_experience.py
+  - source: evals/schema/studio-task-packet.schema.json
+    destination: schemas/studio-task-packet.schema.json
+  - source: evals/schema/studio-evidence-card.schema.json
+    destination: schemas/studio-evidence-card.schema.json
 repository_only:
   review-swarm:
   - secret_scan.py

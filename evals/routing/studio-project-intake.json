@@ -4,5 +4,6 @@
   {"prompt":"intake project Unity goal scope constraints owner do-not-touch trước khi làm","expected_skill":"studio-project-intake","type":"positive"},
   {"prompt":"run build runtime command capture exit code artifact verdict","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
   {"prompt":"verify build compile test launch runtime command exit code artifact verdict","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
-  {"prompt":"before debugging collect project goal scope engine version intake","expected_skill":"studio-project-intake","type":"collision"}
+  {"prompt":"before debugging collect project goal scope engine version intake","expected_skill":"studio-project-intake","type":"collision"},
+  {"prompt":"As producer, plan project intake and adoption of this Unity MMORPG repository with goal, scope, risk, engine version, and do-not-touch paths before anyone writes files","expected_skill":"studio-project-intake","type":"positive"}
 ]}

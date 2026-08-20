@@ -8,7 +8,7 @@
 
 MOStudio Kit is distributed from the `GameStudio-CodexKIT` repository. Repository URLs, install commands, and the stable plugin ID `game-studio-codex-kit` intentionally keep that technical name.
 
-[![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-276%2F276-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-290%2F290-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -74,7 +74,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
 | Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
 | Mutations | Agent edits freely | 4-tier risk gates: read-only → low → medium (reviewer+backup) → high (human approval + dry-run) |
 | Multi-agent | Single session | One-writer-per-file ownership, lock protocol, handoff contracts, review/bug-hunt swarms |
-| Routing quality | Hope the description matches | 276 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
+| Routing quality | Hope the description matches | 290 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
 
 ## Field evidence — real run on a live MMORPG
 
@@ -119,6 +119,44 @@ No slash commands, no skill names required — describe the problem and the rout
 | "Write a handoff so the next session can continue" | `studio-handoff` |
 
 Add "evidence labels mandatory" to any request when you want the strict verification contract enforced end-to-end.
+
+## Unity/MMORPG Golden Paths
+
+| Golden Path | Typical canonical workflows |
+|---|---|
+| Project adoption and routing | `studio-project-intake`, `studio-workspace-routing`, `studio-project-scaffold` |
+| Local environment recovery | `multi-service-local-environment-doctor` |
+| Unity client entry recovery | `unity-client-offline-debugging` |
+| C++ server failure recovery | `cpp-server-crash-triage`, `mmorpg-packet-protocol-review` |
+| Unity UI and localization | `unity-ui-rendering-debugging`, `localization-authority-audit` |
+| Unity build and asset integrity | `unity-batchmode-build-verification`, `unity-asset-guid-meta-audit` |
+| Lua contract and server authority | `lua-client-server-contract-audit`, `network-authority-and-exploit-review` |
+| Data and live release safety | `game-database-migration-safety`, `save-data-schema-migration`, `release-candidate-preflight`, `liveops-incident-response` |
+
+Roles (`Developer`, `QA`, `Producer`, `LiveOps`) influence default intent and presentation. Personas remain optional discipline lenses; neither roles nor personas bypass canonical skill safety or evidence contracts.
+
+## Role-first workflow
+
+You do not need to remember skill names. State your studio role and the outcome you need, and the root router maps the request to one of five intents: **Diagnose**, **Verify**, **Plan Change**, **Ship**, or **Handle Incident** across eight Golden Path families. The report-only router returns a planning task packet; only a selected canonical workflow can perform its own work and emit its native artifact, and a normalized evidence card carries the resulting runtime verdict.
+
+| Role and outcome | Example request |
+|---|---|
+| Developer · Diagnose | "As a Developer, diagnose why this Unity client cannot enter offline mode." |
+| QA · Verify | "As QA, verify this local multi-service environment, including server, service, and database context." |
+| Producer · Plan Change | "As a Producer, plan repository adoption and show the proposed route without writing files." |
+| LiveOps · Handle Incident | "As LiveOps, handle this C++ server crash incident and preserve the build-bound diagnostic evidence." |
+
+Unsupported role, intent, project, or installed-capability combinations return a task-packet `BLOCKED` with no selected workflow, execution, or mutation; the router never turns that planning outcome into a fabricated runtime PASS. The operator may run `studio-project-intake` or select a canonical skill directly outside `gamestudio guide`.
+
+In a full repository clone, the same pure planner is available from the optional terminal adapter:
+
+```text
+gamestudio guide [root] --intent <intent>
+```
+
+The optional `root` defaults to the current directory. `guide` reads project-profile defaults and detected subsystems, then reports `READY`, `AMBIGUOUS`, or `BLOCKED`; these are planning statuses, never runtime PASS verdicts. `READY` authorizes no execution or mutation. When the top two routes remain ambiguous, the packet asks one focused question. `guide` never executes the selected workflow. Explicit `--workflow` selection requires `--mode advanced` and must name one reported candidate for the selected Golden Path; Basic mode rejects it. Direct selection of a canonical skill remains available outside `gamestudio guide`.
+
+Role defaults are advisory and grant no authority. Basic mode reduces routing controls, while Advanced mode may expose explicit routing controls; neither mode waives evidence, mutation, or approval requirements. Runner-backed behavior remains `BLOCKED` until governed results exist.
 
 ## Install in Codex
 
@@ -174,9 +212,9 @@ Repository governance tools such as the catalog validator, originality audit, an
 ## Current state
 
 - 47 canonical skills, including one root entry router and 46 routed workflow or domain skills.
-- 276/276 deterministic Tier-A routing cases.
+- 290/290 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
-- 12 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
+- 15 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
 - Seven installable packs, six thin personas, and 22 canonical agent roles.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
 - Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
@@ -195,7 +233,7 @@ The template does not claim that a Unity build, C++ server, database migration, 
 | `cpp-lua-mmorpg` | Local services, MySQL safety, Lua contracts, C++ crashes, packet protocols, authority, and save migration |
 | `production-design-liveops` | Playtests, performance, economy, balance, release, stores, incidents, and telemetry |
 
-The authoritative capability list is `registry/capabilities.yaml`. Pack composition and persona routes live in `registry/packs.yaml` and `registry/personas.yaml`.
+The authoritative capability list is `registry/capabilities.yaml`. Pack composition and persona routes live in `registry/packs.yaml` and `registry/personas.yaml`. Generated pack artifacts include the transitive skill closure from declared pack dependencies; validation fails when any required capability dependency is unavailable.
 
 ## Maintain this repository
 
@@ -250,17 +288,40 @@ On Linux and macOS, hook installation also marks `.git/hooks/pre-commit` executa
 
 The commands in this section are maintainer workflows and require a full repository clone. Normal Codex and Hermes installations are prompt-driven and use their installed skill catalogs directly.
 
-Inspect a new project without writing files:
+Choose one scaffold entry point. Each entry point independently requires equivalent approval gates; the selected entry point must receive a named reviewer, the approved digest from its reviewed report, and a project-local backup root that does not overlap proposed output.
 
-```bash
-python -B scripts/project_scaffold.py D:/path/to/game-project
+PowerShell report, review, and standalone-script apply:
+
+```powershell
+$scaffold = python -B scripts/project_scaffold.py D:/path/to/game-project | ConvertFrom-Json
+$scaffold | ConvertTo-Json -Depth 10
 ```
 
-Applying the scaffold is a medium-risk mutation and requires a reviewer plus backup root:
+After reviewing the displayed report, apply that exact plan through the selected entry point:
+
+```powershell
+python -B scripts/project_scaffold.py D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.scaffold-backup --plan-digest $scaffold.plan_digest
+```
+
+Bash report inspection and digest extraction without `jq`:
 
 ```bash
-python -B scripts/project_scaffold.py D:/path/to/game-project --apply --reviewer "QA Lead" --backup-root D:/path/to/game-project/.scaffold-backup
+project_root='/path/to/game-project'
+report_file="$(mktemp)"
+trap 'rm -f "$report_file"' EXIT
+python -B scripts/project_scaffold.py "$project_root" > "$report_file"
+python -B -m json.tool "$report_file"
+plan_digest="$(python -B -c 'import json, pathlib, sys; print(json.loads(pathlib.Path(sys.argv[1]).read_text(encoding="utf-8"))["plan_digest"])' "$report_file")"
+test "${#plan_digest}" -eq 64
 ```
+
+After reviewing the displayed report, apply from the same shell through the selected entry point:
+
+```bash
+python -B scripts/project_scaffold.py "$project_root" --apply --reviewer "QA Lead" --backup-root "$project_root/.scaffold-backup" --plan-digest "$plan_digest"
+```
+
+The direct API, standalone script, and primary `gamestudio init --apply` path each independently enforce this canonical approval contract; the standalone and CLI adapters forward the selected values to the API. Parity verification covers all three, but operators run only their selected entry point for one plan.
 
 The per-project adapter is report-only by default. Capture its proposed plan first; this command creates nothing:
 
@@ -319,9 +380,14 @@ python -B scripts/tier_b_eval.py . --export evidence/local/tier-b-cases.jsonl
 python -B scripts/tier_b_eval.py . --status evidence/local/tier-b-status.json
 python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl
 python -B scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json
+python -B scripts/studio_adoption_eval.py . --export evidence/local/studio-adoption-cases.jsonl
+python -B scripts/studio_adoption_eval.py . --status evidence/local/studio-adoption-status.json
+python -B scripts/studio_adoption_eval.py . --results evidence/local/studio-adoption-results.json
 ```
 
-The dogfood pack contains twelve real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, project intake, workspace routing, and agent orchestration. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
+The dogfood pack contains fifteen real-project scenarios covering Unity offline/bootstrap and NGUI rendering, batchmode builds, MySQL safety, local service ports, C++ crashes, Lua contracts, liveops incidents, release preflight, project intake, workspace routing, agent orchestration, GUID/meta integrity, server-authority boundaries, and save-schema rollback. Supply governed results with `--results`; missing Hermes/live-project execution remains `BLOCKED`.
+
+Studio adoption PASS requires at least 80% intended Golden Path routing, no run above three questions, install-to-first-use at or below five minutes, zero missing-dependency failures, zero unauthorized writes, PASS task verdicts, and repository-contained SHA-256-bound artifacts. Without governed results, the adoption evaluator returns `BLOCKED` with unobserved metrics left `null`.
 
 After a governed runner produces the strict `{"results": [...]}` object and stores hashed artifacts under an approved root, validate it and generate promotion-eligible summaries:
 

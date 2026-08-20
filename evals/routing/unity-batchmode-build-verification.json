@@ -2,6 +2,7 @@
   {"prompt":"Verify a Unity batchmode Windows build with command exit code log and player artifact","expected_skill":"unity-batchmode-build-verification","type":"positive"},
   {"prompt":"chạy Unity -batchmode và xác minh build artifact chứ không chỉ exit 0","expected_skill":"unity-batchmode-build-verification","type":"positive"},
   {"prompt":"Unity CI build log báo success nhưng file game.exe không tồn tại","expected_skill":"unity-batchmode-build-verification","type":"positive"},
+  {"prompt":"QA verify the Unity batchmode build log and exact player artifact for Ship intent","expected_skill":"unity-batchmode-build-verification","type":"positive"},
   {"prompt":"run generic Python tests and record exact verdict limitations","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
   {"prompt":"audit Unity GUID meta before changing any asset","expected_skill":"unity-asset-guid-meta-audit","type":"negative","owner":"unity-asset-guid-meta-audit"},
   {"prompt":"verify Unity batch build output and expected executable artifact","expected_skill":"unity-batchmode-build-verification","type":"collision"}

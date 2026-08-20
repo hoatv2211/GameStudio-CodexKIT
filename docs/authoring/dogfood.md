@@ -4,7 +4,7 @@ Dogfood evidence must come from a named real game-project snapshot and a governe
 
 ## Prepare
 
-Export the twelve scenarios and an explicit local BLOCKED status:
+Export the fifteen scenarios and an explicit local BLOCKED status. The universal pack now includes report-only GUID/meta integrity, server-authority boundary, and save-schema rollback cases in addition to the original twelve workflows.
 
 ```bash
 python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl

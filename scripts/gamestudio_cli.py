@@ -5,17 +5,99 @@ import json
 import sys
 from pathlib import Path
 
+import yaml
+
 try:
     from scripts.codegraph_adapter import apply_install_plan, create_install_plan
+    from scripts.project_profile import load_project_profile
     from scripts.project_scaffold import (
         apply_scaffold,
+        draft_project_profile,
         scaffold_project,
         scaffold_status,
         uninit_scaffold,
     )
+    from scripts.studio_experience import (
+        INTENT_IDS,
+        MODE_IDS,
+        ROLE_IDS,
+        plan_experience,
+    )
 except ModuleNotFoundError:
     from codegraph_adapter import apply_install_plan, create_install_plan
-    from project_scaffold import apply_scaffold, scaffold_project, scaffold_status, uninit_scaffold
+    from project_profile import load_project_profile
+    from project_scaffold import (
+        apply_scaffold,
+        draft_project_profile,
+        scaffold_project,
+        scaffold_status,
+        uninit_scaffold,
+    )
+    from studio_experience import INTENT_IDS, MODE_IDS, ROLE_IDS, plan_experience
+
+
+def _discover_available_skills(
+    *, module_path: Path | str | None = None
+) -> tuple[str, ...]:
+    source_path = (
+        Path(module_path) if module_path is not None else Path(__file__)
+    ).absolute()
+
+    def unredirected(path: Path) -> Path | None:
+        absolute_path = path.absolute()
+        try:
+            resolved_path = path.resolve(strict=True)
+        except (OSError, RuntimeError):
+            return None
+        return resolved_path if resolved_path == absolute_path else None
+
+    resolved_source = unredirected(source_path)
+    if resolved_source is None or not resolved_source.is_file():
+        return ()
+    scripts_root = source_path.parent
+    repository_root = scripts_root.parent
+    plugin_manifest = repository_root / ".codex-plugin" / "plugin.json"
+    resolved_manifest = unredirected(plugin_manifest)
+    if resolved_manifest is not None and resolved_manifest.is_file():
+        catalog_root = repository_root / "skills"
+    else:
+        installed_skill_root = repository_root
+        installed_skill_file = installed_skill_root / "SKILL.md"
+        resolved_installed_skill = unredirected(installed_skill_file)
+        if (
+            resolved_installed_skill is None
+            or not resolved_installed_skill.is_file()
+        ):
+            return ()
+        catalog_root = installed_skill_root.parent
+
+    resolved_catalog = unredirected(catalog_root)
+    if resolved_catalog is None or not resolved_catalog.is_dir():
+        return ()
+    try:
+        candidates = tuple(catalog_root.iterdir())
+    except OSError:
+        return ()
+
+    available: list[str] = []
+    for candidate in candidates:
+        resolved_candidate = unredirected(candidate)
+        if (
+            resolved_candidate is None
+            or not resolved_candidate.is_dir()
+            or resolved_candidate.parent != resolved_catalog
+        ):
+            continue
+        skill_file = candidate / "SKILL.md"
+        resolved_skill_file = unredirected(skill_file)
+        if (
+            resolved_skill_file is None
+            or not resolved_skill_file.is_file()
+            or resolved_skill_file.parent != resolved_candidate
+        ):
+            continue
+        available.append(candidate.name)
+    return tuple(sorted(available))
 
 
 def _codegraph_preference(mode: str) -> str | None:
@@ -38,6 +120,17 @@ def main(argv: list[str] | None = None) -> int:
         default="auto",
     )
 
+    guide = commands.add_parser("guide")
+    guide.add_argument("root", nargs="?", default=".")
+    guide.add_argument("--role", choices=sorted(ROLE_IDS))
+    guide.add_argument("--intent", choices=sorted(INTENT_IDS), required=True)
+    guide.add_argument("--mode", choices=sorted(MODE_IDS))
+    guide.add_argument("--golden-path")
+    guide.add_argument(
+        "--workflow",
+        help="Select a canonical workflow (requires explicit --mode advanced).",
+    )
+
     status = commands.add_parser("status")
     status.add_argument("root", nargs="?", default=".")
 
@@ -54,6 +147,12 @@ def main(argv: list[str] | None = None) -> int:
     uninit.add_argument("--backup-root")
 
     args = parser.parse_args(argv)
+    if (
+        args.command == "guide"
+        and args.workflow is not None
+        and args.mode != "advanced"
+    ):
+        parser.error("--workflow requires --mode advanced")
     if args.command == "codegraph":
         plan = json.loads(Path(args.plan).read_text(encoding="utf-8"))
         if args.apply:
@@ -69,7 +168,26 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(report, indent=2))
         return 0
     root = Path(args.root)
-    if args.command == "status":
+    if args.command == "guide":
+        try:
+            profile_path = root / ".agents" / "project-profile.yaml"
+            profile = (
+                load_project_profile(profile_path)
+                if profile_path.is_file()
+                else draft_project_profile(root)
+            )
+            report = plan_experience(
+                profile,
+                role=args.role,
+                intent=args.intent,
+                mode=args.mode,
+                requested_golden_path=args.golden_path,
+                requested_workflow=args.workflow,
+                available_skills=_discover_available_skills(),
+            )
+        except (OSError, ValueError, yaml.YAMLError) as error:
+            parser.error(f"guide failed: {error}")
+    elif args.command == "status":
         report = scaffold_status(root)
     elif args.command == "uninit":
         if args.apply and (not args.reviewer or not args.backup_root):

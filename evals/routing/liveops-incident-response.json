@@ -2,6 +2,7 @@
   {"prompt":"Coordinate a live game incident with containment communications evidence recovery and postmortem","expected_skill":"liveops-incident-response","type":"positive"},
   {"prompt":"liveops sự cố production cần incident commander, timeline, rollback và player comms","expected_skill":"liveops-incident-response","type":"positive"},
   {"prompt":"handle live service outage without uncontrolled service or database changes","expected_skill":"liveops-incident-response","type":"positive"},
+  {"prompt":"LiveOps handle the production incident with mitigation boundary, rollback and monitoring, no restart yet","expected_skill":"liveops-incident-response","type":"positive"},
   {"prompt":"debug a reproducible local code failure with a regression test","expected_skill":"evidence-first-debugging","type":"negative","owner":"evidence-first-debugging"},
   {"prompt":"prepare store submission metadata and screenshots","expected_skill":"store-submission-checklist","type":"negative","owner":"store-submission-checklist"},
   {"prompt":"production incident needs containment now and a durable handoff timeline","expected_skill":"liveops-incident-response","type":"collision"}

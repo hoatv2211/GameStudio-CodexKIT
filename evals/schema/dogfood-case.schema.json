@@ -14,7 +14,7 @@
     "cases": {
       "type": "array",
       "minItems": 5,
-      "maxItems": 12,
+      "maxItems": 15,
       "items": {
         "type": "object",
         "additionalProperties": false,

@@ -43,20 +43,33 @@ Collect the workspace and repository paths, current branch or snapshot, user goa
 ## Safety and risk level
 This skill is read-only. It classifies work and routes it; it never authorizes mutation, service control, database changes, publishing, credentials, or destructive cleanup.
 
+## Three-stage output contract
+
+### Stage 1 - task packet
+The report-only router or `gamestudio guide` produces a task packet with the planning status `READY`, `AMBIGUOUS`, or `BLOCKED`; that status is never a runtime `PASS`. `READY` authorizes no execution or mutation. It only means that current project evidence selected one canonical workflow.
+
+The public intent vocabulary is Diagnose, Verify, Plan Change, Ship, and Handle Incident across eight Golden Path families: project adoption and routing, local environment recovery, Unity client entry recovery, C++ server failure recovery, Unity UI and localization, Unity build and asset integrity, Lua contract and server authority, and data and live release safety. Current unsupported role, intent, project, or installed-capability combinations return a task-packet `BLOCKED` with `selected_workflow: null`. The operator may run `studio-project-intake` or select a canonical skill directly outside `gamestudio guide`.
+
+### Stage 2 - canonical workflow
+When the packet is `READY`, only the selected canonical workflow executes or reviews its own actions and emits its workflow-specific artifact. The router does not inherit, weaken, or impersonate that workflow's execution, review, mutation, approval, or evidence contract.
+
+### Stage 3 - normalized evidence card
+After the workflow acts, its observed result is summarized by a normalized evidence card with a runtime verdict of `PASS`, `BLOCKED`, or `FAIL` as applicable. For an unsupported router outcome, the root skill may issue a normalized `BLOCKED` evidence card without a workflow artifact. The router cannot fabricate the final runtime verdict.
+
 ## Workflow
-1. Restate the goal, repository scope, constraints, and unavailable capabilities.
-   Completion criterion: a bounded task packet exists and unknowns are labeled.
-2. If `.agents/project-profile.yaml` exists or nested Git roots are present, route through `studio-workspace-routing`; otherwise select the narrowest matching workflow skill from the installed catalog.
-   Completion criterion: one repository route, primary skill, and any explicit dependencies are named.
-3. Assign `Verified`, `Snapshot`, `Unverified`, or `BLOCKED` to each material claim.
-   Completion criterion: no PASS claim depends on confidence or memory alone.
-4. Apply the risk gate before any side effect and preserve exact write ownership.
-   Completion criterion: mutations are either authorized with rollback or remain blocked.
-5. End with fresh verification and a handoff when work spans sessions.
-   Completion criterion: commands, exit codes, artifacts, limitations, and next actions are recorded.
+1. Collect the repository path, project profile, goal, constraints, available tools, do-not-touch paths, and any explicit role, intent, or mode.
+   Completion criterion: request context is bounded and unknowns are labeled.
+2. When role or mode is absent, use the project profile's `studio_experience` defaults. Infer one intent from Diagnose, Verify, Plan Change, Ship, or Handle Incident; if the top Golden Paths remain ambiguous, ask one question.
+   Completion criterion: role, intent, mode, and candidate Golden Paths are explicit.
+3. Select the narrowest canonical workflow. A role preset is advisory and cannot override repository evidence, missing capabilities, or risk gates.
+   Completion criterion: the normalized task packet names the selected workflow or reports `BLOCKED` with the missing prerequisite.
+4. Preserve the selected workflow's evidence and mutation contracts without weakening them in Basic mode; the selected workflow, not this router, executes or authorizes its work.
+   Completion criterion: Basic and Advanced modes differ only in presentation and explicit controls.
+5. If a workflow was selected, require it to return its workflow-specific artifact, a normalized evidence card, and one next action. If routing is unsupported, return no workflow artifact and preserve the task-packet and evidence-card `BLOCKED` state.
+   Completion criterion: commands, exit codes, artifacts, limitations, restore information, and blockers remain available without an invented workflow result.
 
 ## Evidence and output contract
-Return a task packet, selected skill route, risk tier, evidence labels, and final verdict. `BLOCKED` is a valid outcome; fabricated PASS is not.
+Return the planning task packet first. Only a selected canonical workflow may add its native artifact. Return the normalized evidence card last, with a runtime verdict backed by that workflow's observed evidence or by the root router's explicit unsupported blocker. `BLOCKED` is a valid outcome; fabricated PASS is not.
 
 ## Handoff contract
 Record repository/path, branch, goal, owned scope, do-not-touch paths, files touched, commands, verified results, snapshots, hypotheses, failures, decisions, next actions, and a reactivation prompt.
@@ -75,7 +88,7 @@ Record repository/path, branch, goal, owned scope, do-not-touch paths, files tou
 - [ ] Final verification is fresh.
 
 ## References and scripts
-Use the active project's `AGENTS.md` when present and route through the installed skill catalog. Architecture, registry, and `scripts/doctor.py` maintenance checks are available only in a full repository clone.
+Use the active project's `AGENTS.md` when present and route through the installed skill catalog. Use the bundled [scripts/studio_experience.py](scripts/studio_experience.py) planner with the normalized [task-packet](schemas/studio-task-packet.schema.json) and [evidence-card](schemas/studio-evidence-card.schema.json) schemas for role-aware routing output. The planner selects routes but never executes or authorizes the selected workflow. Architecture, registry, and `scripts/doctor.py` maintenance checks are available only in a full repository clone.
 
 ## Negative scope
 This root skill does not debug failures, mutate files, run database migrations, start or stop services, replace project intake, perform review lanes, generate adapters, or claim verification for commands it did not run.

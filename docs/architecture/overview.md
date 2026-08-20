@@ -28,9 +28,19 @@ Every canonical skill owns `agents/openai.yaml` for Codex-facing UI metadata. It
 
 Skills own reusable procedures and output contracts. Personas are thin lenses that route to skills; they do not duplicate workflows. Commands and workflow documents are entry points rather than alternate sources of truth.
 
+## Role-first planning boundary
+
+Role UX is a presentation and selection layer over canonical skills, not another workflow authority. Its pure planner combines project-profile defaults with detected subsystems and returns a report-only task packet in the planning state `READY`, `AMBIGUOUS`, or `BLOCKED`; these are never runtime PASS verdicts. `READY` authorizes no execution or mutation. An ambiguous top-two result asks one focused question. Role defaults remain advisory and cannot grant mutation, service-control, or approval authority.
+
+The contract has three stages: the task packet records planning state; only the selected canonical workflow executes or reviews its own actions and emits its native artifact; then a normalized evidence card records the observed runtime `PASS`, `BLOCKED`, or `FAIL` verdict. The router cannot fabricate that final runtime verdict. Basic mode reduces visible routing controls, while Advanced mode may select a reported workflow candidate explicitly with `--workflow`; neither mode weakens evidence, mutation, or approval gates. The optional `gamestudio guide [root] --intent <intent>` command remains report-only, whereas `gamestudio init --apply` is a separately gated project-adoption mutation.
+
+Golden Paths are registry-backed route families, not new workflow authorities. A family may expose multiple canonical workflow candidates. Basic mode asks one clarifying question when repository and intent evidence cannot safely select one; Advanced mode may select a reported candidate explicitly. Adoption metrics are runner-backed and remain BLOCKED without governed result artifacts.
+
+The five public intents Diagnose, Verify, Plan Change, Ship, and Handle Incident route across eight implemented Unity/MMORPG Golden Path families. Unsupported combinations remain `BLOCKED`; family selection never grants workflow execution or mutation authority.
+
 ## Evaluation model
 
-Tier-A routing is deterministic and covers 46 routed skills with 276 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, and real-project dogfood are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
+Tier-A routing is deterministic and covers 46 routed skills with 290 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, fifteen-scenario real-project dogfood, and studio adoption are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
 
 Without a model runner or live project, the correct status is `BLOCKED`. Keyword routing proves catalog separation, not real model behavior.
 
@@ -42,7 +52,9 @@ Read-only work runs automatically. Low-risk changes require a visible diff and v
 
 Codex and Hermes Agent are the two primary distributions. `.claude-plugin/marketplace.json` exposes the repository-root Codex plugin from GitHub, `.codex-plugin/plugin.json` points directly at canonical `skills/`, and the Agent Skills CLI discovers those same directories for `hermes-agent`. Hermes copies individual skill directories rather than repository-root maintenance files, so every runtime helper is generated into the skill that owns it. Neither primary path duplicates workflow text.
 
-Seven deterministic packs provide scoped installation. Hermes and Codex adapters remain optional exports regenerated from canonical skills. The per-project adapter is report-only by default; apply requires a reviewer, a disjoint backup root, and an approved plan digest. It merges kit-owned skills into `.agents/`, combines packaged generic agent templates with a profile specialist overlay under `.codex/agents/`, and emits an inert activation file for manual merge while it leaves `.codex/config.toml` untouched. Per-file ownership hashes preserve unmanaged local agents and enable hash-safe uninstall; drift, unsafe links, or incomplete cleanup produce a `PARTIAL` recovery report instead of destructive removal.
+Seven deterministic packs provide scoped installation. Generated pack artifacts resolve declared pack dependencies transitively and include every skill in that closure; validation fails if a capability dependency is unavailable. Hermes and Codex adapters remain optional exports regenerated from canonical skills. The per-project adapter is report-only by default; apply requires a reviewer, a disjoint backup root, and an approved plan digest. It merges kit-owned skills into `.agents/`, combines packaged generic agent templates with a profile specialist overlay under `.codex/agents/`, and emits an inert activation file for manual merge while it leaves `.codex/config.toml` untouched. Per-file ownership hashes preserve unmanaged local agents and enable hash-safe uninstall; drift, unsafe links, or incomplete cleanup produce a `PARTIAL` recovery report instead of destructive removal.
+
+New project profiles may optionally declare `studio_experience` defaults for role, mode, and enabled intents. These fields shape presentation and routing UX only; they do not grant mutation authority or waive any risk or approval gate.
 
 Generated content carries a `Generated by scripts/... Do not edit manually.` marker. `scripts/sync_skill_resources.py --check` detects missing or stale installed-helper sources, and generators refuse to replace unmanaged output.
 

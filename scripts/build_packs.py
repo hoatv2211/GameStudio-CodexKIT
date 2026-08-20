@@ -13,9 +13,11 @@ from pathlib import Path, PurePosixPath
 from typing import Any
 
 try:
+    from scripts.catalog_graph import resolve_pack_skill_closure
     from scripts.common import load_yaml
     from scripts.safe_mutation import _atomic_rename_no_replace, _write_manifest
 except ModuleNotFoundError:
+    from catalog_graph import resolve_pack_skill_closure
     from common import load_yaml
     from safe_mutation import _atomic_rename_no_replace, _write_manifest
 
@@ -1044,6 +1046,9 @@ def _pack_plan(
     root_path: Path,
     pack: dict[str, Any],
     output_root: Path | str,
+    *,
+    packs: list[dict[str, Any]],
+    capabilities: list[dict[str, Any]],
 ) -> tuple[
     Path,
     list[tuple[str, str]],
@@ -1051,12 +1056,13 @@ def _pack_plan(
     _TreeSnapshot | None,
 ]:
     pack_id = _safe_component(pack.get("id"), "pack id")
-    skills = pack.get("skills")
-    if not isinstance(skills, list) or not skills:
+    declared = pack.get("skills")
+    if not isinstance(declared, list) or not declared:
         raise ValueError(f"pack {pack_id} must declare skills")
-    source_roots = [_safe_skill_source(root_path, skill_name) for skill_name in skills]
-    normalized_skills = [_safe_component(skill_name, "pack skill") for skill_name in skills]
-    if len(set(normalized_skills)) != len(normalized_skills):
+    declared_skills = [_safe_component(value, "pack skill") for value in declared]
+    resolved_skills = resolve_pack_skill_closure(packs, capabilities, pack_id)
+    source_roots = [_safe_skill_source(root_path, skill_name) for skill_name in resolved_skills]
+    if len(set(declared_skills)) != len(declared_skills):
         raise ValueError(f"pack {pack_id} contains duplicate skill ids")
     depends_on = pack.get("depends_on", [])
     if not isinstance(depends_on, list):
@@ -1072,7 +1078,7 @@ def _pack_plan(
     previous_snapshot = _validate_existing_output(output)
     generated: list[tuple[str, str]] = []
     digest = hashlib.sha256()
-    for normalized_skill, source_root in zip(normalized_skills, source_roots):
+    for resolved_skill, source_root in zip(resolved_skills, source_roots):
         captured_sources = _walk_files(
             source_root,
             reject_empty_directories=False,
@@ -1082,10 +1088,10 @@ def _pack_plan(
         for source in captured_sources:
             relative_resource = source.path.relative_to(source_root)
             source_bytes = source.data
-            digest.update(normalized_skill.encode("utf-8"))
+            digest.update(resolved_skill.encode("utf-8"))
             digest.update(relative_resource.as_posix().encode("utf-8"))
             digest.update(source_bytes)
-            relative = PurePosixPath("skills", normalized_skill, *relative_resource.parts).as_posix()
+            relative = PurePosixPath("skills", resolved_skill, *relative_resource.parts).as_posix()
             generated.append((relative, _generated_resource(source)))
     generated = sorted(generated, key=lambda item: item[0])
     manifest = {
@@ -1094,7 +1100,8 @@ def _pack_plan(
         "pack": pack_id,
         "description": pack.get("description", ""),
         "depends_on": normalized_dependencies,
-        "skills": normalized_skills,
+        "declared_skills": declared_skills,
+        "skills": resolved_skills,
         "source_digest": digest.hexdigest(),
         "files": [relative for relative, _content in generated],
     }
@@ -1116,18 +1123,58 @@ def _publish_pack_plan(
         raise
 
 
+def _catalog(root_path: Path) -> tuple[list[dict[str, Any]], list[dict[str, Any]]]:
+    packs = load_yaml(root_path / "registry" / "packs.yaml").get("packs", [])
+    capabilities = load_yaml(root_path / "registry" / "capabilities.yaml").get("capabilities", [])
+    if not isinstance(packs, list) or not isinstance(capabilities, list):
+        raise ValueError("pack and capability registries must contain lists")
+    return packs, capabilities
+
+
 def build_pack(root: Path | str, pack: dict[str, Any], output_root: Path | str) -> list[str]:
     root_path = Path(root).resolve()
-    return _publish_pack_plan(*_pack_plan(root_path, pack, output_root))
+    packs_path = root_path / "registry" / "packs.yaml"
+    capabilities_path = root_path / "registry" / "capabilities.yaml"
+    if not os.path.lexists(packs_path) and not os.path.lexists(capabilities_path):
+        # Preserve direct-pack callers whose synthetic roots predate catalog registries.
+        declared = pack.get("skills")
+        standalone_skills = []
+        if isinstance(declared, list):
+            standalone_skills = list(dict.fromkeys(
+                value for value in declared if isinstance(value, str)
+            ))
+        packs = [{**pack, "depends_on": []}]
+        capabilities = [
+            {"id": skill_name, "depends_on": []}
+            for skill_name in standalone_skills
+        ]
+    else:
+        packs, capabilities = _catalog(root_path)
+        pack_id = _safe_component(pack.get("id"), "pack id")
+        canonical_matches = [
+            candidate
+            for candidate in packs
+            if isinstance(candidate, dict) and candidate.get("id") == pack_id
+        ]
+        if len(canonical_matches) == 1:
+            canonical_pack = canonical_matches[0]
+            if pack != canonical_pack:
+                raise ValueError(
+                    f"pack {pack_id} does not match canonical catalog record"
+                )
+            pack = canonical_pack
+    return _publish_pack_plan(
+        *_pack_plan(root_path, pack, output_root, packs=packs, capabilities=capabilities)
+    )
 
 
 def build_all_packs(root: Path | str, output_root: Path | str) -> dict[str, list[str]]:
     root_path = Path(root).resolve()
-    registry = load_yaml(root_path / "registry" / "packs.yaml")
-    packs = registry.get("packs", [])
-    if not isinstance(packs, list):
-        raise ValueError("pack registry packs must be a list")
-    plans = [_pack_plan(root_path, pack, output_root) for pack in packs]
+    packs, capabilities = _catalog(root_path)
+    plans = [
+        _pack_plan(root_path, pack, output_root, packs=packs, capabilities=capabilities)
+        for pack in packs
+    ]
     pack_ids = [str(plan[2]["pack"]) for plan in plans]
     if len(set(pack_ids)) != len(pack_ids):
         raise ValueError("pack registry contains duplicate pack ids")

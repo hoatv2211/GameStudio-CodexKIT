@@ -2,6 +2,7 @@
   {"prompt":"Debug Unity NGUI canvas draw order depth missing item prefab atlas anchors and clipping","expected_skill":"unity-ui-rendering-debugging","type":"positive"},
   {"prompt":"Unity UI item không hiện kiểm tra NGUI depth prefab atlas","expected_skill":"unity-ui-rendering-debugging","type":"positive"},
   {"prompt":"canvas renderer sorting layer clipping mask missing widget","expected_skill":"unity-ui-rendering-debugging","type":"positive"},
+  {"prompt":"QA verify the Unity HUD render chain and clipping before changing a prefab","expected_skill":"unity-ui-rendering-debugging","type":"positive"},
   {"prompt":"debug offline login fallback disconnected server mock data","expected_skill":"unity-client-offline-debugging","type":"negative","owner":"unity-client-offline-debugging"},
   {"prompt":"Unity client offline mode không vào game","expected_skill":"unity-client-offline-debugging","type":"negative","owner":"unity-client-offline-debugging"},
   {"prompt":"Unity offline screen item is missing because of NGUI draw order and clipping","expected_skill":"unity-ui-rendering-debugging","type":"collision"}

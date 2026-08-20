@@ -165,7 +165,7 @@
     .route-arrow { color: var(--faint); }
 
     .stat-band { border-block: 1px solid var(--line); background: rgba(13, 25, 41, .40); }
-    .stats { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .stats { display: grid; grid-template-columns: repeat(6, 1fr); }
     .stat { padding: 23px 18px; border-right: 1px solid var(--line); }
     .stat:first-child { padding-left: 0; } .stat:last-child { border-right: 0; }
     .stat-value { display: block; color: var(--ink); font-size: 1.45rem; font-weight: 650; letter-spacing: -.04em; }
@@ -322,7 +322,8 @@
       .nav.is-open .nav-actions .button-quiet { display: inline-flex; }
       .stats { grid-template-columns: repeat(2, 1fr); }
       .stat, .stat:first-child { padding: 18px 12px; border-bottom: 1px solid var(--line); }
-      .stat:nth-child(2) { border-right: 0; } .stat:nth-child(3), .stat:nth-child(4) { border-bottom: 0; }
+      .stat:nth-child(2n) { border-right: 0; }
+      .stat:nth-last-child(-n + 2) { border-bottom: 0; }
       .hero { padding-top: 68px; }
       .hero-grid { min-width: 0; }
       .hero h1 { font-size: clamp(2.85rem, 14vw, 4.8rem); }
@@ -414,7 +415,8 @@
         <div class="stat"><span class="stat-value cyan">47</span><span class="stat-label">canonical skills</span></div>
         <div class="stat"><span class="stat-value">22</span><span class="stat-label">canonical agents</span></div>
         <div class="stat"><span class="stat-value mint">7</span><span class="stat-label">installable packs</span></div>
-        <div class="stat"><span class="stat-value">276/276</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat"><span class="stat-value">290/290</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat" aria-label="15 governed dogfood scenarios"><span class="stat-value mint">15</span><span class="stat-label">governed dogfood</span></div>
         <div class="stat"><span class="stat-value amber">&#8800; PASS</span><span class="stat-label">BLOCKED contract</span></div>
       </div>
     </section>
@@ -521,6 +523,7 @@
           <div class="checkpoint-step" style="--risk-color: var(--amber)"><strong>Medium risk</strong><span>Exact scope, backup, restore path, reviewer.</span></div>
           <div class="checkpoint-step" style="--risk-color: var(--coral)"><strong>High risk</strong><span>Human approval and dry-run evidence.</span></div>
         </div>
+        <div class="lifecycle-note reveal"><strong>Eight Golden Path families.</strong> Basic mode asks only when evidence cannot select safely; Advanced mode exposes <span class="mono">--workflow</span> only for a reported candidate. Governed adoption requires 80% intended routing, no run above three questions, first useful verdict within five minutes, zero dependency failures, zero unauthorized writes, PASS task verdicts, and SHA-256-bound artifacts. Missing runner results remain BLOCKED across all 15 scenarios.</div>
         <div class="scenario-heading reveal"><h3>Four common entry routes</h3><p>You describe the job. The kit composes only the skills needed for that path.</p></div>
         <div class="scenario-grid">
           <article class="scenario-card reveal" style="--scenario-color: var(--mint)"><div class="scenario-head"><div><span class="scenario-type">Debug a failure</span><h4>Intake → Debug → Verify</h4></div><p class="scenario-prompt">“Client can't enter offline mode. Fix it.”</p></div><div class="scenario-chain"><span class="scenario-skill">studio-project-intake</span><span class="scenario-arrow">→</span><span class="scenario-skill">evidence-first-debugging</span><span class="scenario-arrow">→</span><span class="scenario-skill">safe-project-mutation</span><span class="scenario-arrow">→</span><span class="scenario-skill">build-and-runtime-verification</span></div></article>

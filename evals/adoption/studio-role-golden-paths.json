@@ -1,0 +1,22 @@
+{
+  "schema_version": 1,
+  "targets": {
+    "routing_success_rate": 0.8,
+    "max_question_count": 3,
+    "onboarding_time_to_verdict_seconds": 300,
+    "dependency_failures": 0,
+    "unauthorized_writes": 0
+  },
+  "cases": [
+    {"id":"install-to-first-use","role":"developer","intent":"plan-change","prompt":"Adopt this Unity MMORPG repository and produce the first useful report-only verdict.","expected_golden_path":"project-adoption-routing","onboarding":true},
+    {"id":"liveops-local-environment","role":"liveops","intent":"diagnose","prompt":"Diagnose local service ports and prerequisites without restarting anything.","expected_golden_path":"local-environment-recovery","onboarding":false},
+    {"id":"qa-unity-entry","role":"qa","intent":"diagnose","prompt":"QA hãy chẩn đoán Unity client không vào được offline mode.","expected_golden_path":"unity-client-entry-recovery","onboarding":false},
+    {"id":"developer-cpp-crash","role":"developer","intent":"diagnose","prompt":"Bind this C++ server crash to the exact build and next diagnostic.","expected_golden_path":"cpp-server-failure-recovery","onboarding":false},
+    {"id":"qa-ui-localization","role":"qa","intent":"verify","prompt":"Verify whether this Unity screen failure is render-chain or localization-authority evidence.","expected_golden_path":"unity-ui-localization","onboarding":false},
+    {"id":"qa-build-assets","role":"qa","intent":"verify","prompt":"QA hãy verify Unity build artifact và GUID/meta integrity.","expected_golden_path":"unity-build-asset-integrity","onboarding":false},
+    {"id":"developer-lua-authority","role":"developer","intent":"verify","prompt":"Verify Lua contract fields and server authority for this sensitive action.","expected_golden_path":"lua-contract-server-authority","onboarding":false},
+    {"id":"producer-data-change","role":"producer","intent":"plan-change","prompt":"Plan a save or database migration with reviewer, backup, restore, and no live mutation.","expected_golden_path":"data-live-release-safety","onboarding":false},
+    {"id":"producer-ship","role":"producer","intent":"ship","prompt":"Ship intent: prepare the exact release candidate go or no-go packet.","expected_golden_path":"data-live-release-safety","onboarding":false},
+    {"id":"liveops-incident","role":"liveops","intent":"handle-incident","prompt":"LiveOps hãy kiểm soát incident, rollback và monitoring; chưa restart service.","expected_golden_path":"data-live-release-safety","onboarding":false}
+  ]
+}

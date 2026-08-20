@@ -2,6 +2,7 @@
   {"prompt":"Plan a MySQL migration on isolated port 3306 or 3307 with backup restore and unknown schema gate","expected_skill":"game-database-migration-safety","type":"positive"},
   {"prompt":"Migration database game cần backup restore reviewer và chặn unknown schema","expected_skill":"game-database-migration-safety","type":"positive"},
   {"prompt":"safe MySQL 3307 schema migration dry run backup restore human approval no credentials","expected_skill":"game-database-migration-safety","type":"positive"},
+  {"prompt":"Producer plan the MySQL schema change with isolated dry-run, reviewer, backup and restore","expected_skill":"game-database-migration-safety","type":"positive"},
   {"prompt":"inspect local ports processes and service configs only","expected_skill":"multi-service-local-environment-doctor","type":"negative","owner":"multi-service-local-environment-doctor"},
   {"prompt":"diagnose local service port collision process listeners config only no migration","expected_skill":"multi-service-local-environment-doctor","type":"negative","owner":"multi-service-local-environment-doctor"},
   {"prompt":"before applying schema change verify MySQL port backup restore and recognized schema","expected_skill":"game-database-migration-safety","type":"collision"}

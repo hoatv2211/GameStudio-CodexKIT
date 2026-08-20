@@ -4,5 +4,6 @@
   {"prompt":"port 27000 conflict MySQL Redis process listener environment doctor","expected_skill":"multi-service-local-environment-doctor","type":"positive"},
   {"prompt":"plan MySQL schema migration backup restore and unknown schema gate","expected_skill":"game-database-migration-safety","type":"negative","owner":"game-database-migration-safety"},
   {"prompt":"apply database change on port 3307 safely","expected_skill":"game-database-migration-safety","type":"negative","owner":"game-database-migration-safety"},
-  {"prompt":"diagnose local server startup port conflict without applying a database migration","expected_skill":"multi-service-local-environment-doctor","type":"collision"}
+  {"prompt":"diagnose local server startup port conflict without applying a database migration","expected_skill":"multi-service-local-environment-doctor","type":"collision"},
+  {"prompt":"LiveOps diagnose local service ports and dependencies without restarting anything","expected_skill":"multi-service-local-environment-doctor","type":"positive"}
 ]}

@@ -1,0 +1,179 @@
+{
+  "cases": [
+    {
+      "id": "role-ux-project-adoption-packet",
+      "prompt": "As Producer, Plan Change through a report-only project intake for adopting this Unity MMORPG repository: capture goal, scope, risk, engine version, owners, dependencies, do-not-touch paths, selected workflow, and next action before anyone writes files.",
+      "target_skill": "studio-project-intake",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["goal", "scope", "risk", "repository_snapshot", "owners", "do_not_touch_paths", "dependencies", "verification_commands", "expected_artifacts", "blocked_items"],
+      "allow_empty_workflow_artifact_fields": ["dependencies", "blocked_items"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "producer",
+        "intent": "plan-change",
+        "golden_path": "project-adoption-routing",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-local-environment-blocked",
+      "prompt": "As QA, Verify the local multi-service environment with server, service, and database context: route to the READY recovery task packet, but return an overall BLOCKED verdict with the missing prerequisite when process inspection is unavailable.",
+      "target_skill": "multi-service-local-environment-doctor",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["services", "configs", "expected_listeners", "observed_listeners", "conflicts", "mismatches", "ownership", "limitations", "recommended_next_checks"],
+      "allow_empty_workflow_artifact_fields": ["observed_listeners", "conflicts", "mismatches"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "qa",
+        "intent": "verify",
+        "golden_path": "local-environment-recovery",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-unity-client-entry",
+      "prompt": "As QA, Diagnose Unity offline client entry and return the workflow artifact plus a normalized evidence card.",
+      "target_skill": "unity-client-offline-debugging",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["reproduction_steps", "unity_version", "log_paths", "bootstrap_trace", "offline_flag_source", "dependency_state", "suspect_paths", "next_experiment", "verdict"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "qa",
+        "intent": "diagnose",
+        "golden_path": "unity-client-entry-recovery",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-cpp-crash",
+      "prompt": "As LiveOps, Handle Incident for a C++ server crash and preserve build identity, command evidence, artifacts, and one next action.",
+      "target_skill": "cpp-server-crash-triage",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["build_identity", "signature", "frames", "symbol_state", "ranked_hypotheses", "limitations", "next_experiment"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "liveops",
+        "intent": "handle-incident",
+        "golden_path": "cpp-server-failure-recovery",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-release-ship-basic",
+      "prompt": "As Producer in Basic mode, Ship this exact release candidate using repository evidence to select release-candidate-preflight; return the READY data-live-release-safety task packet, native readiness artifact, and normalized evidence card without executing a release.",
+      "target_skill": "release-candidate-preflight",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["candidate_identity", "gate_results", "defects", "waivers", "owners", "monitoring", "rollback", "recommendation", "limitations", "missing_evidence"],
+      "allow_empty_workflow_artifact_fields": ["defects", "waivers", "limitations", "missing_evidence"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "producer",
+        "intent": "ship",
+        "golden_path": "data-live-release-safety",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-unity-ui-localization",
+      "prompt": "As QA, Verify a Unity HUD localization issue where both the render chain and localization authority remain plausible: return the AMBIGUOUS unity-ui-localization task packet only, with no workflow execution or evidence card.",
+      "target_skill": "using-game-studio-skills",
+      "expected_case_outcome": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet"
+      },
+      "expected_task_packet": {
+        "role": "qa",
+        "intent": "verify",
+        "golden_path": "unity-ui-localization",
+        "status": "AMBIGUOUS"
+      },
+      "allow_ambiguous_task_packet": true
+    },
+    {
+      "id": "role-ux-unity-build-assets",
+      "prompt": "As QA in Advanced mode, Verify Unity build and asset integrity by explicitly selecting unity-asset-guid-meta-audit; return the READY task packet, native audit artifact, and normalized evidence card.",
+      "target_skill": "unity-asset-guid-meta-audit",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["asset_meta_pairs", "duplicate_guids", "missing_meta", "stale_references", "exclusions", "limitations", "recommendations"],
+      "allow_empty_workflow_artifact_fields": ["duplicate_guids", "missing_meta", "stale_references", "exclusions", "limitations"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "qa",
+        "intent": "verify",
+        "golden_path": "unity-build-asset-integrity",
+        "status": "READY"
+      }
+    },
+    {
+      "id": "role-ux-lua-authority-blocked",
+      "prompt": "As LiveOps in Advanced mode, Handle Incident for Lua server authority by explicitly selecting network-authority-and-exploit-review, but the owning network-authority-and-exploit-review capability is missing from the installed pack; return the BLOCKED root-router task packet and evidence card with no workflow artifact.",
+      "target_skill": "using-game-studio-skills",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "evidence_card"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "liveops",
+        "intent": "handle-incident",
+        "golden_path": "lua-contract-server-authority",
+        "status": "BLOCKED"
+      },
+      "allow_blocked_task_packet": true
+    },
+    {
+      "id": "role-ux-data-live-safety",
+      "prompt": "As Producer in Advanced mode, Ship this exact release candidate by explicitly routing to release-candidate-preflight; return the READY data-live-release-safety task packet, native readiness artifact, and normalized evidence card.",
+      "target_skill": "release-candidate-preflight",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["task_packet", "workflow_artifact", "evidence_card"],
+      "required_workflow_artifact_fields": ["candidate_identity", "gate_results", "defects", "waivers", "owners", "monitoring", "rollback", "recommendation", "limitations", "missing_evidence"],
+      "allow_empty_workflow_artifact_fields": ["defects", "waivers", "limitations", "missing_evidence"],
+      "artifact_contracts": {
+        "task_packet": "studio-task-packet",
+        "evidence_card": "studio-evidence-card"
+      },
+      "expected_task_packet": {
+        "role": "producer",
+        "intent": "ship",
+        "golden_path": "data-live-release-safety",
+        "status": "READY"
+      }
+    }
+  ]
+}
