@@ -67,7 +67,7 @@ packs:
   depends_on: [studio-core, production-design-liveops]
 - id: content-production
   description: Level, narrative, art, animation, and audio content production review workflows.
-  skills: [level-and-content-design-review, narrative-quest-content-contract, art-asset-pipeline-preflight, animation-rigging-import-audit, audio-content-pipeline-review]
+  skills: [level-and-content-design-review, narrative-quest-content-contract, art-asset-pipeline-preflight, animation-rigging-import-audit, audio-content-pipeline-review, unity-ui-art-and-motion-production, game-screenshot-showcase-and-store-packaging]
   depends_on: [studio-core, unity, production-design-liveops]
 - id: product-analytics
   description: Product experimentation and governed live content rollout workflows.

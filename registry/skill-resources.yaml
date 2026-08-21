@@ -63,6 +63,10 @@ bundled:
     destination: templates/specialists/game-data-engineer.toml
   - source: agents/technical-artist.toml
     destination: templates/specialists/technical-artist.toml
+  - source: agents/ui-motion-artist.toml
+    destination: templates/specialists/ui-motion-artist.toml
+  - source: agents/game-showcase-capture-producer.toml
+    destination: templates/specialists/game-showcase-capture-producer.toml
   - source: agents/ui-localization-specialist.toml
     destination: templates/specialists/ui-localization-specialist.toml
   - source: agents/systems-game-designer.toml
@@ -93,6 +97,27 @@ bundled:
   - unity_guid_audit.py
   unity-batchmode-build-verification:
   - build_evidence.py
+  unity-ui-art-and-motion-production:
+  - ui_art_motion.py
+  - ui_art_qc.py
+  - source: evals/schema/ui-design-brief.schema.json
+    destination: schemas/ui-design-brief.schema.json
+  - source: evals/schema/ui-asset-manifest.schema.json
+    destination: schemas/ui-asset-manifest.schema.json
+  - source: evals/schema/ui-motion-manifest.schema.json
+    destination: schemas/ui-motion-manifest.schema.json
+  - source: evals/schema/ui-art-qc-report.schema.json
+    destination: schemas/ui-art-qc-report.schema.json
+  game-screenshot-showcase-and-store-packaging:
+  - screenshot_showcase.py
+  - source: evals/schema/capture-plan.schema.json
+    destination: schemas/capture-plan.schema.json
+  - source: evals/schema/capture-record.schema.json
+    destination: schemas/capture-record.schema.json
+  - source: evals/schema/showcase-deck.schema.json
+    destination: schemas/showcase-deck.schema.json
+  - source: evals/schema/store-export-manifest.schema.json
+    destination: schemas/store-export-manifest.schema.json
   studio-workspace-routing:
   - project_profile.py
   using-game-studio-skills:

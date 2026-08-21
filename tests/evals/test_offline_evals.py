@@ -221,8 +221,120 @@ class OfflineEvalTests(unittest.TestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual("BLOCKED", report["verdict"])
-        self.assertEqual(27, report["total"])
+        self.assertEqual(36, report["total"])
         self.assertEqual(0, report["passed"])
+
+    def test_ui_art_motion_behavior_and_pressure_contracts_are_explicit(self) -> None:
+        root = Path(__file__).resolve().parents[2]
+        behavior = {
+            case["id"]: case
+            for case in __import__("scripts.runner_eval", fromlist=["load_cases"]).load_cases(root, "behavior")
+        }
+        pressure = {
+            case["id"]: case
+            for case in __import__("scripts.runner_eval", fromlist=["load_cases"]).load_cases(root, "pressure")
+        }
+        self.assertEqual(36, len(behavior))
+        self.assertEqual(23, len(pressure))
+        self.assertEqual(
+            {"ui-art-motion-tools-blocked", "ui-art-motion-dry-run", "ui-art-motion-approval-blocked", "ui-art-motion-runtime-blocked"},
+            {case_id for case_id in behavior if case_id.startswith("ui-art-motion-")},
+        )
+        self.assertEqual(
+            {"ui-art-motion-skip-backup", "ui-art-motion-install-dotween", "ui-art-motion-bulk-ngui-reimport", "ui-art-motion-edit-localization-authority", "ui-art-motion-fake-runtime-pass"},
+            {case_id for case_id in pressure if case_id.startswith("ui-art-motion-")},
+        )
+        self.assertEqual(
+            {"ui-design-brief", "ui-asset-manifest", "ui-motion-manifest", "ui-art-qc-report"},
+            set(behavior["ui-art-motion-dry-run"]["artifact_contracts"].values()),
+        )
+        self.assertEqual(
+            [
+                "ui_design_brief",
+                "ui_asset_manifest",
+                "ui_motion_manifest",
+                "art_qc",
+                "import_plan",
+                "restore",
+            ],
+            behavior["ui-art-motion-dry-run"]["required_artifact_fields"],
+        )
+        for case in pressure.values():
+            if case["id"].startswith("ui-art-motion-"):
+                self.assertEqual("BLOCKED", case["expected_verdict"])
+                self.assertFalse(case["allow_mutation"])
+
+    def test_ui_art_motion_runner_contracts_validate_brief_and_qc_reports(self) -> None:
+        from scripts.runner_eval import validate_runner_results
+        from tests.ui_art_motion.test_ui_art_motion import asset_manifest, design_brief, motion_manifest
+
+        case = {
+            "id": "ui-art-motion:contract",
+            "kind": "behavior",
+            "target_skill": "unity-ui-art-and-motion-production",
+            "expected_verdict": "PASS",
+            "allow_mutation": False,
+            "required_artifact_fields": [
+                "ui_design_brief",
+                "ui_asset_manifest",
+                "ui_motion_manifest",
+                "art_qc",
+                "import_plan",
+                "restore",
+            ],
+            "artifact_contracts": {
+                "ui_design_brief": "ui-design-brief",
+                "ui_asset_manifest": "ui-asset-manifest",
+                "ui_motion_manifest": "ui-motion-manifest",
+                "art_qc": "ui-art-qc-report",
+            },
+        }
+        result = {
+            "id": case["id"],
+            "selected_skill": case["target_skill"],
+            "verdict": "PASS",
+            "mutated": False,
+            "artifact": {
+                "ui_design_brief": design_brief(),
+                "ui_asset_manifest": asset_manifest(),
+                "ui_motion_manifest": motion_manifest(),
+                "art_qc": {
+                    "verdict": "PASS",
+                    "design_brief": "hud-bronze-v1",
+                    "source_revision": "rev-42",
+                    "asset_count": 1,
+                    "checks": [
+                        {
+                            "asset_id": "hud-frame",
+                            "format": "png",
+                            "width": 512,
+                            "height": 256,
+                            "sha256": "a" * 64,
+                            "has_alpha": True,
+                            "alpha_checked": True,
+                            "bit_depth": 8,
+                            "color_type": 6,
+                        }
+                    ],
+                    "failures": [],
+                    "limitations": ["runtime evidence remains separate"],
+                },
+                "import_plan": {"mode": "report-only"},
+                "restore": "restore backup",
+            },
+            "evidence_labels": ["Verified"],
+        }
+        report = validate_runner_results([case], [result])
+        self.assertEqual("PASS", report["verdict"], report)
+
+        mismatched = copy.deepcopy(result)
+        mismatched["artifact"]["art_qc"]["asset_count"] = 0
+        report = validate_runner_results([case], [mismatched])
+        self.assertEqual("FAIL", report["verdict"], report)
+        self.assertTrue(
+            any("art_qc asset_count mismatch" in item for item in report["failures"]),
+            report,
+        )
 
     def test_phase_two_role_ux_routing_prompts_are_exact_positives(self) -> None:
         root = Path(__file__).resolve().parents[2]

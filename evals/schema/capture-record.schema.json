@@ -1,0 +1,131 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/capture-record.schema.json",
+  "title": "Game screenshot capture record",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "capture_id",
+    "plan_id",
+    "raw_image_path",
+    "mime_type",
+    "dimensions",
+    "byte_size",
+    "sha256",
+    "build_snapshot",
+    "runtime_result",
+    "visual_review",
+    "limitations",
+    "rejection_reason",
+    "derived_artifacts"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "capture_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "plan_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "raw_image_path": {"$ref": "#/$defs/path"},
+    "mime_type": {"enum": ["image/png", "image/jpeg"]},
+    "dimensions": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["width", "height"],
+      "properties": {
+        "width": {"type": "integer", "exclusiveMinimum": 0},
+        "height": {"type": "integer", "exclusiveMinimum": 0}
+      }
+    },
+    "byte_size": {"type": "integer", "exclusiveMinimum": 0},
+    "sha256": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+    "build_snapshot": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "unity_version",
+        "editor_state",
+        "project_revision",
+        "build_target"
+      ],
+      "properties": {
+        "unity_version": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        },
+        "editor_state": {"enum": ["PlayMode", "EditMode"]},
+        "project_revision": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        },
+        "build_target": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        }
+      }
+    },
+    "runtime_result": {"enum": ["PASS", "FAIL", "BLOCKED"]},
+    "visual_review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "reviewer", "reviewed_at", "reason"],
+      "properties": {
+        "status": {"enum": ["approved", "rejected", "needs-review"]},
+        "reviewer": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        },
+        "reviewed_at": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        },
+        "reason": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {
+        "type": "string",
+        "minLength": 1,
+        "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+      }
+    },
+    "rejection_reason": {
+      "type": ["string", "null"],
+      "anyOf": [
+        {"type": "null"},
+        {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "^[^\\s\\r\\n](?:[\\S ]*[^\\s\\r\\n])?$"
+        }
+      ]
+    },
+    "derived_artifacts": {
+      "type": "array",
+      "items": {"$ref": "#/$defs/path"}
+    }
+  },
+  "$defs": {
+    "path": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?:[A-Za-z0-9_-][A-Za-z0-9._-]*)(?:/(?:[A-Za-z0-9_-][A-Za-z0-9._-]*))*$"
+    }
+  }
+}

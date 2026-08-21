@@ -106,6 +106,32 @@ agent_roles:
     forbidden_actions: [overwrite source art, publish asset bundles, bulk reimport without approval]
     validation_commands: [asset GUID audit, render budget review, Unity console review]
     concurrency_group: technical-art-writer
+  - id: ui-motion-artist
+    path: agents/ui-motion-artist.toml
+    description: Figma UI visual, AI-assisted source art, Unity UI integration, and micro-motion specialist for uGUI, NGUI, and UI Toolkit.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Unity UI art and motion
+    required_skills: [unity-ui-art-and-motion-production, art-asset-pipeline-preflight, unity-asset-guid-meta-audit, build-and-runtime-verification]
+    owned_scope_patterns: [art/ui/**, assets/source/ui/**, client/**/Assets/**/UI/**, client/**/Assets/**/*.uxml, client/**/Assets/**/*.uss]
+    read_scope_patterns: [art/**, assets/**, client/**, localization/**, docs/**, tests/**]
+    forbidden_actions: [modify gameplay logic, change localization source authority, install animation or tween packages, overwrite source art, bulk reimport, publish asset bundles, approve own runtime verdict]
+    validation_commands: [UI art motion manifest validation, asset GUID audit, Unity console review, target-resolution visual evidence]
+    concurrency_group: ui-art-writer
+  - id: game-showcase-capture-producer
+    path: agents/game-showcase-capture-producer.toml
+    description: Approved PlayMode screenshot capture, immutable evidence, showcase deck, and report-only store packaging specialist.
+    sandbox_mode: workspace-write
+    reasoning_effort: high
+    kind: specialist
+    discipline: Game screenshot showcase production
+    required_skills: [game-screenshot-showcase-and-store-packaging, playtest-evidence, build-and-runtime-verification, store-submission-checklist]
+    owned_scope_patterns: [screenshots/**, evidence/screenshots/**, showcase/**, store-output/**]
+    read_scope_patterns: [client/**, ProjectSettings/**, Packages/**, Unity/**, Editor/**, tests/**, docs/**]
+    forbidden_actions: [gameplay mutation, source mutation, credential access, upload assets, sign assets, submit assets, evidence deletion, self-approval]
+    validation_commands: [focused helper tests, Unity PlayMode evidence, artifact integrity]
+    concurrency_group: screenshot-showcase-writer
   - id: ui-localization-specialist
     path: agents/ui-localization-specialist.toml
     description: UI prefab, localization authority, font, overflow, and accessibility specialist.

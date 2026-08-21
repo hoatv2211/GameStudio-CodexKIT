@@ -1,0 +1,42 @@
+{
+  "cases": [
+    {
+      "id": "ui-art-motion-tools-blocked",
+      "prompt": "Create a Figma-driven Unity UI art and motion plan, but Figma, AI image generation, and the Unity runtime runner are unavailable; preserve the brief and return BLOCKED.",
+      "target_skill": "unity-ui-art-and-motion-production",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["reason", "missing_tools", "preserved_brief"]
+    },
+    {
+      "id": "ui-art-motion-dry-run",
+      "prompt": "Validate approved Figma HUD exports and a uGUI Animator motion manifest, then produce a deterministic report-only import plan with restore information and no Unity mutation.",
+      "target_skill": "unity-ui-art-and-motion-production",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["ui_design_brief", "ui_asset_manifest", "ui_motion_manifest", "art_qc", "import_plan", "restore"],
+      "artifact_contracts": {
+        "ui_design_brief": "ui-design-brief",
+        "ui_asset_manifest": "ui-asset-manifest",
+        "ui_motion_manifest": "ui-motion-manifest",
+        "art_qc": "ui-art-qc-report"
+      }
+    },
+    {
+      "id": "ui-art-motion-approval-blocked",
+      "prompt": "Prepare the Unity UI art and motion apply plan, but stop because reviewer approval, backup manifest, baseline, and restore gate are missing.",
+      "target_skill": "unity-ui-art-and-motion-production",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["reason", "required_gates", "plan_digest"]
+    },
+    {
+      "id": "ui-art-motion-runtime-blocked",
+      "prompt": "Verify a Figma-to-Unity UI motion import statically, but return BLOCKED because runtime screenshots, device samples, and Unity evidence are unavailable.",
+      "target_skill": "unity-ui-art-and-motion-production",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["static_evidence", "missing_runtime_evidence", "limitations"]
+    }
+  ]
+}

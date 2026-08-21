@@ -168,7 +168,7 @@ Implementation must prove:
 - Never-suggest preference persists.
 - Skill and terminal interfaces produce equivalent reports.
 - Synthetic multi-repository fixtures route Unity, .NET/Lua, and Java domains without private content.
-- Canonical registries contain 47 skills, 22 agents, and 7 packs.
+- Canonical registries contain 49 skills, 24 agents, and 7 packs.
 - Generated resources remain synchronized and all repository gates pass.
 
 ## Delivery Phases

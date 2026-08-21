@@ -8,7 +8,7 @@
 
 MOStudio Kit is distributed from the `GameStudio-CodexKIT` repository. Repository URLs, install commands, and the stable plugin ID `game-studio-codex-kit` intentionally keep that technical name.
 
-[![Skills](https://img.shields.io/badge/skills-47%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-290%2F290-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](https://img.shields.io/badge/skills-49%20canonical-brightgreen)](skills/) [![Routing](https://img.shields.io/badge/routing%20eval-305%2F305-blue)](evals/routing/) [![Tests](https://img.shields.io/badge/unittest-test%20suite-informational)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 Most gamedev AI skills teach an agent to *build* games. This kit teaches it to **keep a shipped game alive**: crash triage on a C++ MMORPG server, offline-mode debugging in a legacy Unity client, MySQL migrations that can't eat player saves, Lua client/server contract audits, liveops incidents, store submissions — with an evidence system that makes it structurally hard for the agent to lie about what it did.
 
@@ -41,11 +41,11 @@ The kit connects a live game, its studio stack, and its operating evidence into 
     <td align="center"><strong>Ask for the outcome</strong><br><sub>The router selects the smallest matching specialist workflow.</sub></td>
   </tr>
   <tr>
-    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Forty-seven skills across seven packs, six studio personas, and twenty-two canonical agent roles" width="100%"></td>
+    <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-04.webp" alt="Forty-nine skills across seven packs, six studio personas, and twenty-four canonical agent roles" width="100%"></td>
     <td width="50%"><img src="docs/assets/showcase-handcrafted/slide-05.webp" alt="Verified, Snapshot, Unverified, and BLOCKED evidence states" width="100%"></td>
   </tr>
   <tr>
-    <td align="center"><strong>One studio catalog</strong><br><sub>47 canonical skills, seven packs, six thin persona lenses, and 22 canonical agent roles.</sub></td>
+    <td align="center"><strong>One studio catalog</strong><br><sub>49 canonical skills, seven packs, six thin persona lenses, and 24 canonical agent roles.</sub></td>
     <td align="center"><strong>Trust is explicit state</strong><br><sub><code>BLOCKED</code> is never converted into <code>PASS</code>.</sub></td>
   </tr>
   <tr>
@@ -74,7 +74,7 @@ The kit connects a live game, its studio stack, and its operating evidence into 
 | Failure mode | Agent claims success | `BLOCKED` verdicts + PASS requires command, exit code, artifact |
 | Mutations | Agent edits freely | 4-tier risk gates: read-only → low → medium (reviewer+backup) → high (human approval + dry-run) |
 | Multi-agent | Single session | One-writer-per-file ownership, lock protocol, handoff contracts, review/bug-hunt swarms |
-| Routing quality | Hope the description matches | 290 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
+| Routing quality | Hope the description matches | 305 deterministic eval cases incl. negative + collision cases, bilingual (EN/VI) |
 
 ## Field evidence — real run on a live MMORPG
 
@@ -112,6 +112,7 @@ No slash commands, no skill names required — describe the problem and the rout
 | "Server crashed, here's the stack trace" | `cpp-server-crash-triage` |
 | "Client can't enter offline mode" | `unity-client-offline-debugging` |
 | "This UI item doesn't render / wrong draw order" | `unity-ui-rendering-debugging` |
+| "Create this Figma HUD, export approved 9-slice assets, and produce a gated uGUI Animator integration plan." | `unity-ui-art-and-motion-production` |
 | "I need to change the items table schema" | `game-database-migration-safety` (dry-run gated) |
 | "Is this Lua field actually validated server-side?" | `lua-client-server-contract-audit` |
 | "Players found a dupe exploit, live incident" | `liveops-incident-response` |
@@ -193,7 +194,7 @@ The repository root is the plugin package. `.codex-plugin/plugin.json` exposes t
 
 ## Install in Hermes Agent
 
-Install all 47 skills globally with the Agent Skills CLI:
+Install all 49 skills globally with the Agent Skills CLI:
 
 ```bash
 npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y
@@ -211,16 +212,18 @@ Repository governance tools such as the catalog validator, originality audit, an
 
 ## Current state
 
-- 47 canonical skills, including one root entry router and 46 routed workflow or domain skills.
-- 290/290 deterministic Tier-A routing cases.
+- 49 canonical skills, including one root entry router and 48 routed workflow or domain skills.
+- 305/305 deterministic Tier-A routing cases.
 - 10 external-catalog collision cases against six generic neighboring skills.
-- 15 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
-- Seven installable packs, six thin personas, and 22 canonical agent roles.
+- 18 governed real-project dogfood scenarios defined with strict PASS/BLOCKED evidence validation.
+- Seven installable packs, six thin personas, and 24 canonical agent roles.
 - Two primary distributions: native Codex plugin installation and Agent Skills CLI installation for Hermes Agent.
 - Eighteen standalone skills with 21 generated helper copies and explicit full-clone boundaries for repository-only governance tools.
 - Optional generated exports for manual Hermes, Codex, pack, project-local `.agents/` skills, and `.codex/agents/` role overlays.
 - Structural, provenance, secret, network/package, safety, external-catalog collision, behavior, pressure, and lifecycle gates.
-- The 47-skill catalog is `beta` as a studio-adopted kit based on maintainer-confirmed use in the FPC project (`Snapshot`); this does not claim that every skill ran individually. Deterministic gates and the localization case study are `Verified`, while per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
+- The 49-skill catalog is `beta` as a studio-adopted kit based on maintainer-confirmed use in the FPC project (`Snapshot`); 47 existing skills are beta and `unity-ui-art-and-motion-production` plus `game-screenshot-showcase-and-store-packaging` are `experimental` pending governed dogfood. This does not claim that every skill ran individually. Deterministic gates and the localization case study are `Verified`, while per-skill Tier-B, behavior, pressure, and runtime evidence remain required for `stable`.
+
+The experimental UI production workflow keeps Figma as visual authority and Unity as runtime authority. It uses a design brief/stylecard, prompt lineage, one-variable variants, deterministic static art QC, and reviewed export hashes; it defaults to a report-only plan, never installs tween packages, and cannot claim a runtime PASS without a real Unity project, screenshots, and device evidence.
 
 The template does not claim that a Unity build, C++ server, database migration, store submission, or liveops action has run unless a real project artifact proves it.
 
@@ -237,7 +240,7 @@ The authoritative capability list is `registry/capabilities.yaml`. Pack composit
 
 ## Maintain this repository
 
-A full repository clone exposes an internal maintenance bundle that is intentionally separate from the 47 distributed skills and 22 cataloged agent roles:
+A full repository clone exposes an internal maintenance bundle that is intentionally separate from the 49 distributed skills and 24 cataloged agent roles:
 
 - Invoke `codexkit-repository-maintenance` for CI, governance, catalog, generator, adapter, packaging, documentation, architecture, versioning, or release-readiness work on this repository.
 - Select the repository-local `codexkit-maintainer` agent when the task needs a bounded writer and integration owner.

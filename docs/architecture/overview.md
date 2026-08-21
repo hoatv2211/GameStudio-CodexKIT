@@ -6,7 +6,7 @@ Workflow logic lives only in `skills/<name>/SKILL.md` and progressively loaded r
 
 Active authority flows from `AGENTS.md` to registries, canonical skills, and maintained documentation. The ignored local `.archive/` may hold maintainer history but is never distributable authority and must not drive current execution.
 
-The catalog contains 47 canonical skills across seven additive packs: `studio-core`, `unity`, `cpp-lua-mmorpg`, `production-design-liveops`, `production-management`, `content-production`, and `product-analytics`. Shared skills may appear in more than one pack without duplicating canonical source text. The registry also defines 22 canonical agent roles. `.codex-plugin/plugin.json` exposes the canonical skill catalog directly.
+The catalog contains 49 canonical skills across seven additive packs: `studio-core`, `unity`, `cpp-lua-mmorpg`, `production-design-liveops`, `production-management`, `content-production`, and `product-analytics`. Shared skills may appear in more than one pack without duplicating canonical source text. The registry also defines 24 canonical agent roles. `.codex-plugin/plugin.json` exposes the canonical skill catalog directly.
 
 ## Naming contract
 
@@ -40,7 +40,11 @@ The five public intents Diagnose, Verify, Plan Change, Ship, and Handle Incident
 
 ## Evaluation model
 
-Tier-A routing is deterministic and covers 46 routed skills with 290 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, fifteen-scenario real-project dogfood, and studio adoption are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
+Tier-A routing is deterministic and covers 48 routed skills with 305 cases. The external-catalog collision fixture checks that studio-specific routes beat generic neighboring catalogs; `--external-root` can add installed Codex/Hermes catalogs to the same rank-1 check. Behavior, pressure, Tier-B, eighteen-scenario real-project dogfood, and studio adoption are runner-backed: export is deterministic, but PASS requires exact case coverage and evidence fields.
+
+## UI art and motion authority
+
+`unity-ui-art-and-motion-production` is an experimental, medium-risk workflow for Figma- and AI-assisted UI assets plus micro-motion. Figma owns approved visual intent and revision provenance; Unity owns layout, state, input, reduced-motion behavior, and runtime performance. A closed design brief captures the visual system, prompt lineage, variants, copy policy, and negative constraints; static QC checks supported PNG/JPEG/SVG structure, dimensions, alpha where decodable, export hashes, source revision, and text policy. Closed asset and motion manifests bind revisions, hashes, Unity targets, stack selection, native/existing drivers, and restore data. The bundled helpers emit a schema-bound art-QC report and report-only import plan; `safe-project-mutation` gates any apply. Without the configured visual tools, a real Unity project, reviewer approval, or runtime captures, the result remains `BLOCKED`.
 
 Without a model runner or live project, the correct status is `BLOCKED`. Keyword routing proves catalog separation, not real model behavior.
 

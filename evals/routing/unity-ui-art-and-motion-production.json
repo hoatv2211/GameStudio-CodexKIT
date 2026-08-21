@@ -1,0 +1,13 @@
+{
+  "target_skill": "unity-ui-art-and-motion-production",
+  "cases": [
+    {"prompt":"Create a Figma HUD with AI-assisted icons and integrate approved 9-slice sprites plus Animator micro-motion into Unity uGUI","expected_skill":"unity-ui-art-and-motion-production","type":"positive"},
+    {"prompt":"Design an NGUI popup in Figma, export atlas-ready UI art, and plan approved TweenAlpha motion without installing packages","expected_skill":"unity-ui-art-and-motion-production","type":"positive"},
+    {"prompt":"Build a responsive UI Toolkit settings panel from approved Figma components and USS transition intent","expected_skill":"unity-ui-art-and-motion-production","type":"positive"},
+    {"prompt":"Debug an existing Unity HUD item that is missing because of clipping depth anchors or sorting","expected_skill":"unity-ui-rendering-debugging","type":"negative","owner":"unity-ui-rendering-debugging"},
+    {"prompt":"Audit character skeleton avatar retarget clips and root motion import settings","expected_skill":"animation-rigging-import-audit","type":"negative","owner":"animation-rigging-import-audit"},
+    {"prompt":"Audit source art naming export compression LOD collision and import settings without creating UI","expected_skill":"art-asset-pipeline-preflight","type":"negative","owner":"art-asset-pipeline-preflight"},
+    {"prompt":"Review localization text authority font fallback and generated copies without redesigning UI assets","expected_skill":"localization-authority-audit","type":"negative","owner":"localization-authority-audit"},
+    {"prompt":"Produce new Unity UI visual assets and micro-motion but refuse package installation bulk reimport localization edits or runtime PASS without evidence","expected_skill":"unity-ui-art-and-motion-production","type":"collision"}
+  ]
+}

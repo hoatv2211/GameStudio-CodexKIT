@@ -950,8 +950,8 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         landing = self.read("docs/index.html")
 
         for phrase in (
-            "290/290",
-            "15 governed dogfood",
+            "305/305",
+            "18 governed dogfood",
             "Eight Golden Path families",
             "--workflow",
             "80% intended routing",

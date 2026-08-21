@@ -194,6 +194,63 @@
         "verdict"
       ],
       "allow_mutation": false
+    },
+    {
+      "id": "ui-art-motion-ugui",
+      "workflow": "unity-ui-art-and-motion-production",
+      "project_kind": "authorized Unity uGUI project snapshot",
+      "prompt": "Produce a Figma HUD with approved AI-assisted 9-slice assets and Animator micro-motion for uGUI through a report-only manifest plan, reviewer gate, and runtime evidence checklist.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "figma-revision",
+        "ui-design-brief",
+        "ui-asset-manifest",
+        "ui-motion-manifest",
+        "art-qc",
+        "import-plan",
+        "visual-evidence",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "ui-art-motion-ngui",
+      "workflow": "unity-ui-art-and-motion-production",
+      "project_kind": "authorized Unity NGUI project snapshot",
+      "prompt": "Design an NGUI popup from approved Figma components, bind atlas-ready UI art and existing TweenAlpha/TweenScale intent, and stop at a report-only plan without package installation.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "figma-revision",
+        "ui-design-brief",
+        "ui-asset-manifest",
+        "ui-motion-manifest",
+        "art-qc",
+        "import-plan",
+        "visual-evidence",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "ui-art-motion-ui-toolkit",
+      "workflow": "unity-ui-art-and-motion-production",
+      "project_kind": "authorized Unity UI Toolkit project snapshot",
+      "prompt": "Build a responsive UI Toolkit settings panel from approved Figma components, bind UXML and USS transition intent, and require report-only planning plus runtime visual evidence.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "figma-revision",
+        "ui-design-brief",
+        "ui-asset-manifest",
+        "ui-motion-manifest",
+        "art-qc",
+        "import-plan",
+        "visual-evidence",
+        "verdict"
+      ],
+      "allow_mutation": false
     }
   ]
 }

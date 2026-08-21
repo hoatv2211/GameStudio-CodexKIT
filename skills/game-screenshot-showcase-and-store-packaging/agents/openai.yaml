@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Game Screenshot Showcase and Store Packaging"
+  short_description: "Unity screenshot capture, review, and report-only packaging"
+  default_prompt: "Use $game-screenshot-showcase-and-store-packaging to plan approved Unity PlayMode screenshots, preserve immutable evidence, review showcase selections, and prepare report-only store packaging."

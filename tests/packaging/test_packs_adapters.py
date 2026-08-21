@@ -669,6 +669,8 @@ class PackagingTests(unittest.TestCase):
                     "art-asset-pipeline-preflight",
                     "animation-rigging-import-audit",
                     "audio-content-pipeline-review",
+                    "unity-ui-art-and-motion-production",
+                    "game-screenshot-showcase-and-store-packaging",
                 ],
                 content_manifest["declared_skills"],
             )
@@ -2980,7 +2982,7 @@ print(json.dumps({
                 self.assertEqual(first, tree_digest(output))
                 self.assertTrue((output / "registry.json").exists())
                 registry = json.loads((output / "registry.json").read_text(encoding="utf-8"))
-                self.assertEqual(47, len(registry["skills"]))
+                self.assertEqual(49, len(registry["skills"]))
                 generated_skill = output / "skills" / "studio-project-intake" / "SKILL.md"
                 generated_skill_lines = generated_skill.read_text(encoding="utf-8").splitlines()
                 self.assertEqual("---", generated_skill_lines[0])
@@ -5914,7 +5916,7 @@ print(json.dumps({
                 files = [path for path in adapter.rglob("*") if path.is_file()]
                 self.assertEqual(source_file_count + 1, len(files), target)
                 registry = json.loads((adapter / "registry.json").read_text(encoding="utf-8"))
-                self.assertEqual(47, len(registry["skills"]), target)
+                self.assertEqual(49, len(registry["skills"]), target)
                 first_digest = tree_digest(adapter)
                 generate_adapter(source_root, target, adapter)
                 self.assertEqual(first_digest, tree_digest(adapter), target)

@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Unity UI Art and Motion Production"
+  short_description: "Figma-bound Unity UI art and micro-motion workflow"
+  default_prompt: "Use $unity-ui-art-and-motion-production to apply the Unity UI Art and Motion Production workflow to this game-studio task."
