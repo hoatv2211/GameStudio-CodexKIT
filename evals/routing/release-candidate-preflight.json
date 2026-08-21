@@ -2,6 +2,7 @@
   {"prompt":"Run release candidate preflight across build tests artifacts approvals blockers and rollback","expected_skill":"release-candidate-preflight","type":"positive"},
   {"prompt":"kiểm tra RC trước ship: build evidence test summary known issues và approval","expected_skill":"release-candidate-preflight","type":"positive"},
   {"prompt":"release readiness verdict must block when any required artifact is missing","expected_skill":"release-candidate-preflight","type":"positive"},
+  {"prompt":"Producer run Ship readiness for this exact release candidate and return go or no-go evidence","expected_skill":"release-candidate-preflight","type":"positive"},
   {"prompt":"prepare platform store metadata screenshots and compliance submission","expected_skill":"store-submission-checklist","type":"negative","owner":"store-submission-checklist"},
   {"prompt":"verify one build command exit code and artifact only","expected_skill":"build-and-runtime-verification","type":"negative","owner":"build-and-runtime-verification"},
   {"prompt":"candidate build passed but store approval and rollback evidence are missing","expected_skill":"release-candidate-preflight","type":"collision"}

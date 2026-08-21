@@ -172,7 +172,7 @@ def _assert_target_pre_state(item: dict[str, Any]) -> None:
 def report_mutation(root: Path | str, operations: list[dict[str, str]]) -> dict[str, Any]:
     root_path = Path(root).resolve()
     normalized = _normalized_operations(root_path, operations)
-    return {
+    report = {
         "mode": "report-only",
         "root": str(root_path),
         "operations": [
@@ -186,6 +186,17 @@ def report_mutation(root: Path | str, operations: list[dict[str, str]]) -> dict[
             for item in normalized
         ],
     }
+    report["plan_digest"] = _mutation_plan_digest(report)
+    return report
+
+
+def _mutation_plan_digest(report: dict[str, Any]) -> str:
+    payload = {
+        "root": report["root"],
+        "operations": report["operations"],
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return _sha256_bytes(encoded)
 
 
 def _serialized_json_bytes(payload: dict[str, Any]) -> bytes:
@@ -1565,8 +1576,13 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--mode", choices=["report", "apply", "restore"], default="report")
     parser.add_argument("--backup-root")
     parser.add_argument("--manifest")
+    parser.add_argument("--reviewer")
+    parser.add_argument("--reviewed-manifest")
+    parser.add_argument("--plan-digest")
     args = parser.parse_args(argv)
     if args.mode == "restore":
+        if args.reviewer or args.reviewed_manifest or args.plan_digest:
+            parser.error("approval arguments are only supported with --mode apply")
         if not args.manifest:
             parser.error("--manifest is required for restore")
         restore_mutation(args.manifest, args.root)
@@ -1576,11 +1592,44 @@ def main(argv: list[str] | None = None) -> int:
         parser.error("--operations is required")
     operations = json.loads(Path(args.operations).read_text(encoding="utf-8"))
     if args.mode == "report":
+        if args.reviewer or args.reviewed_manifest or args.plan_digest:
+            parser.error("approval arguments require --mode apply")
         print(json.dumps(report_mutation(Path(args.root), operations), indent=2))
         return 0
     if not args.backup_root:
         parser.error("--backup-root is required for apply")
-    print(apply_mutation(Path(args.root), operations, Path(args.backup_root)))
+    if not args.reviewer or not args.reviewer.strip():
+        parser.error("--reviewer is required for apply")
+    if not args.reviewed_manifest:
+        parser.error("--reviewed-manifest is required for apply")
+    if not args.plan_digest or not args.plan_digest.strip():
+        parser.error("--plan-digest is required for apply")
+    root_path = Path(args.root).resolve()
+    report = report_mutation(root_path, operations)
+    expected_digest = _mutation_plan_digest(report)
+    if args.plan_digest.strip() != expected_digest:
+        parser.error("approved mutation plan digest does not match current report")
+    try:
+        reviewed = json.loads(Path(args.reviewed_manifest).read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        parser.error(f"cannot read reviewed manifest: {error}")
+    if (
+        not isinstance(reviewed, dict)
+        or reviewed.get("mode") != "report-only"
+        or reviewed.get("root") != str(root_path)
+        or reviewed.get("operations") != report["operations"]
+        or reviewed.get("plan_digest") != expected_digest
+        or reviewed.get("reviewer") != args.reviewer.strip()
+    ):
+        parser.error("reviewed manifest does not match the current approved mutation plan")
+    print(
+        apply_mutation(
+            root_path,
+            operations,
+            Path(args.backup_root),
+            expected_operations=report["operations"],
+        )
+    )
     return 0
 
 

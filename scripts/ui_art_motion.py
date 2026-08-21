@@ -1,0 +1,465 @@
+"""Deterministic, report-only planning for Unity UI art and motion imports.
+
+The helper deliberately stops at an auditable plan.  It does not copy assets,
+edit a Unity project, install packages, or invoke Figma/image-generation tools.
+"""
+
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import os
+import re
+import sys
+from pathlib import Path
+from typing import Any
+
+from jsonschema import Draft202012Validator
+from jsonschema.exceptions import SchemaError
+
+
+STACKS = {"ugui", "ngui", "ui-toolkit"}
+NATIVE_DRIVERS = {
+    "ugui": {"animator", "animation-clip", "project-controller"},
+    "ngui": {"animation-clip", "ngui-tween", "project-controller"},
+    "ui-toolkit": {"uss-transition", "project-controller"},
+}
+EXTERNAL_DRIVERS = {"dotween": "DOTween", "leantween": "LeanTween"}
+_DRIVE_RE = re.compile(r"^[A-Za-z]:")
+_MAX_TEXT_BYTES = 4 * 1024 * 1024
+
+
+def _schema_roots() -> list[Path]:
+    script_root = Path(__file__).resolve().parent
+    return [
+        script_root.parent / "schemas",
+        script_root / "schemas",
+        script_root.parent / "evals" / "schema",
+    ]
+
+
+def schema_paths() -> dict[str, Path]:
+    """Return the schema locations used by an installed/bundled helper."""
+
+    roots = _schema_roots()
+    root = next((candidate for candidate in roots if candidate.is_dir()), roots[0])
+    return {
+        "ui-asset-manifest": root / "ui-asset-manifest.schema.json",
+        "ui-motion-manifest": root / "ui-motion-manifest.schema.json",
+    }
+
+
+def _root(path: Path | str) -> Path:
+    root = Path(path).expanduser().resolve()
+    if not root.is_dir():
+        raise ValueError(f"project root is not a directory: {path}")
+    return root
+
+
+def _first_schema_error(validator: Draft202012Validator, payload: object) -> str | None:
+    errors = sorted(
+        validator.iter_errors(payload),
+        key=lambda error: (
+            tuple(str(part) for part in error.absolute_path),
+            error.validator or "",
+            error.message,
+        ),
+    )
+    if not errors:
+        return None
+    error = errors[0]
+    location = "/".join(str(part) for part in error.absolute_path) or "$"
+    return f"{location}: {error.message}"
+
+
+def _schema_candidates(schema_path: Path | str) -> list[Path]:
+    supplied = Path(schema_path)
+    candidates = [supplied]
+    name = supplied.name
+    script_root = Path(__file__).resolve().parent
+    candidates.extend(
+        [
+            script_root.parent / "schemas" / name,
+            script_root / "schemas" / name,
+            script_root.parent / "evals" / "schema" / name,
+        ]
+    )
+    unique: list[Path] = []
+    for candidate in candidates:
+        resolved = candidate.resolve()
+        if resolved not in unique:
+            unique.append(resolved)
+    return unique
+
+
+def load_manifest(path: Path | str, schema_path: Path | str) -> dict[str, Any]:
+    """Load and validate one closed JSON manifest.
+
+    A ValueError is raised with a deterministic first validation error so CLI
+    callers can return a structured FAIL without a traceback.
+    """
+
+    manifest_path = Path(path)
+    try:
+        payload = json.loads(manifest_path.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"cannot load manifest {path}: {error}") from error
+    schema_file = next((candidate for candidate in _schema_candidates(schema_path) if candidate.is_file()), None)
+    if schema_file is None:
+        raise ValueError(f"cannot load manifest schema {schema_path}")
+    try:
+        schema = json.loads(schema_file.read_text(encoding="utf-8"))
+        Draft202012Validator.check_schema(schema)
+        validator = Draft202012Validator(schema)
+    except (OSError, UnicodeError, json.JSONDecodeError, SchemaError) as error:
+        raise ValueError(f"invalid manifest schema {schema_file}: {error}") from error
+    error = _first_schema_error(validator, payload)
+    if error:
+        # Keep path failures actionable for callers that need to distinguish a
+        # containment violation from an ordinary closed-schema mismatch.
+        if any(token in error for token in ("export_path", "unity_target")):
+            raise ValueError(f"unsafe relative path: {error}")
+        raise ValueError(f"manifest validation failed: {error}")
+    if not isinstance(payload, dict):
+        raise ValueError("manifest must be a JSON object")
+    return payload
+
+
+def _normalise_relative(value: object, *, label: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"unsafe relative path for {label}")
+    path = value.replace("\\", "/")
+    if path.startswith("/") or _DRIVE_RE.match(path):
+        raise ValueError(f"unsafe relative path for {label}")
+    parts = path.split("/")
+    if any(part in {"", ".", ".."} for part in parts) or "\x00" in path:
+        raise ValueError(f"unsafe relative path for {label}")
+    return "/".join(parts)
+
+
+def _is_reparse(path: Path) -> bool:
+    """Best-effort Windows reparse-point check without following the path."""
+
+    try:
+        attrs = getattr(path.stat(follow_symlinks=False), "st_file_attributes", 0)
+        return bool(attrs & getattr(os, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400))
+    except OSError:
+        return False
+
+
+def _safe_path(root: Path, value: object, *, label: str, must_exist: bool = False) -> tuple[str, Path]:
+    relative = _normalise_relative(value, label=label)
+    lexical = root / Path(*relative.split("/"))
+    current = lexical
+    while True:
+        if current.is_symlink() or _is_reparse(current):
+            raise ValueError(f"unsafe symlink or reparse path for {label}")
+        if current == root:
+            break
+        current = current.parent
+    candidate = lexical.resolve(strict=False)
+    try:
+        candidate.relative_to(root)
+    except ValueError as error:
+        raise ValueError(f"path escapes project root for {label}") from error
+
+    current = candidate
+    while True:
+        if current.is_symlink() or _is_reparse(current):
+            raise ValueError(f"unsafe symlink or reparse path for {label}")
+        if current == root:
+            break
+        current = current.parent
+    if candidate.exists():
+        if candidate.is_dir():
+            raise ValueError(f"path is a directory for {label}")
+        if not candidate.is_file():
+            raise ValueError(f"path is not a regular file for {label}")
+    elif must_exist:
+        raise ValueError(f"missing source path for {label}: {relative}")
+    return relative, candidate
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _read_text(path: Path) -> str | None:
+    try:
+        if path.stat().st_size > _MAX_TEXT_BYTES:
+            return None
+        return path.read_text(encoding="utf-8")
+    except (OSError, UnicodeError):
+        return None
+
+
+def _files_below(root: Path, directory: Path) -> list[Path]:
+    if not directory.exists() or not directory.is_dir():
+        return []
+    result: list[Path] = []
+    for path in directory.rglob("*"):
+        try:
+            if path.is_file() and not path.is_symlink() and not _is_reparse(path):
+                result.append(path)
+        except OSError:
+            continue
+    return sorted(result, key=lambda item: item.as_posix().lower())
+
+
+def detect_ui_stacks(project_root: Path | str) -> set[str]:
+    """Detect installed/used UI stacks from bounded, text-only markers."""
+
+    root = _root(project_root)
+    detected: set[str] = set()
+    packages = root / "Packages" / "manifest.json"
+    packages_text = _read_text(packages) if packages.is_file() else None
+    if packages_text and "com.unity.ugui" in packages_text:
+        detected.add("ugui")
+
+    assets = root / "Assets"
+    asset_files = _files_below(root, assets)
+    if (assets / "NGUI").is_dir() or any(path.name.lower() == "ngui" and path.is_dir() for path in assets.rglob("*")):
+        detected.add("ngui")
+    for path in asset_files:
+        relative = path.relative_to(root).as_posix().lower()
+        suffix = path.suffix.lower()
+        text: str | None = None
+        if suffix == ".prefab":
+            text = _read_text(path)
+            if text and "Canvas" in text:
+                detected.add("ugui")
+            if text and "UIPanel" in text:
+                detected.add("ngui")
+        if suffix in {".uxml", ".uss"}:
+            detected.add("ui-toolkit")
+        # Keep the variable intentionally used for a cheap, deterministic
+        # traversal guard and easier diagnostics when debugging a fixture.
+        _ = relative
+    return detected
+
+
+def _validate_manifest_pair(
+    assets: dict[str, Any], motions: dict[str, Any], requested_stack: str | None,
+) -> str:
+    asset_stack = assets.get("ui_stack")
+    motion_stack = motions.get("ui_stack")
+    if asset_stack not in STACKS or motion_stack not in STACKS:
+        raise ValueError("unknown UI stack")
+    if asset_stack != motion_stack:
+        raise ValueError("asset and motion manifests must use the same UI stack")
+    if assets["figma"]["source_revision"] != motions["source_revision"]:
+        raise ValueError("source revision mismatch between asset and motion manifests")
+    if requested_stack is not None:
+        if requested_stack not in STACKS:
+            raise ValueError(f"unknown requested UI stack: {requested_stack}")
+        if requested_stack != asset_stack:
+            raise ValueError("requested stack does not match both manifests")
+        return requested_stack
+    # A manifest-declared stack is still checked against the project so an
+    # omitted CLI selection cannot silently route an ambiguous project.
+    return asset_stack
+
+
+def _check_unique_ids(items: list[dict[str, Any]], label: str) -> None:
+    ids = [item.get("id") for item in items]
+    if len(ids) != len(set(ids)):
+        raise ValueError(f"duplicate {label} id")
+
+
+def _check_driver_policy(stack: str, motions: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    for motion in motions:
+        driver = motion["driver"]
+        if driver in EXTERNAL_DRIVERS:
+            dependency_evidence = motion.get("dependency_evidence", [])
+            if not dependency_evidence:
+                name = EXTERNAL_DRIVERS[driver]
+                raise ValueError(f"{name} dependency evidence is required; package installation is forbidden")
+            evidence.append({"driver": driver, "dependency": EXTERNAL_DRIVERS[driver], "evidence": list(dependency_evidence)})
+        elif driver not in NATIVE_DRIVERS[stack]:
+            raise ValueError(f"driver {driver!r} is not approved for UI stack {stack}")
+    return evidence
+
+
+def _digest_payload(plan: dict[str, Any]) -> str:
+    payload = {key: value for key, value in plan.items() if key != "plan_digest"}
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":"), ensure_ascii=False).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def build_import_plan(
+    project_root: Path | str,
+    asset_manifest_path: Path | str,
+    motion_manifest_path: Path | str,
+    *,
+    requested_stack: str | None = None,
+) -> dict[str, Any]:
+    root = _root(project_root)
+    repo_schema = root / "evals" / "schema"
+    asset_schema = repo_schema / "ui-asset-manifest.schema.json"
+    motion_schema = repo_schema / "ui-motion-manifest.schema.json"
+    assets = load_manifest(asset_manifest_path, asset_schema)
+    motions = load_manifest(motion_manifest_path, motion_schema)
+    stack = _validate_manifest_pair(assets, motions, requested_stack)
+    if requested_stack is None:
+        detected = detect_ui_stacks(root)
+        if detected != {stack}:
+            if len(detected) > 1:
+                raise ValueError(f"ambiguous UI stack detection: {sorted(detected)}")
+            raise ValueError(f"UI stack {stack!r} is not detected in project")
+
+    asset_items = list(assets["assets"])
+    motion_items = list(motions["motions"])
+    _check_unique_ids(asset_items, "asset")
+    _check_unique_ids(motion_items, "motion")
+    driver_evidence = _check_driver_policy(stack, motion_items)
+
+    operations: list[dict[str, Any]] = []
+    target_keys: set[str] = set()
+    for asset in asset_items:
+        source_rel, source_path = _safe_path(root, asset["export_path"], label=f"asset {asset['id']} export", must_exist=True)
+        target_rel, target_path = _safe_path(root, asset["unity_target"], label=f"asset {asset['id']} target")
+        target_key = target_rel.casefold()
+        if target_key in target_keys:
+            raise ValueError(f"duplicate target path (case-insensitive): {target_rel}")
+        target_keys.add(target_key)
+        actual_export_hash = _sha256(source_path)
+        if actual_export_hash != asset["export_sha256"]:
+            raise ValueError(f"export hash mismatch for asset {asset['id']}")
+        if asset["ai_provenance"]["output_sha256"] != asset["export_sha256"]:
+            raise ValueError(f"AI output hash mismatch for asset {asset['id']}")
+        before_hash = _sha256(target_path) if target_path.exists() else None
+        operations.append(
+            {
+                "asset_id": asset["id"],
+                "source_path": source_rel,
+                "target_path": target_rel,
+                "action": "skip" if before_hash == asset["export_sha256"] else ("update" if before_hash is not None else "create"),
+                "before_sha256": before_hash,
+                "after_sha256": asset["export_sha256"],
+                "restore": "restore backup" if before_hash else "remove created file",
+            }
+        )
+    motion_operations: list[dict[str, Any]] = []
+    for motion in motion_items:
+        target_rel, _ = _safe_path(root, motion["unity_target"], label=f"motion {motion['id']} target")
+        target_key = target_rel.casefold()
+        if target_key in target_keys:
+            raise ValueError(f"duplicate target path (case-insensitive): {target_rel}")
+        target_keys.add(target_key)
+        motion_operations.append(
+            {
+                "motion_id": motion["id"],
+                "target_path": target_rel,
+                "driver": motion["driver"],
+                "duration_ms": motion["duration_ms"],
+                "verification": list(motion["verification"]),
+            }
+        )
+    operations.sort(key=lambda operation: operation["target_path"].casefold())
+    motion_operations.sort(key=lambda operation: operation["target_path"].casefold())
+    plan: dict[str, Any] = {
+        "mode": "report-only",
+        "stack": stack,
+        "source_revision": assets["figma"]["source_revision"],
+        "operations": operations,
+        "motion_operations": motion_operations,
+        "dependency_evidence": driver_evidence,
+        "conflicts": [],
+        "requirements": {
+            "runtime_screenshots": [],
+            "unity_evidence": [],
+            "note": "runtime screenshots and Unity evidence are required before a runtime PASS claim",
+        },
+    }
+    plan["plan_digest"] = _digest_payload(plan)
+    return plan
+
+
+def verify_import_plan(project_root: Path | str, plan: dict[str, Any]) -> dict[str, Any]:
+    root = _root(project_root)
+    failures: list[str] = []
+    if not isinstance(plan, dict):
+        return {"verdict": "FAIL", "failures": ["plan must be an object"]}
+    expected_digest = plan.get("plan_digest")
+    if not isinstance(expected_digest, str) or expected_digest != _digest_payload(plan):
+        failures.append("plan digest mismatch")
+    operations = plan.get("operations", [])
+    if not isinstance(operations, list):
+        failures.append("plan operations must be a list")
+        operations = []
+    for operation in operations:
+        try:
+            target_rel, target_path = _safe_path(root, operation.get("target_path"), label="planned target")
+        except ValueError as error:
+            failures.append(str(error))
+            continue
+        expected = operation.get("after_sha256")
+        if not target_path.exists():
+            failures.append(f"missing planned output: {target_rel}")
+        elif not isinstance(expected, str) or _sha256(target_path) != expected:
+            failures.append(f"output hash mismatch: {target_rel}")
+    requirements = plan.get("requirements", {})
+    blocked_requirements: list[str] = []
+    if isinstance(requirements, dict):
+        if not requirements.get("runtime_screenshots"):
+            blocked_requirements.append("runtime screenshots")
+        if not requirements.get("unity_evidence"):
+            blocked_requirements.append("Unity evidence")
+    else:
+        blocked_requirements.extend(["runtime screenshots", "Unity evidence"])
+    failures.extend(f"missing required evidence: {item}" for item in blocked_requirements)
+    verdict = "FAIL" if any(item in {"plan digest mismatch", "plan operations must be a list"} or item.startswith("unsafe") or item.startswith("path escapes") for item in failures) else ("BLOCKED" if failures else "PASS")
+    return {
+        "verdict": verdict,
+        "failures": failures,
+        "checked_outputs": len(operations),
+        "blocked_requirements": blocked_requirements,
+        "plan_digest": expected_digest,
+    }
+
+
+def _print_result(payload: dict[str, Any]) -> None:
+    print(json.dumps(payload, indent=2, sort_keys=True, ensure_ascii=False))
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(description=__doc__)
+    subparsers = parser.add_subparsers(dest="command", required=True)
+    plan_parser = subparsers.add_parser("plan", help="build a report-only import plan")
+    plan_parser.add_argument("project_root", type=Path)
+    plan_parser.add_argument("--assets", required=True, type=Path)
+    plan_parser.add_argument("--motions", required=True, type=Path)
+    plan_parser.add_argument("--stack", choices=sorted(STACKS))
+    plan_parser.add_argument("--output", type=Path)
+    verify_parser = subparsers.add_parser("verify", help="verify planned outputs")
+    verify_parser.add_argument("project_root", type=Path)
+    verify_parser.add_argument("--plan", required=True, type=Path)
+    args = parser.parse_args(argv)
+    try:
+        if args.command == "plan":
+            result = build_import_plan(args.project_root, args.assets, args.motions, requested_stack=args.stack)
+            if args.output:
+                args.output.parent.mkdir(parents=True, exist_ok=True)
+                args.output.write_text(json.dumps(result, indent=2, sort_keys=True, ensure_ascii=False) + "\n", encoding="utf-8")
+            _print_result(result)
+            return 0
+        try:
+            plan = json.loads(args.plan.read_text(encoding="utf-8"))
+        except (OSError, UnicodeError, json.JSONDecodeError) as error:
+            raise ValueError(f"cannot load plan {args.plan}: {error}") from error
+        result = verify_import_plan(args.project_root, plan)
+        _print_result(result)
+        return 0 if result["verdict"] == "PASS" else (2 if result["verdict"] == "BLOCKED" else 1)
+    except (OSError, UnicodeError, ValueError, TypeError) as error:
+        _print_result({"verdict": "FAIL", "failures": [str(error)]})
+        return 1
+
+
+if __name__ == "__main__":
+    sys.exit(main())

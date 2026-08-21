@@ -4,5 +4,6 @@
   {"prompt":"MMORPG server segfault needs symbols first application frame and ranked hypotheses","expected_skill":"cpp-server-crash-triage","type":"positive"},
   {"prompt":"unknown cross-subsystem bug needs parallel read-only hypotheses","expected_skill":"bug-hunt-swarm","type":"negative","owner":"bug-hunt-swarm"},
   {"prompt":"review packet opcode fields without a runtime crash","expected_skill":"mmorpg-packet-protocol-review","type":"negative","owner":"mmorpg-packet-protocol-review"},
-  {"prompt":"server access violation stack trace with mismatched symbols and exact build snapshot","expected_skill":"cpp-server-crash-triage","type":"collision"}
+  {"prompt":"server access violation stack trace with mismatched symbols and exact build snapshot","expected_skill":"cpp-server-crash-triage","type":"collision"},
+  {"prompt":"Developer hãy phân tích crash signature của C++ game server đúng build, không restart service","expected_skill":"cpp-server-crash-triage","type":"positive"}
 ]}

@@ -100,6 +100,188 @@ class ProjectProfileTests(unittest.TestCase):
             self.assertIn("# Workspace Map", output.getvalue())
             self.assertIn("unity-client-offline-debugging", output.getvalue())
 
+    def test_accepts_optional_studio_experience(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": [
+                "diagnose",
+                "verify",
+                "plan-change",
+                "ship",
+                "handle-incident",
+            ],
+        }
+
+        self.assertEqual([], validate_project_profile(profile))
+
+    def test_loads_profile_with_absent_enabled_intents_and_planner_defaults_all(self) -> None:
+        from scripts.project_profile import load_project_profile
+        from scripts.studio_experience import plan_experience
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+        }
+        with temporary_directory() as temp:
+            path = Path(temp) / "project-profile.yaml"
+            path.write_text(
+                yaml.safe_dump(profile, sort_keys=False),
+                encoding="utf-8",
+            )
+
+            try:
+                loaded = load_project_profile(path)
+            except ValueError as error:
+                self.fail(f"absent enabled_intents was rejected: {error}")
+            packet = plan_experience(
+                loaded,
+                intent="diagnose",
+                requested_golden_path="unity-client-entry-recovery",
+                available_skills={"unity-client-offline-debugging"},
+            )
+
+        self.assertNotIn("enabled_intents", loaded["studio_experience"])
+        self.assertEqual("READY", packet["status"])
+        self.assertEqual(
+            "unity-client-offline-debugging", packet["selected_workflow"]
+        )
+
+    def test_profile_without_studio_experience_remains_valid(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        self.assertEqual([], validate_project_profile(self.valid_profile()))
+
+    def test_rejects_invalid_studio_experience_values(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "administrator",
+            "preferred_mode": "hidden",
+            "enabled_intents": ["diagnose", "deploy-now"],
+        }
+
+        self.assertEqual(
+            [
+                "studio experience default_role must be developer, liveops, producer, or qa",
+                "studio experience preferred_mode must be advanced or basic",
+                "unknown studio experience intent: deploy-now",
+            ],
+            validate_project_profile(profile),
+        )
+
+    def test_rejects_invalid_studio_experience_shape_and_fields(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = "developer"
+        self.assertEqual(
+            ["studio_experience must be a mapping"],
+            validate_project_profile(profile),
+        )
+
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": ["diagnose"],
+            "theme": "studio",
+        }
+        self.assertEqual(
+            ["unknown studio experience fields: theme"],
+            validate_project_profile(profile),
+        )
+
+    def test_rejects_invalid_studio_experience_intent_lists(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        for enabled_intents in (None, [], "diagnose"):
+            with self.subTest(enabled_intents=enabled_intents):
+                profile = self.valid_profile()
+                profile["studio_experience"] = {
+                    "default_role": "developer",
+                    "preferred_mode": "basic",
+                    "enabled_intents": enabled_intents,
+                }
+
+                self.assertEqual(
+                    ["studio experience enabled_intents must be a non-empty list"],
+                    validate_project_profile(profile),
+                )
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": ["diagnose", "diagnose"],
+        }
+        self.assertEqual(
+            ["studio experience enabled_intents must be unique"],
+            validate_project_profile(profile),
+        )
+
+    def test_rejects_unhashable_studio_experience_intent_without_crashing(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": ["diagnose", ["verify"]],
+        }
+
+        self.assertEqual(
+            ["studio experience intent must be a string"],
+            validate_project_profile(profile),
+        )
+
+    def test_rejects_recursive_studio_experience_intents_without_crashing(self) -> None:
+        from scripts.project_profile import validate_project_profile
+
+        first_intent: list[object] = []
+        first_intent.append(first_intent)
+        second_intent: list[object] = []
+        second_intent.append(second_intent)
+        profile = self.valid_profile()
+        profile["studio_experience"] = {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": [first_intent, second_intent],
+        }
+
+        self.assertEqual(
+            [
+                "studio experience intent must be a string",
+                "studio experience intent must be a string",
+            ],
+            validate_project_profile(profile),
+        )
+
+    def test_draft_profile_includes_studio_experience_defaults(self) -> None:
+        from scripts.project_scaffold import draft_project_profile
+
+        with temporary_directory() as temp:
+            profile = draft_project_profile(temp)
+
+        self.assertEqual(
+            {
+                "default_role": "developer",
+                "preferred_mode": "basic",
+                "enabled_intents": [
+                    "diagnose",
+                    "verify",
+                    "plan-change",
+                    "ship",
+                    "handle-incident",
+                ],
+            },
+            profile["studio_experience"],
+        )
+
     def test_rejects_duplicate_repository_ids(self) -> None:
         from scripts.project_profile import validate_project_profile
 

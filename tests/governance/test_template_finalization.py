@@ -55,8 +55,17 @@ class TemplateFinalizationTests(unittest.TestCase):
             _frontmatter, body = parse_frontmatter(skill_path)
             self.assertNotIn("PLAN_final.md", body, skill_path.as_posix())
 
-    def test_readme_exposes_template_usage_and_honest_maturity(self) -> None:
-        text = (ROOT / "README.md").read_text(encoding="utf-8")
+    def test_public_docs_expose_template_usage_and_honest_maturity(self) -> None:
+        text = "\n".join(
+            (ROOT / relative).read_text(encoding="utf-8")
+            for relative in (
+                "docs/architecture/overview.md",
+                "docs/architecture/project-init-and-studio-expansion.md",
+                "docs/adoption.md",
+                "docs/authoring/skills.md",
+                "docs/wiki-skill-agent-user-guide.md",
+            )
+        )
         for required in (
             "studio-core",
             "per-project",
@@ -68,18 +77,17 @@ class TemplateFinalizationTests(unittest.TestCase):
         ):
             self.assertIn(required, text)
         self.assertNotIn("always-loaded root router", text)
-        self.assertIn("--backup-root D:/path/to/game-project/.scaffold-backup", text)
         self.assertIn(
-            "python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project",
+            "python -B scripts/generate_adapters.py . --target per-project --output D:/Games/MyMMO",
             text,
         )
         self.assertIn(
-            '$report = python -B scripts/generate_adapters.py . --target per-project --output D:/path/to/game-project | ConvertFrom-Json',
+            '$report = python -B scripts/generate_adapters.py . --target per-project --output D:/Games/MyMMO | ConvertFrom-Json',
             text,
         )
         self.assertIn("$report.plan_digest", text)
         self.assertIn("--plan-digest $report.plan_digest", text)
-        self.assertIn("never overwrites `.codex/config.toml`", text)
+        self.assertIn("leaves `.codex/config.toml` untouched", text)
 
     def test_project_bootstrap_requires_adapter_report_review_before_apply(self) -> None:
         text = (ROOT / "workflows" / "project-bootstrap.md").read_text(encoding="utf-8")
@@ -124,19 +132,6 @@ class TemplateFinalizationTests(unittest.TestCase):
 
     def test_project_adapter_docs_expose_the_safe_lifecycle_contract(self) -> None:
         contracts = {
-            "README.md": (
-                "report-only by default",
-                "named reviewer",
-                "backup root",
-                "approved plan digest",
-                "packaged generic agent templates",
-                "profile specialist overlay",
-                "leaves `.codex/config.toml` untouched",
-                "inert activation",
-                "per-file ownership",
-                "hash-safe",
-                "`PARTIAL` recovery",
-            ),
             "docs/architecture/overview.md": (
                 "report-only by default",
                 "reviewer",
@@ -202,8 +197,10 @@ class TemplateFinalizationTests(unittest.TestCase):
         )
         self.assertNotIn("<CODEX_HOME>", text)
 
-    def test_readme_exposes_native_codex_plugin_install_lifecycle(self) -> None:
-        text = (ROOT / "README.md").read_text(encoding="utf-8")
+    def test_wiki_exposes_native_codex_plugin_install_lifecycle(self) -> None:
+        text = (ROOT / "docs" / "wiki-skill-agent-user-guide.md").read_text(
+            encoding="utf-8"
+        )
         for required in (
             "codex plugin marketplace add hoatv2211/GameStudio-CodexKIT",
             "npx skills add hoatv2211/GameStudio-CodexKIT -a hermes-agent -g -y",

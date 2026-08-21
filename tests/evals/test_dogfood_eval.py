@@ -376,13 +376,32 @@ class DogfoodEvalTests(unittest.TestCase):
             )
         return {"results": results}
 
-    def test_repository_pack_has_twelve_unique_game_scenarios(self) -> None:
+    def test_repository_pack_has_eighteen_unique_game_scenarios(self) -> None:
         from scripts.dogfood_eval import load_cases
 
         root = Path(__file__).resolve().parents[2]
         cases = load_cases(root)
-        self.assertEqual(12, len(cases))
-        self.assertEqual(12, len({case["id"] for case in cases}))
+        self.assertEqual(18, len(cases))
+        self.assertEqual(18, len({case["id"] for case in cases}))
+        ui_cases = {case["id"]: case for case in cases if case["workflow"] == "unity-ui-art-and-motion-production"}
+        self.assertEqual({"ui-art-motion-ugui", "ui-art-motion-ngui", "ui-art-motion-ui-toolkit"}, set(ui_cases))
+        for case in ui_cases.values():
+            self.assertFalse(case["allow_mutation"])
+            self.assertEqual(
+                [
+                    "command-log",
+                    "project-snapshot",
+                    "figma-revision",
+                    "ui-design-brief",
+                    "ui-asset-manifest",
+                    "ui-motion-manifest",
+                    "art-qc",
+                    "import-plan",
+                    "visual-evidence",
+                    "verdict",
+                ],
+                case["required_artifacts"],
+            )
         self.assertGreaterEqual(len({case["workflow"] for case in cases}), 8)
 
     def test_repository_pack_matches_schema(self) -> None:
@@ -1300,7 +1319,7 @@ class DogfoodEvalTests(unittest.TestCase):
             )
 
             self.assertEqual("PASS", report["verdict"])
-            self.assertEqual(12, len(written))
+            self.assertEqual(18, len(written))
             summary = json.loads(written[0].read_text(encoding="utf-8"))
             self.assertEqual("Verified", summary["label"])
             self.assertEqual(0, summary["exit_code"])

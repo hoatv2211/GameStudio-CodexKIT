@@ -13,14 +13,20 @@ try:
         apply_project_adapter,
         generate_adapter,
         report_project_adapter,
+        report_uninstall_project_adapter,
         uninstall_project_adapter,
+        _uninstall_plan_digest,
+        _validate_uninstall_backup_root,
     )
 except ModuleNotFoundError:
     from generate_adapters import (
         apply_project_adapter,
         generate_adapter,
         report_project_adapter,
+        report_uninstall_project_adapter,
         uninstall_project_adapter,
+        _uninstall_plan_digest,
+        _validate_uninstall_backup_root,
     )
 
 
@@ -161,10 +167,10 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--plan-digest")
     args = parser.parse_args(argv)
     root = Path(args.root).resolve()
-    if args.uninstall_adapter and (args.reviewer or args.backup_root or args.plan_digest):
-        parser.error("--reviewer, --backup-root, and --plan-digest cannot be used with --uninstall-adapter")
-    if (args.apply or args.reviewer or args.backup_root or args.plan_digest) and not args.install_adapter:
-        parser.error("--apply, --reviewer, --backup-root, and --plan-digest require --install-adapter")
+    if (args.apply or args.reviewer or args.backup_root or args.plan_digest) and not (
+        args.install_adapter or args.uninstall_adapter
+    ):
+        parser.error("--apply, --reviewer, --backup-root, and --plan-digest require an adapter action")
     if args.install_hook:
         print(install_hook(root))
         return 0
@@ -207,6 +213,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.uninstall_adapter:
         if not args.destination:
             parser.error("--destination is required for --uninstall-adapter")
+        if not args.apply:
+            if args.reviewer or args.backup_root or args.plan_digest:
+                parser.error("--reviewer, --backup-root, and --plan-digest require --apply")
+            print(json.dumps(report_uninstall_project_adapter(Path(args.destination)), indent=2))
+            return 0
+        if not args.reviewer or not args.reviewer.strip():
+            parser.error("--reviewer is required with --uninstall-adapter --apply")
+        if not args.backup_root:
+            parser.error("--backup-root is required with --uninstall-adapter --apply")
+        if not args.plan_digest or not args.plan_digest.strip():
+            parser.error("--plan-digest is required with --uninstall-adapter --apply")
+        destination = Path(args.destination)
+        _validate_uninstall_backup_root(destination, Path(args.backup_root))
+        if args.plan_digest.strip() != _uninstall_plan_digest(destination):
+            parser.error("adapter uninstall plan changed since report")
         print(json.dumps({"removed": uninstall_adapter(Path(args.destination))}, indent=2))
         return 0
     result = health(root)

@@ -20,6 +20,10 @@ Add a safe, reversible project-adoption interface for MOStudio Kit, optionally e
 
 `gamestudio init [root]` produces a report-only adoption plan by default. It detects repositories, subsystems, existing governance, project complexity, proposed skills and agents, collisions, ownership operations, backup requirements, and optional CodeGraph advice.
 
+New profiles may include an optional `studio_experience` block with `default_role`, `preferred_mode`, and `enabled_intents` defaults. The block affects presentation and routing UX only; it never grants mutation authority or waives risk or approval gates.
+
+`gamestudio guide [root] --intent <intent>` runs the role-first planner without executing a workflow or writing project state. The optional root defaults to the current directory; explicit planner controls include role, mode, and `--golden-path`. `--workflow` requires explicit Advanced mode and must name a reported candidate for the selected family.
+
 `gamestudio status [root]` reports owned files, drift, project profile validity, generated adapter state, and CodeGraph availability without mutation.
 
 `gamestudio uninit [root]` removes only files whose ownership hashes still match the registry and preserves drift as a partial uninstall.
@@ -37,6 +41,24 @@ Add a safe, reversible project-adoption interface for MOStudio Kit, optionally e
 - `scripts/safe_mutation.py`: report, apply, backup, ownership, and restore mechanics.
 
 The public interface remains small. Complexity is hidden behind pure planners that return serializable reports and can be tested without touching private projects or installing external tools.
+
+## Role UX Boundary
+
+Role UX presents and selects canonical skills. The pure planner reads profile defaults and detected subsystems, then returns a report-only task packet with the planning status `READY`, `AMBIGUOUS`, or `BLOCKED`; these are never runtime PASS verdicts, and `READY` provides no execution or mutation authority. If the top two candidates remain ambiguous, it asks one focused question. Role defaults are advisory and provide no execution or mutation authority.
+
+The task packet records planning state. Only the selected canonical workflow executes or reviews its own actions and owns its native artifact. A normalized evidence card then summarizes the observed runtime `PASS`, `BLOCKED`, or `FAIL` result or blocker; the router cannot fabricate the final runtime verdict. Basic mode reduces exposed controls and Advanced mode may select a reported workflow candidate explicitly, but neither mode waives evidence, mutation, or approval requirements. `guide` remains report-only; `init --apply` remains the separately approved adoption path described below.
+
+The five public intents Diagnose, Verify, Plan Change, Ship, and Handle Incident route across eight implemented Unity/MMORPG Golden Path families: project adoption and routing, local environment recovery, Unity client entry recovery, C++ server failure recovery, Unity UI and localization, Unity build and asset integrity, Lua contract and server authority, and data and live release safety. Unsupported current combinations return a task-packet `BLOCKED` with no selected workflow, execution, or mutation.
+
+Governed adoption commands:
+
+```text
+python -B scripts/studio_adoption_eval.py . --export evidence/local/studio-adoption-cases.jsonl
+python -B scripts/studio_adoption_eval.py . --status evidence/local/studio-adoption-status.json
+python -B scripts/studio_adoption_eval.py . --results evidence/local/studio-adoption-results.json
+```
+
+PASS requires at least 80% intended Golden Path routing, no run above three questions, install-to-first-use at or below five minutes, zero missing-dependency failures, zero unauthorized writes, PASS task verdicts, and repository-contained SHA-256-bound artifacts. Without governed results the evaluator returns `BLOCKED` and leaves unobserved metrics `null`.
 
 ## Complexity Advisor
 
@@ -131,7 +153,7 @@ The repository gains an optional Python console entry point named `gamestudio`. 
 
 ## Safety and Recovery
 
-Report-only is the default. Apply requires reviewer, backup root, and reviewed plan digest. Reparse points, outside-workspace paths, protected active configuration, drifted owned files, stale plans, unmanaged collisions, and dirty replacement targets block mutation. Uninstall is hash-safe and may return PARTIAL when drift is preserved.
+Report-only is the default. The operator selects one scaffold apply entry point and supplies that entry point with a named reviewer, the approved digest from its reviewed report, and a project-local backup root disjoint from every proposed scaffold output. The direct API, standalone `project_scaffold.py` script, and primary `gamestudio init --apply` command independently enforce the equivalent canonical approval gates; the standalone and CLI adapters forward the selected values to the API. Parity tests cover all three without requiring an operator to execute all three. Reparse points, outside-workspace paths, protected active configuration, drifted owned files, stale plans, unmanaged collisions, and dirty replacement targets block mutation. Uninstall is hash-safe and may return PARTIAL when drift is preserved.
 
 ## Validation
 
@@ -146,7 +168,7 @@ Implementation must prove:
 - Never-suggest preference persists.
 - Skill and terminal interfaces produce equivalent reports.
 - Synthetic multi-repository fixtures route Unity, .NET/Lua, and Java domains without private content.
-- Canonical registries contain 47 skills, 22 agents, and 7 packs.
+- Canonical registries contain 49 skills, 24 agents, and 7 packs.
 - Generated resources remain synchronized and all repository gates pass.
 
 ## Delivery Phases

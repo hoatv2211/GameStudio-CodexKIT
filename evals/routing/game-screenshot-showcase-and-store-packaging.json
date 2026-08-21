@@ -1,0 +1,9 @@
+{"target_skill":"game-screenshot-showcase-and-store-packaging","cases":[
+  {"prompt":"Capture approved Unity PlayMode feature screenshots with immutable raw evidence hashes and a reviewed contact sheet","expected_skill":"game-screenshot-showcase-and-store-packaging","type":"positive"},
+  {"prompt":"Prepare an interactive screenshot checklist for Unity scenes flows viewport locale reviewer approval before any capture runs","expected_skill":"game-screenshot-showcase-and-store-packaging","type":"positive"},
+  {"prompt":"Build a showcase deck from approved Unity captures and keep rejected screenshot records visible in review artifacts","expected_skill":"game-screenshot-showcase-and-store-packaging","type":"positive"},
+  {"prompt":"Package approved game screenshots into a report-only Steam or mobile store export manifest with hashes missing slots and no upload","expected_skill":"game-screenshot-showcase-and-store-packaging","type":"positive"},
+  {"prompt":"Summarize what players felt during a combat playtest and separate observation from interpretation","expected_skill":"playtest-evidence","type":"negative","owner":"playtest-evidence"},
+  {"prompt":"Prepare the actual Steam submission with legal attestations account login upload and final publish approval","expected_skill":"store-submission-checklist","type":"negative","owner":"store-submission-checklist"},
+  {"prompt":"Create the Unity screenshot showcase package but explicitly refuse auto-upload and fabricated runtime PASS claims","expected_skill":"game-screenshot-showcase-and-store-packaging","type":"collision"}
+]}

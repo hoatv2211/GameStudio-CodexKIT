@@ -1,0 +1,1 @@
+"""Screenshot showcase contract tests."""

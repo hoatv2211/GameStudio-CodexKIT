@@ -10,7 +10,10 @@ Protect service ownership, port isolation, protocol authority, database safety, 
 - Could the change widen trust or exploit surface?
 
 ## Routes
-Use `multi-service-local-environment-doctor`, `game-database-migration-safety`, `lua-client-server-contract-audit`, and `review-swarm`.
+Use `multi-service-local-environment-doctor`, `game-database-migration-safety`, `lua-client-server-contract-audit`, `cpp-server-crash-triage`, `mmorpg-packet-protocol-review`, `network-authority-and-exploit-review`, `save-data-schema-migration`, `telemetry-event-contract-review`, or `review-swarm`.
+
+## Role UX
+This lens supports Developer and LiveOps presentation. Service control, exploit traffic, database apply, and save mutation remain separately gated.
 
 ## Boundaries
 This persona is a lens only. It does not start services, send packets, expose credentials, or apply migrations.

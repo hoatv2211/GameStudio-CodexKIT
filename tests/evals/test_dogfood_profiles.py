@@ -93,6 +93,35 @@ class DogfoodProfileTests(unittest.TestCase):
             runtime_case["required_mcp_operations"],
         )
 
+    def test_authorized_jx_static_profile_selects_three_read_only_cases(self) -> None:
+        from scripts.dogfood_eval import load_cases, load_profile
+
+        profile = load_profile(self.root, "authorized-jx-multirepo-static")
+        cases = load_cases(self.root, profile="authorized-jx-multirepo-static")
+
+        self.assertEqual(
+            [
+                "jx-multirepo-route-static",
+                "jx-unity-guid-meta-static",
+                "jx-citywar-authority-static",
+            ],
+            profile["case_ids"],
+        )
+        self.assertEqual(profile["case_ids"], [case["id"] for case in cases])
+        self.assertTrue(all(case["allow_mutation"] is False for case in cases))
+        self.assertEqual(
+            ["file-audit", "git-snapshot", "static-source-review"],
+            profile["runner_capabilities"],
+        )
+        self.assertEqual(
+            [
+                "studio-workspace-routing",
+                "unity-asset-guid-meta-audit",
+                "network-authority-and-exploit-review",
+            ],
+            profile["promotion_scope"],
+        )
+
     def test_unknown_profile_is_rejected(self) -> None:
         from scripts.dogfood_eval import load_profile
 

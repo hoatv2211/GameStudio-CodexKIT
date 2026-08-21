@@ -183,7 +183,7 @@ class DoctorTests(unittest.TestCase):
             self.assertFalse(project.exists())
             self.assertTrue(report["plan_digest"])
 
-    def test_doctor_cli_requires_plan_digest_and_rejects_uninstall_review_args(self) -> None:
+    def test_doctor_cli_requires_plan_digest_and_uninstall_requires_apply_approval(self) -> None:
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             project = Path(temp) / "project"
@@ -229,8 +229,36 @@ class DoctorTests(unittest.TestCase):
             self.assertNotEqual(0, missing_digest.returncode)
             self.assertIn("--plan-digest", missing_digest.stderr)
             self.assertNotEqual(0, uninstall_with_digest.returncode)
-            self.assertIn("cannot be used with --uninstall-adapter", uninstall_with_digest.stderr)
+            self.assertIn("require --apply", uninstall_with_digest.stderr)
             self.assertFalse(project.exists())
+
+    def test_doctor_cli_uninstall_is_report_only_without_apply(self) -> None:
+        source_root = Path(__file__).resolve().parents[2]
+        with temporary_directory() as temp:
+            project = Path(temp)
+            install_reviewed_project_adapter(source_root, project)
+            generated = project / ".agents" / "skills" / "studio-project-intake" / "SKILL.md"
+            self.assertTrue(generated.is_file())
+            script = str(source_root / "scripts" / "doctor.py")
+            report = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    script,
+                    "--root",
+                    str(source_root),
+                    "--destination",
+                    str(project),
+                    "--uninstall-adapter",
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(0, report.returncode, report.stdout + report.stderr)
+            self.assertEqual("REPORT_ONLY", json.loads(report.stdout)["status"])
+            self.assertTrue(generated.is_file())
 
     def test_adapter_install_and_uninstall_preserve_project_local_skills(self) -> None:
         from scripts.doctor import install_adapter, uninstall_adapter

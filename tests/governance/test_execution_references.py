@@ -12,6 +12,10 @@ class ExecutionReferenceTests(unittest.TestCase):
             "game-database-migration-safety": ("mysql", "mysqldump", "restore"),
             "cpp-server-crash-triage": ("dump", "symbols", "stack"),
             "multi-service-local-environment-doctor": ("Get-NetTCPConnection", "ss -lntp", "port"),
+            "build-and-runtime-verification": ("PIPESTATUS", "fresh", "artifact"),
+            "liveops-incident-response": ("--data-urlencode", "data_keys", "BLOCKED"),
+            "unity-client-offline-debugging": ("BeforeSceneLoad", "AfterSceneLoad", "timeout"),
+            "unity-ui-rendering-debugging": ("mDepth:", "Resources.FindObjectsOfTypeAll", "active"),
         }
         for skill, tokens in required.items():
             with self.subTest(skill=skill):

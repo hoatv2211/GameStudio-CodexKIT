@@ -4,5 +4,6 @@
   {"prompt":"offline gameplay fallback network bootstrap local mock server Unity","expected_skill":"unity-client-offline-debugging","type":"positive"},
   {"prompt":"fix NGUI canvas draw order missing item prefab atlas anchor","expected_skill":"unity-ui-rendering-debugging","type":"negative","owner":"unity-ui-rendering-debugging"},
   {"prompt":"Unity UI item không hiện do depth","expected_skill":"unity-ui-rendering-debugging","type":"negative","owner":"unity-ui-rendering-debugging"},
-  {"prompt":"Unity client cannot enter game offline but the UI itself renders correctly","expected_skill":"unity-client-offline-debugging","type":"collision"}
+  {"prompt":"Unity client cannot enter game offline but the UI itself renders correctly","expected_skill":"unity-client-offline-debugging","type":"collision"},
+  {"prompt":"QA cần chẩn đoán Unity client không vào được offline mode trước khi chạy PlayMode","expected_skill":"unity-client-offline-debugging","type":"positive"}
 ]}

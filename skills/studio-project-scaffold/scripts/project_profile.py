@@ -20,6 +20,7 @@ PROFILE_TOP_LEVEL_FIELDS = {
     "exclusions",
     "agents",
     "cross_project_contracts",
+    "studio_experience",
 }
 WORKSPACE_FIELDS = {"name", "root_git", "default_concurrency"}
 REPOSITORY_FIELDS = {
@@ -40,6 +41,10 @@ SPECIALIST_FIELDS = {
     "read_scope_patterns",
 }
 CONTRACT_FIELDS = {"id", "repositories", "authority"}
+STUDIO_EXPERIENCE_FIELDS = {"default_role", "preferred_mode", "enabled_intents"}
+STUDIO_ROLES = {"developer", "qa", "producer", "liveops"}
+STUDIO_MODES = {"basic", "advanced"}
+STUDIO_INTENTS = {"diagnose", "verify", "plan-change", "ship", "handle-incident"}
 RISK_LEVELS = {"read-only", "low", "medium", "high"}
 REASONING_EFFORTS = {"low", "medium", "high", "xhigh"}
 ID_PATTERN = re.compile(r"^[a-z0-9]+(?:-[a-z0-9]+)*$")
@@ -157,6 +162,49 @@ def validate_project_profile(
         errors.append(f"unknown project profile fields: {', '.join(unknown_top)}")
     if profile.get("schema_version") != 1:
         errors.append("schema_version must be 1")
+
+    if "studio_experience" in profile:
+        studio_experience = profile["studio_experience"]
+        if not isinstance(studio_experience, dict):
+            errors.append("studio_experience must be a mapping")
+        else:
+            unknown_studio_experience = _unknown_fields(
+                studio_experience,
+                STUDIO_EXPERIENCE_FIELDS,
+            )
+            if unknown_studio_experience:
+                errors.append(
+                    "unknown studio experience fields: "
+                    f"{', '.join(unknown_studio_experience)}"
+                )
+            default_role = studio_experience.get("default_role")
+            if not isinstance(default_role, str) or default_role not in STUDIO_ROLES:
+                errors.append(
+                    "studio experience default_role must be developer, liveops, producer, or qa"
+                )
+            preferred_mode = studio_experience.get("preferred_mode")
+            if not isinstance(preferred_mode, str) or preferred_mode not in STUDIO_MODES:
+                errors.append(
+                    "studio experience preferred_mode must be advanced or basic"
+                )
+            if "enabled_intents" in studio_experience:
+                enabled_intents = studio_experience["enabled_intents"]
+                if not isinstance(enabled_intents, list) or not enabled_intents:
+                    errors.append(
+                        "studio experience enabled_intents must be a non-empty list"
+                    )
+                else:
+                    string_intents: list[str] = []
+                    for intent in enabled_intents:
+                        if not isinstance(intent, str):
+                            errors.append("studio experience intent must be a string")
+                            continue
+                        string_intents.append(intent)
+                    if len(set(string_intents)) != len(string_intents):
+                        errors.append("studio experience enabled_intents must be unique")
+                    for intent in string_intents:
+                        if intent not in STUDIO_INTENTS:
+                            errors.append(f"unknown studio experience intent: {intent}")
 
     workspace = profile.get("workspace")
     if not isinstance(workspace, dict):

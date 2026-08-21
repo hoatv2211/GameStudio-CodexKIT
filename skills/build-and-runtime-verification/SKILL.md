@@ -75,4 +75,4 @@ Include failing command, first actionable error, artifact/log paths, prerequisit
 - [ ] Verdict is PASS, FAIL, or BLOCKED.
 
 ## References and scripts
-Use repository-native commands first, then `python -m unittest`, `python -m compileall`, and kit gate scripts where applicable.
+Read [references/commands.md](references/commands.md) for exit-code capture across shells, environment snapshots, artifact freshness proof, runtime smoke patterns, and the observation-to-verdict mapping. Use repository-native commands first, then `python -m unittest`, `python -m compileall`, and kit gate scripts where applicable.

@@ -363,6 +363,20 @@ capabilities:
   risk_level: read-only
   maturity: beta
   depends_on: [art-asset-pipeline-preflight]
+- id: unity-ui-art-and-motion-production
+  path: skills/unity-ui-art-and-motion-production/SKILL.md
+  type: workflow
+  packs: [content-production]
+  risk_level: medium
+  maturity: experimental
+  depends_on: [safe-project-mutation, art-asset-pipeline-preflight, unity-asset-guid-meta-audit, build-and-runtime-verification]
+- id: game-screenshot-showcase-and-store-packaging
+  path: skills/game-screenshot-showcase-and-store-packaging/SKILL.md
+  type: workflow
+  packs: [content-production]
+  risk_level: medium
+  maturity: experimental
+  depends_on: [playtest-evidence, build-and-runtime-verification, store-submission-checklist]
 - id: audio-content-pipeline-review
   path: skills/audio-content-pipeline-review/SKILL.md
   type: diagnostic

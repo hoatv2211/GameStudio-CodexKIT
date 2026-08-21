@@ -75,4 +75,4 @@ Record current status, affected players, mitigations, rollback state, monitoring
 - [ ] Residual risks and follow-up owners are recorded.
 
 ## References and scripts
-Use project-specific approved incident and rollback runbooks. This kit contains no production service-control runner; unavailable access remains `BLOCKED`.
+Read [references/commands.md](references/commands.md) for read-only identity, timeline, deploy-correlation, multi-indicator impact, and abuse-signal commands, plus the table of actions that stay `BLOCKED` without explicit authority. Use project-specific approved incident and rollback runbooks. This kit contains no production service-control runner; unavailable access remains `BLOCKED`.

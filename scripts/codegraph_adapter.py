@@ -218,6 +218,38 @@ def _plan_digest(plan: dict[str, object]) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
+def _canonical_install_steps(
+    root: Path,
+    *,
+    existing_index: bool,
+    cli_available: bool,
+) -> tuple[list[dict[str, object]], list[list[str]]]:
+    """Build the only argv surface that a reviewed CodeGraph plan may execute."""
+    actions: list[dict[str, object]] = []
+    if not cli_available:
+        actions.append(
+            {
+                "id": "install-cli",
+                "argv": ["npm", "install", "--global", CODEGRAPH_PACKAGE],
+                "owner": "CodeGraph",
+            }
+        )
+    if not existing_index:
+        actions.append(
+            {
+                "id": "initialize-project",
+                "argv": ["codegraph", "init", str(root)],
+                "owner": "CodeGraph",
+            }
+        )
+    restore_argv: list[list[str]] = []
+    if not existing_index:
+        restore_argv.append(["codegraph", "uninit", str(root), "--force"])
+    if not cli_available:
+        restore_argv.append(["npm", "uninstall", "--global", CODEGRAPH_PACKAGE])
+    return actions, restore_argv
+
+
 def create_install_plan(
     root: Path | str,
     *,
@@ -234,29 +266,11 @@ def create_install_plan(
     root_path = Path(root).resolve()
     created_at = _utc_now(now)
     existing_index = (root_path / ".codegraph").is_dir()
-    actions: list[dict[str, object]] = []
-    if not cli_available:
-        actions.append(
-            {
-                "id": "install-cli",
-                "argv": ["npm", "install", "--global", CODEGRAPH_PACKAGE],
-                "owner": "CodeGraph",
-            }
-        )
-    if not existing_index:
-        actions.append(
-            {
-                "id": "initialize-project",
-                "argv": ["codegraph", "init", str(root_path)],
-                "owner": "CodeGraph",
-            }
-        )
-
-    restore_argv: list[list[str]] = []
-    if not existing_index:
-        restore_argv.append(["codegraph", "uninit", str(root_path), "--force"])
-    if not cli_available:
-        restore_argv.append(["npm", "uninstall", "--global", "@colbymchenry/codegraph"])
+    actions, restore_argv = _canonical_install_steps(
+        root_path,
+        existing_index=existing_index,
+        cli_available=cli_available,
+    )
 
     plan: dict[str, object] = {
         "schema_version": 1,
@@ -266,6 +280,7 @@ def create_install_plan(
         "expires_at": (created_at + ttl).isoformat(),
         "reviewer": reviewer.strip(),
         "existing_index": existing_index,
+        "cli_available": bool(cli_available),
         "existing_index_ownership": "USER_OWNED" if existing_index else None,
         "actions": actions,
         "restore_argv": restore_argv,
@@ -284,6 +299,27 @@ def verify_install_plan(
 ) -> dict[str, object]:
     if plan.get("kind") != "CODEGRAPH_INSTALL":
         raise ValueError("not a CodeGraph install plan")
+    try:
+        root_path = Path(str(plan["root"])).resolve()
+    except (KeyError, TypeError, ValueError) as error:
+        raise ValueError("CodeGraph install plan root is invalid") from error
+    if str(plan.get("root")) != str(root_path):
+        raise ValueError("CodeGraph install plan root is not canonical")
+    if not isinstance(plan.get("existing_index"), bool):
+        raise ValueError("CodeGraph install plan existing_index is invalid")
+    if not isinstance(plan.get("cli_available"), bool):
+        raise ValueError("CodeGraph install plan cli_available is invalid")
+    canonical_actions, canonical_restore = _canonical_install_steps(
+        root_path,
+        existing_index=plan["existing_index"],
+        cli_available=plan["cli_available"],
+    )
+    if plan.get("actions") != canonical_actions:
+        raise ValueError("CodeGraph install plan actions are not canonical")
+    if plan.get("restore_argv") != canonical_restore:
+        raise ValueError("CodeGraph install plan restore actions are not canonical")
+    if plan.get("apply_requires") != ["reviewer", "digest", "unexpired_plan"]:
+        raise ValueError("CodeGraph install plan apply gates are not canonical")
     expected_digest = _plan_digest(plan)
     if not hmac.compare_digest(str(plan.get("digest", "")), expected_digest):
         raise ValueError("CodeGraph install plan content has drifted")
@@ -315,14 +351,15 @@ def apply_install_plan(
         now=now,
     )
     root_path = Path(str(verified["root"])).resolve()
+    canonical_actions, canonical_restore = _canonical_install_steps(
+        root_path,
+        existing_index=verified["existing_index"],
+        cli_available=verified["cli_available"],
+    )
     command_runner = runner or _default_runner
     completed_actions: list[dict[str, object]] = []
-    for action in verified.get("actions", []):
-        if not isinstance(action, dict):
-            raise ValueError("CodeGraph install action must be an object")
-        argv = action.get("argv")
-        if not isinstance(argv, list) or not argv or not all(isinstance(item, str) and item for item in argv):
-            raise ValueError("CodeGraph install action argv is invalid")
+    for action in canonical_actions:
+        argv = action["argv"]
         try:
             completed = command_runner(list(argv), cwd=root_path)
         except OSError as error:
@@ -332,7 +369,7 @@ def apply_install_plan(
                 "completed_actions": completed_actions,
                 "failed_action": action.get("id"),
                 "detail": str(error),
-                "restore_argv": verified.get("restore_argv", []),
+                "restore_argv": canonical_restore,
             }
         record = {
             "id": action.get("id"),
@@ -349,7 +386,7 @@ def apply_install_plan(
                 "completed_actions": completed_actions,
                 "failed_action": action.get("id"),
                 "detail": (completed.stderr or completed.stdout).strip(),
-                "restore_argv": verified.get("restore_argv", []),
+                "restore_argv": canonical_restore,
             }
     return {
         "status": "PASS",
@@ -357,7 +394,7 @@ def apply_install_plan(
         "reviewer": reviewer.strip(),
         "plan_digest": digest,
         "completed_actions": completed_actions,
-        "restore_argv": verified.get("restore_argv", []),
+        "restore_argv": canonical_restore,
     }
 
 

@@ -1,0 +1,72 @@
+{
+  "schema_version": 1,
+  "id": "authorized-jx-multirepo-static",
+  "description": "Fresh read-only routing, Unity GUID/meta, and server-authority dogfood against an authorized private multi-repository MMORPG snapshot.",
+  "project": {
+    "name": "AuthorizedJXMultiRepoSnapshot",
+    "kind_matchers": [
+      "authorized JX multi-repository Unity MMORPG",
+      "Unity MMORPG"
+    ]
+  },
+  "case_ids": [
+    "jx-multirepo-route-static",
+    "jx-unity-guid-meta-static",
+    "jx-citywar-authority-static"
+  ],
+  "cases": [
+    {
+      "id": "jx-multirepo-route-static",
+      "workflow": "studio-workspace-routing",
+      "project_kind": "authorized JX multi-repository Unity MMORPG",
+      "prompt": "Validate the real project profile and route a cross-repository reward change through services, authoritative server, and Unity client phases without editing any repository.",
+      "required_artifacts": [
+        "workspace-route",
+        "project-profile",
+        "validation-matrix"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "jx-unity-guid-meta-static",
+      "workflow": "unity-asset-guid-meta-audit",
+      "project_kind": "authorized Unity client snapshot",
+      "prompt": "Audit asset/meta pairing, duplicate GUID ownership, and unresolved serialized GUID references without opening Unity, reimporting, or saving assets.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "guid-meta-report",
+        "verdict"
+      ],
+      "allow_mutation": false
+    },
+    {
+      "id": "jx-citywar-authority-static",
+      "workflow": "network-authority-and-exploit-review",
+      "project_kind": "authorized MMORPG server and center snapshot",
+      "prompt": "Review CityWar authority sync, elite spawn, and cleanup actions for caller binding, validation, replay controls, persistence, and rate limiting without sending traffic.",
+      "required_artifacts": [
+        "command-log",
+        "project-snapshot",
+        "authority-report",
+        "verdict"
+      ],
+      "allow_mutation": false
+    }
+  ],
+  "runner_capabilities": [
+    "file-audit",
+    "git-snapshot",
+    "static-source-review"
+  ],
+  "runtime_targets": [
+    "Codex App/CLI"
+  ],
+  "max_evidence_age_days": 30,
+  "artifact_root_policy": "kit-evidence-local",
+  "promotion_scope": [
+    "studio-workspace-routing",
+    "unity-asset-guid-meta-audit",
+    "network-authority-and-exploit-review"
+  ]
+}

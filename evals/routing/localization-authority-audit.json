@@ -2,6 +2,7 @@
   {"prompt":"Audit localization authority source generated translation keys copies encoding and mojibake","expected_skill":"localization-authority-audit","type":"positive"},
   {"prompt":"Kiểm tra nguồn chuẩn localization key text dịch và file generated","expected_skill":"localization-authority-audit","type":"positive"},
   {"prompt":"translation missing key override authority UTF-8 mojibake game client","expected_skill":"localization-authority-audit","type":"positive"},
+  {"prompt":"Producer hãy lập kế hoạch kiểm tra nguồn authority localization và generated copies, chưa sửa file","expected_skill":"localization-authority-audit","type":"positive"},
   {"prompt":"audit Lua packet opcode RPC client server fields","expected_skill":"lua-client-server-contract-audit","type":"negative","owner":"lua-client-server-contract-audit"},
   {"prompt":"Lua contract request response mismatch","expected_skill":"lua-client-server-contract-audit","type":"negative","owner":"lua-client-server-contract-audit"},
   {"prompt":"localization translation label key differs across client and server generated authority copies","expected_skill":"localization-authority-audit","type":"collision"}

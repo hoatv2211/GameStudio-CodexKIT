@@ -1,0 +1,44 @@
+{
+  "cases": [
+    {
+      "id": "screenshot-checklist-approval-gate",
+      "prompt": "Prepare the Unity screenshot capture checklist, but stop before PlayMode execution because reviewer approval and the approved capture plan are still missing.",
+      "target_skill": "game-screenshot-showcase-and-store-packaging",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["reason", "required_gates", "capture_plan"]
+    },
+    {
+      "id": "screenshot-raw-evidence-preserved",
+      "prompt": "Review approved Unity captures through verify-capture and an HTML contact sheet while preserving raw files and rejected records as immutable evidence.",
+      "target_skill": "game-screenshot-showcase-and-store-packaging",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["capture_records", "contact_sheet", "retained_rejections", "limitations"]
+    },
+    {
+      "id": "screenshot-hash-traceability",
+      "prompt": "Produce a screenshot evidence report that keeps every approved capture traceable by path, byte size, dimensions, and SHA-256 across review and packaging.",
+      "target_skill": "game-screenshot-showcase-and-store-packaging",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["capture_records", "hashes", "runtime_verdict", "visual_verdict", "store_verdict"]
+    },
+    {
+      "id": "screenshot-rejected-slide-exclusion",
+      "prompt": "Build the report-only showcase deck and store manifest from approved screenshots only, excluding rejected capture IDs from final slide slots.",
+      "target_skill": "game-screenshot-showcase-and-store-packaging",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["showcase_deck", "excluded_capture_ids", "store_manifest", "visual_verdict"]
+    },
+    {
+      "id": "screenshot-unity-runner-blocked",
+      "prompt": "Plan the Unity screenshot showcase workflow statically, but return BLOCKED because the Unity Editor or PlayMode runner is unavailable and no approved runtime capture can occur.",
+      "target_skill": "game-screenshot-showcase-and-store-packaging",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["reason", "missing_tools", "preserved_inputs"]
+    }
+  ]
+}

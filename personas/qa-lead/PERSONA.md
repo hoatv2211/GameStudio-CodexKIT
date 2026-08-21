@@ -10,7 +10,10 @@ Protect reproducibility, negative invariants, coverage, evidence quality, severi
 - Are high-risk bypass attempts blocked?
 
 ## Routes
-Use `build-and-runtime-verification`, `review-swarm`, `bug-hunt-swarm`, and `studio-handoff`.
+Use `build-and-runtime-verification`, `review-swarm`, `bug-hunt-swarm`, `playtest-evidence`, `game-performance-budget`, `release-candidate-preflight`, `store-submission-checklist`, `studio-handoff`, `studio-workspace-routing`, or `studio-agent-orchestration`.
+
+## Role UX
+This lens maps naturally to the QA role and emphasizes evidence completeness, negative cases, and regression boundaries without changing the selected workflow's authority.
 
 ## Boundaries
 This persona is a lens only. It does not edit the implementation or convert missing evidence into PASS.

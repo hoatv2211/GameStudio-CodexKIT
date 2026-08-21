@@ -85,6 +85,105 @@ class SkillResourcePackagingTests(unittest.TestCase):
         self.assertEqual(0, result.returncode, result.stdout + result.stderr)
         self.assertIn("release-preflight.schema.json", result.stdout)
 
+    def test_isolated_ui_art_motion_skill_loads_bundled_schemas(self) -> None:
+        source = ROOT / "skills" / "unity-ui-art-and-motion-production"
+        with tempfile.TemporaryDirectory() as temp:
+            isolated = Path(temp) / source.name
+            shutil.copytree(source, isolated)
+            script = isolated / "scripts" / "ui_art_motion.py"
+            self.assertTrue((isolated / "schemas" / "ui-asset-manifest.schema.json").is_file())
+            self.assertTrue((isolated / "schemas" / "ui-motion-manifest.schema.json").is_file())
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    "-c",
+                    (
+                        "import importlib.util, pathlib, sys; "
+                        "path=pathlib.Path(sys.argv[1]); "
+                        "spec=importlib.util.spec_from_file_location('isolated_ui_art_motion', path); "
+                        "module=importlib.util.module_from_spec(spec); "
+                        "spec.loader.exec_module(module); "
+                        "paths=module.schema_paths(); "
+                        "assert all(item.is_file() for item in paths.values()), paths; "
+                        "print(paths)"
+                    ),
+                    str(script),
+                ],
+                cwd=isolated,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("ui-asset-manifest.schema.json", result.stdout)
+        self.assertIn("ui-motion-manifest.schema.json", result.stdout)
+
+    def test_isolated_ui_art_qc_skill_loads_bundled_helper(self) -> None:
+        source = ROOT / "skills" / "unity-ui-art-and-motion-production"
+        with tempfile.TemporaryDirectory() as temp:
+            isolated = Path(temp) / source.name
+            shutil.copytree(source, isolated)
+            script = isolated / "scripts" / "ui_art_qc.py"
+            self.assertTrue((isolated / "schemas" / "ui-design-brief.schema.json").is_file())
+            self.assertTrue((isolated / "schemas" / "ui-art-qc-report.schema.json").is_file())
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    "-c",
+                    (
+                        "import importlib.util, pathlib, sys; "
+                        "path=pathlib.Path(sys.argv[1]); "
+                        "spec=importlib.util.spec_from_file_location('isolated_ui_art_qc', path); "
+                        "module=importlib.util.module_from_spec(spec); "
+                        "spec.loader.exec_module(module); "
+                        "candidates=module._schema_candidates(pathlib.Path('missing/ui-design-brief.schema.json')); "
+                        "schema=next(item for item in candidates if item.is_file()); "
+                        "print(schema)"
+                    ),
+                    str(script),
+                ],
+                cwd=isolated,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("ui-design-brief.schema.json", result.stdout)
+
+    def test_isolated_screenshot_showcase_skill_loads_bundled_schemas(self) -> None:
+        source = ROOT / "skills" / "game-screenshot-showcase-and-store-packaging"
+        with tempfile.TemporaryDirectory() as temp:
+            isolated = Path(temp) / source.name
+            shutil.copytree(source, isolated)
+            script = isolated / "scripts" / "screenshot_showcase.py"
+            result = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    "-c",
+                    (
+                        "import importlib.util, pathlib, sys; "
+                        "path=pathlib.Path(sys.argv[1]); "
+                        "spec=importlib.util.spec_from_file_location('isolated_screenshot_showcase', path); "
+                        "module=importlib.util.module_from_spec(spec); "
+                        "spec.loader.exec_module(module); "
+                        "names=['capture-plan','capture-record','showcase-deck','store-export-manifest']; "
+                        "loaded={name: module._load_schema(name)[0]['$id'] for name in names}; "
+                        "print(loaded)"
+                    ),
+                    str(script),
+                ],
+                cwd=isolated,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+        self.assertEqual(0, result.returncode, result.stdout + result.stderr)
+        self.assertIn("capture-plan.schema.json", result.stdout)
+        self.assertIn("store-export-manifest.schema.json", result.stdout)
+
     def test_release_preflight_skill_documents_helper_dependencies(self) -> None:
         skill = (
             ROOT / "skills" / "release-candidate-preflight" / "SKILL.md"
@@ -112,15 +211,78 @@ class SkillResourcePackagingTests(unittest.TestCase):
                 skill_path,
             )
 
-    def test_readme_marks_root_script_workflows_as_full_clone_maintenance(self) -> None:
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    def test_wiki_marks_root_script_workflows_as_full_clone_maintenance(self) -> None:
+        guide = (ROOT / "docs" / "wiki-skill-agent-user-guide.md").read_text(
+            encoding="utf-8"
+        )
         section = re.search(
-            r"^## Use in a game project\s*$\n(.*?)(?=^## |\Z)",
-            readme,
+            r"^### Scaffold skills and agents into a game project\s*$\n(.*?)(?=^## |\Z)",
+            guide,
             re.MULTILINE | re.DOTALL,
         )
         self.assertIsNotNone(section)
         self.assertIn("full repository clone", section.group(1))
+
+    def test_screenshot_showcase_capability_pack_and_resources_are_registered(self) -> None:
+        capabilities = load_yaml(ROOT / "registry" / "capabilities.yaml")["capabilities"]
+        capability = next(
+            item
+            for item in capabilities
+            if item["id"] == "game-screenshot-showcase-and-store-packaging"
+        )
+        self.assertEqual(
+            {
+                "id": "game-screenshot-showcase-and-store-packaging",
+                "path": "skills/game-screenshot-showcase-and-store-packaging/SKILL.md",
+                "type": "workflow",
+                "packs": ["content-production"],
+                "risk_level": "medium",
+                "maturity": "experimental",
+                "depends_on": [
+                    "playtest-evidence",
+                    "build-and-runtime-verification",
+                    "store-submission-checklist",
+                ],
+            },
+            capability,
+        )
+
+        packs = {item["id"]: item for item in load_yaml(ROOT / "registry" / "packs.yaml")["packs"]}
+        self.assertIn(
+            "game-screenshot-showcase-and-store-packaging",
+            packs["content-production"]["skills"],
+        )
+
+        registry = load_yaml(ROOT / "registry" / "skill-resources.yaml")
+        self.assertEqual(
+            [
+                "screenshot_showcase.py",
+                {
+                    "source": "evals/schema/capture-plan.schema.json",
+                    "destination": "schemas/capture-plan.schema.json",
+                },
+                {
+                    "source": "evals/schema/capture-record.schema.json",
+                    "destination": "schemas/capture-record.schema.json",
+                },
+                {
+                    "source": "evals/schema/showcase-deck.schema.json",
+                    "destination": "schemas/showcase-deck.schema.json",
+                },
+                {
+                    "source": "evals/schema/store-export-manifest.schema.json",
+                    "destination": "schemas/store-export-manifest.schema.json",
+                },
+            ],
+            registry["bundled"]["game-screenshot-showcase-and-store-packaging"],
+        )
+        self.assertIn(
+            {
+                "source": "agents/game-showcase-capture-producer.toml",
+                "destination": "templates/specialists/game-showcase-capture-producer.toml",
+            },
+            registry["bundled"]["studio-project-scaffold"],
+        )
 
     def test_referenced_helpers_are_bundled_or_declared_repository_only(self) -> None:
         from scripts.sync_skill_resources import render_generated_resource

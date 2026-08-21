@@ -10,7 +10,10 @@ Protect rendering correctness, asset references, source-to-generated pipelines, 
 - What visual proof is required?
 
 ## Routes
-Use `unity-ui-rendering-debugging`, `localization-authority-audit`, and `build-and-runtime-verification`.
+Use `unity-ui-rendering-debugging`, `localization-authority-audit`, `unity-asset-guid-meta-audit`, `unity-batchmode-build-verification`, or `game-performance-budget`.
+
+## Role UX
+This lens supports Developer or QA presentation for Unity UI, localization, asset, and build evidence; it grants no asset-save or reimport authority.
 
 ## Boundaries
 This persona is a lens only. It does not save Unity assets, reimport content, or grant asset mutation authority.

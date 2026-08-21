@@ -165,7 +165,7 @@
     .route-arrow { color: var(--faint); }
 
     .stat-band { border-block: 1px solid var(--line); background: rgba(13, 25, 41, .40); }
-    .stats { display: grid; grid-template-columns: repeat(5, 1fr); }
+    .stats { display: grid; grid-template-columns: repeat(6, 1fr); }
     .stat { padding: 23px 18px; border-right: 1px solid var(--line); }
     .stat:first-child { padding-left: 0; } .stat:last-child { border-right: 0; }
     .stat-value { display: block; color: var(--ink); font-size: 1.45rem; font-weight: 650; letter-spacing: -.04em; }
@@ -322,7 +322,8 @@
       .nav.is-open .nav-actions .button-quiet { display: inline-flex; }
       .stats { grid-template-columns: repeat(2, 1fr); }
       .stat, .stat:first-child { padding: 18px 12px; border-bottom: 1px solid var(--line); }
-      .stat:nth-child(2) { border-right: 0; } .stat:nth-child(3), .stat:nth-child(4) { border-bottom: 0; }
+      .stat:nth-child(2n) { border-right: 0; }
+      .stat:nth-last-child(-n + 2) { border-bottom: 0; }
       .hero { padding-top: 68px; }
       .hero-grid { min-width: 0; }
       .hero h1 { font-size: clamp(2.85rem, 14vw, 4.8rem); }
@@ -387,7 +388,7 @@
           <p class="hero-lede">MOStudio Kit gives Codex and Hermes an evidence-first operating layer for <strong>fragile, live, revenue-bearing game projects</strong> — from Unity clients and C++ servers to Lua contracts, player saves, release gates, and liveops incidents.</p>
           <div class="hero-actions">
             <a class="button button-primary" href="#install">Install the kit <span aria-hidden="true">↓</span></a>
-            <a class="button" href="#catalog">Explore 47 skills <span aria-hidden="true">→</span></a>
+            <a class="button" href="#catalog">Explore 49 skills <span aria-hidden="true">→</span></a>
           </div>
           <p class="hero-note"><span class="pulse" aria-hidden="true"></span>Evidence over confidence · BLOCKED is never PASS</p>
         </div>
@@ -411,10 +412,11 @@
 
     <section class="stat-band" aria-label="Project statistics">
       <div class="container stats">
-        <div class="stat"><span class="stat-value cyan">47</span><span class="stat-label">canonical skills</span></div>
-        <div class="stat"><span class="stat-value">22</span><span class="stat-label">canonical agents</span></div>
+        <div class="stat"><span class="stat-value cyan">49</span><span class="stat-label">canonical skills</span></div>
+        <div class="stat"><span class="stat-value">24</span><span class="stat-label">canonical agents</span></div>
         <div class="stat"><span class="stat-value mint">7</span><span class="stat-label">installable packs</span></div>
-        <div class="stat"><span class="stat-value">276/276</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat"><span class="stat-value">306/306</span><span class="stat-label">routing evaluation</span></div>
+        <div class="stat" aria-label="18 governed dogfood scenarios"><span class="stat-value mint">18</span><span class="stat-label">governed dogfood</span></div>
         <div class="stat"><span class="stat-value amber">&#8800; PASS</span><span class="stat-label">BLOCKED contract</span></div>
       </div>
     </section>
@@ -449,7 +451,7 @@
           <article class="pack-card reveal" style="--pack-color: var(--amber)"><div class="pack-index"><span>03 / backend</span><span>mmorpg</span></div><div class="pack-icon">NET</div><h3>C++ / Lua MMORPG</h3><p>Services, MySQL, protocol contracts, crash triage, authority review, and save migrations.</p><span class="pack-count">9 workflows</span></article>
           <article class="pack-card reveal" style="--pack-color: var(--coral)"><div class="pack-index"><span>04 / operations</span><span>liveops</span></div><div class="pack-icon">OPS</div><h3>Production / LiveOps</h3><p>Playtests, performance, economy, balance, release, stores, incidents, and telemetry.</p><span class="pack-count">8 workflows</span></article>
           <article class="pack-card reveal" style="--pack-color: #c4b5fd"><div class="pack-index"><span>05 / planning</span><span>delivery</span></div><div class="pack-icon">PLAN</div><h3>Production Management</h3><p>Production planning, dependency risk, QA strategy, compatibility, and capacity verification.</p><span class="pack-count">5 workflows</span></article>
-          <article class="pack-card reveal" style="--pack-color: #f9a8d4"><div class="pack-index"><span>06 / content</span><span>creative</span></div><div class="pack-icon">ART</div><h3>Content Production</h3><p>Level, narrative, art, animation, and audio production review workflows.</p><span class="pack-count">5 workflows</span></article>
+          <article class="pack-card reveal" style="--pack-color: #f9a8d4"><div class="pack-index"><span>06 / content</span><span>creative</span></div><div class="pack-icon">ART</div><h3>Content Production</h3><p>Level, narrative, art, animation, and audio production review workflows.</p><span class="pack-count">7 workflows</span></article>
           <article class="pack-card reveal" style="--pack-color: #fde68a"><div class="pack-index"><span>07 / product</span><span>experiments</span></div><div class="pack-icon">DATA</div><h3>Product Analytics</h3><p>Product experimentation and governed live content rollout workflows.</p><span class="pack-count">2 workflows</span></article>
         </div>
       </div>
@@ -468,10 +470,10 @@
               <input id="skill-search" type="search" placeholder="Search skills, systems, or outcomes…" autocomplete="off">
               <span class="search-kbd" aria-hidden="true">/</span>
             </label>
-            <span class="result-count" id="result-count" aria-live="polite">47 skills</span>
+            <span class="result-count" id="result-count" aria-live="polite">49 skills</span>
           </div>
           <div class="filters" role="tablist" aria-label="Filter skills by pack">
-            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">47</span></button>
+            <button class="filter" type="button" data-filter="all" aria-selected="true" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>All <span class="filter-total">49</span></button>
             <button class="filter" type="button" data-filter="studio-core" aria-selected="false" style="--filter-color: var(--cyan)"><span class="filter-dot"></span>Studio Core</button>
             <button class="filter" type="button" data-filter="unity" aria-selected="false" style="--filter-color: var(--mint)"><span class="filter-dot"></span>Unity</button>
             <button class="filter" type="button" data-filter="cpp-lua-mmorpg" aria-selected="false" style="--filter-color: var(--amber)"><span class="filter-dot"></span>C++ / Lua MMORPG</button>
@@ -501,7 +503,7 @@
 
     <section class="section lifecycle-section" id="lifecycle">
       <div class="container">
-        <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 47 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
+          <div class="section-heading reveal"><div><span class="eyebrow">The studio lifecycle</span><h2 class="section-title">Ask once.<br>Move through the right gates.</h2></div><p class="section-intro">The catalog is not a checklist of 49 skills. Start with a desired outcome; the router selects a lane, then safety and evidence gates control how far the agent can go.</p></div>
         <p class="lifecycle-scroll-cue" aria-hidden="true">Swipe or scroll horizontally to see all 6 phases →</p>
         <figure class="lifecycle-map reveal" aria-labelledby="lifecycle-map-caption">
           <figcaption id="lifecycle-map-caption" class="eyebrow">Lifecycle phases and outputs</figcaption>
@@ -521,6 +523,7 @@
           <div class="checkpoint-step" style="--risk-color: var(--amber)"><strong>Medium risk</strong><span>Exact scope, backup, restore path, reviewer.</span></div>
           <div class="checkpoint-step" style="--risk-color: var(--coral)"><strong>High risk</strong><span>Human approval and dry-run evidence.</span></div>
         </div>
+        <div class="lifecycle-note reveal"><strong>Eight Golden Path families.</strong> Basic mode asks only when evidence cannot select safely; Advanced mode exposes <span class="mono">--workflow</span> only for a reported candidate. Governed adoption requires 80% intended routing, no run above three questions, first useful verdict within five minutes, zero dependency failures, zero unauthorized writes, PASS task verdicts, and SHA-256-bound artifacts. Missing runner results remain BLOCKED across all 18 scenarios. The experimental Figma-to-Unity UI art workflow remains BLOCKED without a real project and runtime evidence.</div>
         <div class="scenario-heading reveal"><h3>Four common entry routes</h3><p>You describe the job. The kit composes only the skills needed for that path.</p></div>
         <div class="scenario-grid">
           <article class="scenario-card reveal" style="--scenario-color: var(--mint)"><div class="scenario-head"><div><span class="scenario-type">Debug a failure</span><h4>Intake → Debug → Verify</h4></div><p class="scenario-prompt">“Client can't enter offline mode. Fix it.”</p></div><div class="scenario-chain"><span class="scenario-skill">studio-project-intake</span><span class="scenario-arrow">→</span><span class="scenario-skill">evidence-first-debugging</span><span class="scenario-arrow">→</span><span class="scenario-skill">safe-project-mutation</span><span class="scenario-arrow">→</span><span class="scenario-skill">build-and-runtime-verification</span></div></article>
@@ -564,7 +567,7 @@
   <footer>
     <div class="container footer-inner">
       <span>MOStudio Kit · MIT licensed · Evidence over confidence.</span>
-      <nav class="footer-links" aria-label="Footer navigation"><a href="https://github.com/hoatv2211/GameStudio-CodexKIT" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT#readme">README</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/architecture/overview.md">Architecture</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/authoring/dogfood.md">Dogfood contract</a></nav>
+      <nav class="footer-links" aria-label="Footer navigation"><a href="https://github.com/hoatv2211/GameStudio-CodexKIT" target="_blank" rel="noopener">Repository ↗</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT#readme">README</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/huong-dan-su-dung-skill-agent.md">Hướng dẫn VI</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/wiki-skill-agent-user-guide.md">English guide</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/architecture/overview.md">Architecture</a><a href="https://github.com/hoatv2211/GameStudio-CodexKIT/blob/main/docs/authoring/dogfood.md">Dogfood contract</a></nav>
     </div>
   </footer>
 
@@ -621,6 +624,8 @@
       ["art-asset-pipeline-preflight", "content-production", "gate", "read-only", "Use when source art or game assets need preflight across naming, ownership, DCC export, scale, pivots, materials, textures, LOD, collision, compression, import settings, budgets, and delivery; not for GUID-only audits."],
       ["animation-rigging-import-audit", "content-production", "diagnostic", "read-only", "Use when character animation needs an audit across skeleton, rig, skin weights, avatar, retargeting, clips, events, root motion, compression, import settings, runtime blending, and platform budgets; not for general art preflight."],
       ["audio-content-pipeline-review", "content-production", "diagnostic", "read-only", "Use when music, voice, SFX, ambience, or middleware content needs review across source ownership, loudness, codec, streaming, looping, localization, routing, memory, concurrency, platform limits, and integration; not for generic performance budgeting."],
+      ["unity-ui-art-and-motion-production", "content-production", "workflow", "medium", "Use when new or revised Unity UI visuals, icons, panels, 9-slice sprites, component states, HUD or menu layouts, popup motion, screen transitions, or flattened UI screenshot decomposition must be produced through Figma and integrated into uGUI, NGUI, or UI Toolkit; not for UI debugging, localization-only work, character animation, or general art-pipeline audits."],
+      ["game-screenshot-showcase-and-store-packaging", "content-production", "workflow", "medium", "Use when a Unity team needs approved PlayMode screenshots, immutable capture evidence, reviewed showcase slides, or report-only store screenshot packaging without auto-upload, signing, or submission."],
       ["qa-test-strategy-and-coverage", "production-management", "workflow", "read-only", "Use when a game project, milestone, or feature needs a QA test strategy and coverage matrix across risk, test levels, platforms, environments, ownership, automation, regression, evidence, and exit criteria; not for one playtest session."],
       ["platform-device-compatibility-matrix", "production-management", "gate", "read-only", "Use when a game needs a platform and device compatibility matrix across OS, hardware, GPU, memory, resolution, input, network, storefront, certification, test evidence, and support policy; not for store metadata preparation."],
       ["load-soak-capacity-verification", "production-management", "gate", "medium", "Use when servers or online game services need controlled load, soak, concurrency, capacity, saturation, leak, queue, failover, recovery, and scaling verification with baselines and stop conditions; not for client frame budgets."],

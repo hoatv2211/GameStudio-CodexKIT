@@ -30,10 +30,16 @@ class ContinuousIntegrationTests(unittest.TestCase):
             ["ubuntu-latest", "windows-latest"],
             verify["strategy"]["matrix"]["os"],
         )
+        checkout = next(
+            step
+            for step in verify["steps"]
+            if step.get("uses") == "actions/checkout@v7"
+        )
+        self.assertEqual("actions/checkout@v7", checkout["uses"])
         setup_python = next(
             step
             for step in verify["steps"]
-            if step.get("uses") == "actions/setup-python@v5"
+            if step.get("uses") == "actions/setup-python@v7"
         )
         self.assertNotIn("cache", setup_python.get("with", {}))
         run_commands = "\n".join(
@@ -68,6 +74,10 @@ class ContinuousIntegrationTests(unittest.TestCase):
         text = workflow.read_text(encoding="utf-8")
         payload = yaml.safe_load(text)
         self.assertIn("schedule", payload["on"])
+        self.assertIn("actions/checkout@v7", text)
+        self.assertIn("actions/setup-python@v7", text)
+        self.assertNotIn("actions/checkout@v4", text)
+        self.assertNotIn("actions/setup-python@v5", text)
         self.assertIn("behavior_eval.py . --export behavior-cases.jsonl", text)
         self.assertIn("behavior_eval.py . --status behavior-status.json", text)
         self.assertIn("pressure_eval.py . --export pressure-cases.jsonl", text)

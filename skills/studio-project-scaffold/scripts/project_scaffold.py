@@ -12,7 +12,7 @@ import uuid
 
 import yaml
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 try:
@@ -55,6 +55,21 @@ def _is_reparse_point(path: Path) -> bool:
     except OSError:
         return True
     return path.is_symlink() or bool(attributes & 0x400)
+
+
+def _manifest_owned_path(root: Path, relative: object) -> tuple[str, Path]:
+    if not isinstance(relative, str) or not relative.strip():
+        raise ValueError("managed install manifest contains an invalid path")
+    normalized = relative.replace("\\", "/")
+    portable = PurePosixPath(normalized)
+    if portable.is_absolute() or any(part in {"", ".", ".."} for part in portable.parts):
+        raise ValueError(f"managed install manifest path escapes project root: {relative}")
+    target = root.joinpath(*portable.parts)
+    try:
+        target.relative_to(root)
+    except ValueError as error:
+        raise ValueError(f"managed install manifest path escapes project root: {relative}") from error
+    return portable.as_posix(), target
 
 
 def _walk(root: Path, exclusions: Iterable[str] = ()) -> Iterable[tuple[Path, tuple[str, ...], tuple[str, ...]]]:
@@ -173,6 +188,17 @@ def draft_project_profile(root: Path | str) -> dict[str, object]:
         ),
         "agents": {"specialists": []},
         "cross_project_contracts": [],
+        "studio_experience": {
+            "default_role": "developer",
+            "preferred_mode": "basic",
+            "enabled_intents": [
+                "diagnose",
+                "verify",
+                "plan-change",
+                "ship",
+                "handle-incident",
+            ],
+        },
     }
 
 
@@ -314,6 +340,38 @@ def _plan_digest(mutation_report: dict[str, object]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _validate_scaffold_backup(
+    root: Path,
+    backup_root: Path | str,
+    operations: Iterable[dict[str, str]],
+) -> Path:
+    if not str(backup_root).strip():
+        raise ValueError("scaffold backup root is required for scaffold apply")
+    backup = Path(backup_root).resolve()
+    try:
+        backup.relative_to(root)
+    except ValueError as error:
+        raise ValueError(
+            "scaffold backup root must remain inside the project root"
+        ) from error
+    if backup == root:
+        raise ValueError("scaffold backup root must be below the project root")
+    for operation in operations:
+        target = (root / operation["path"]).resolve()
+        if target == backup or target in backup.parents or backup in target.parents:
+            raise ValueError(
+                f"scaffold backup root overlaps scaffold output: {operation['path']}"
+            )
+        for parent in target.parents:
+            if parent == root:
+                break
+            if parent == backup or parent in backup.parents or backup in parent.parents:
+                raise ValueError(
+                    f"scaffold backup root overlaps scaffold output: {operation['path']}"
+                )
+    return backup
+
+
 def _install_manifest_content(root: Path, operations: list[dict[str, str]]) -> str:
     files = [
         {"path": operation["path"], "sha256": _sha256_text(operation["content"])}
@@ -445,22 +503,31 @@ def apply_scaffold(
     *,
     reviewer: str,
     backup_root: Path | str,
-    approved_plan_digest: str | None = None,
+    approved_plan_digest: str,
     codegraph_runner: CommandRunner | None = None,
     codegraph_preference: str | None = None,
 ) -> dict[str, object]:
-    if not reviewer.strip():
+    if not isinstance(reviewer, str):
+        raise ValueError("reviewer must be a string for scaffold apply")
+    reviewer_value = reviewer.strip()
+    if not reviewer_value:
         raise ValueError("reviewer is required for scaffold apply")
+    if not isinstance(approved_plan_digest, str):
+        raise ValueError("approved plan digest must be a string for scaffold apply")
+    approved_plan_digest_value = approved_plan_digest.strip()
+    if not approved_plan_digest_value:
+        raise ValueError("approved plan digest is required for scaffold apply")
     root_path = Path(root).resolve()
     operations, preserved, profile, skill_plan, agent_plan = _scaffold_operations(root_path)
     mutation_report = report_mutation(root_path, operations)
     plan_digest = _plan_digest(mutation_report)
-    if approved_plan_digest is not None and approved_plan_digest.strip() != plan_digest:
+    if approved_plan_digest_value != plan_digest:
         raise ValueError("scaffold plan changed since report; review the new plan digest")
+    backup_path = _validate_scaffold_backup(root_path, backup_root, operations)
     manifest_path = apply_mutation(
         root_path,
         operations,
-        backup_root,
+        backup_path,
         expected_operations=mutation_report["operations"],
     )
     complexity = analyze_project_complexity(
@@ -490,7 +557,7 @@ def apply_scaffold(
             [*skill_plan["collisions"], *agent_plan["collisions"]],
             key=lambda collision: collision["path"],
         ),
-        "reviewer": reviewer,
+        "reviewer": reviewer_value,
         "manifest": str(manifest_path),
         "restore_argv": [
             sys.executable,
@@ -507,6 +574,8 @@ def apply_scaffold(
 
 def _load_install_manifest(root: Path) -> dict[str, object] | None:
     path = root / ".agents" / "gamestudio-install.json"
+    if _is_reparse_point(path):
+        raise ValueError("managed install manifest is a symlink or reparse point")
     if not path.is_file():
         return None
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -523,9 +592,8 @@ def scaffold_status(root: Path | str) -> dict[str, object]:
     owned: list[str] = []
     drift: list[str] = []
     for item in manifest.get("files", []):
-        relative = str(item["path"])
-        target = root_path / relative
-        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+        relative, target = _manifest_owned_path(root_path, item.get("path"))
+        if not _is_reparse_point(target) and target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
             owned.append(relative)
         else:
             drift.append(relative)
@@ -551,9 +619,10 @@ def uninit_scaffold(
     removable: list[str] = []
     drift: list[str] = []
     for item in manifest.get("files", []):
-        relative = str(item["path"])
-        target = root_path / relative
-        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+        relative, target = _manifest_owned_path(root_path, item.get("path"))
+        if _is_reparse_point(target):
+            drift.append(relative)
+        elif target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
             removable.append(relative)
         else:
             drift.append(relative)
@@ -574,8 +643,9 @@ def uninit_scaffold(
     targets = [*removable, ".agents/gamestudio-install.json"]
     try:
         for relative in targets:
-            source = (root_path / relative).resolve()
-            source.relative_to(root_path)
+            _normalized, source = _manifest_owned_path(root_path, relative)
+            if _is_reparse_point(source):
+                raise ValueError(f"owned scaffold path is a symlink or reparse point: {relative}")
             if not source.is_file():
                 continue
             destination = backup_path / relative
@@ -614,14 +684,16 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("--apply", action="store_true")
     parser.add_argument("--reviewer")
     parser.add_argument("--backup-root")
+    parser.add_argument("--plan-digest")
     args = parser.parse_args(argv)
     if args.apply:
-        if not args.reviewer or not args.backup_root:
-            parser.error("--apply requires --reviewer and --backup-root")
+        if not args.reviewer or not args.backup_root or not args.plan_digest:
+            parser.error("--apply requires --reviewer, --backup-root, and --plan-digest")
         report = apply_scaffold(
             Path(args.root),
             reviewer=args.reviewer,
             backup_root=Path(args.backup_root),
+            approved_plan_digest=args.plan_digest,
         )
     else:
         report = scaffold_project(Path(args.root))

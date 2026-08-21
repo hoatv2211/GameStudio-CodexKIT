@@ -31,6 +31,8 @@ metadata:
 ## Overview
 Create the minimum project-local governance, project profile, routing references, and agent-role overlay needed for safe multi-session work while preserving existing instructions, configuration, skills, and agents.
 
+Newly generated profiles include optional `studio_experience` defaults for role, mode, and enabled intents. These defaults affect routing presentation only. Use `gamestudio guide` for a report-only Golden Path packet; `gamestudio init --apply` remains a separate reviewed mutation.
+
 ## When to use
 Use for a new game repository, an inherited legacy project without agent governance, or a project that needs standardized ownership, evidence labels, and handoff state.
 
@@ -58,8 +60,8 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
    Completion criterion: unmanaged agents and active configuration remain preserved.
 8. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
    Completion criterion: scaffold output is parseable and unresolved runtime facts remain Unverified or BLOCKED.
-9. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
-   Completion criterion: uninstall never deletes unmanaged or drifted project content.
+9. Run uninstall report-only first and review its `plan_digest`, `proposed`, `preserved_drift`, and `remaining_owned` paths. Apply only with a named reviewer, a disjoint backup root, and that matching digest. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
+   Completion criterion: uninstall never deletes unmanaged or drifted project content and cannot bypass the approval gates.
 
 ## Evidence and output contract
 Produce `scaffold-report.json` with subsystem detection, source snapshots, proposed files, created files, preserved files, collisions, reviewer, and verification results. The separate per-project adapter report uses the implemented fields named in workflow step 4; do not rename them into the scaffold report.
@@ -77,7 +79,9 @@ Record project path, detected subsystems, existing local skills and agents, crea
 
 ## Verification checklist
 - [ ] Report-only ran before apply.
-- [ ] Reviewer, backup root, and approved plan digest match the reviewed adapter report.
+- [ ] The selected apply entry point received its named reviewer and the approved digest from its reviewed report.
+- [ ] Direct API, standalone script, and `gamestudio init --apply` independently enforce the same canonical approval contract; adapters forward the selected values to the API, and parity verification does not require an operator to run all three.
+- [ ] Backup root is project-local and does not overlap any proposed scaffold output.
 - [ ] Existing governance and local skills were preserved.
 - [ ] Generic templates and profile specialists were collision-checked.
 - [ ] Activation stayed inert and `.codex/config.toml` stayed untouched.
@@ -87,4 +91,4 @@ Record project path, detected subsystems, existing local skills and agents, crea
 - [ ] Runtime facts remain Unverified or BLOCKED until checked.
 
 ## References and scripts
-Use the bundled [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.
+Use the bundled [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/studio_experience.py](scripts/studio_experience.py) for report-only role-aware Golden Path planning and [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.

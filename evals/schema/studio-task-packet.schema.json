@@ -1,0 +1,126 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/studio-task-packet.schema.json",
+  "title": "GameStudio role-aware task packet",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "status",
+    "role",
+    "intent",
+    "mode",
+    "golden_path",
+    "selected_workflow",
+    "candidates",
+    "workflow_candidates",
+    "questions",
+    "risk_level",
+    "prerequisites",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "status": {"enum": ["READY", "AMBIGUOUS", "BLOCKED"]},
+    "role": {"enum": ["developer", "qa", "producer", "liveops"]},
+    "intent": {"enum": ["diagnose", "verify", "plan-change", "ship", "handle-incident"]},
+    "mode": {"enum": ["basic", "advanced"]},
+    "golden_path": {
+      "type": ["string", "null"],
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "selected_workflow": {
+      "type": ["string", "null"],
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "candidates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "workflow_candidates": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+      }
+    },
+    "questions": {
+      "type": "array",
+      "maxItems": 1,
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+    },
+    "risk_level": {"enum": ["read-only", "low", "medium", "high"]},
+    "prerequisites": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+    },
+    "next_action": {"type": "string", "minLength": 1, "pattern": "\\S"}
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {"status": {"const": "READY"}},
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "golden_path": {"type": "string"},
+          "selected_workflow": {"type": "string"},
+          "candidates": {"minItems": 1, "maxItems": 1},
+          "workflow_candidates": {"minItems": 1, "maxItems": 1},
+          "questions": {"maxItems": 0},
+          "prerequisites": {"maxItems": 0}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "AMBIGUOUS"}},
+        "required": ["status"]
+      },
+      "then": {
+        "oneOf": [
+          {
+            "properties": {
+              "golden_path": {"const": null},
+              "selected_workflow": {"const": null},
+              "candidates": {"minItems": 2, "maxItems": 2},
+              "workflow_candidates": {"minItems": 2},
+              "questions": {"minItems": 1, "maxItems": 1},
+              "prerequisites": {"maxItems": 0}
+            }
+          },
+          {
+            "properties": {
+              "golden_path": {"type": "string"},
+              "selected_workflow": {"const": null},
+              "candidates": {"minItems": 1, "maxItems": 1},
+              "workflow_candidates": {"minItems": 2},
+              "questions": {"minItems": 1, "maxItems": 1},
+              "prerequisites": {"maxItems": 0}
+            }
+          }
+        ]
+      }
+    },
+    {
+      "if": {
+        "properties": {"status": {"const": "BLOCKED"}},
+        "required": ["status"]
+      },
+      "then": {
+        "properties": {
+          "selected_workflow": {"const": null},
+          "questions": {"maxItems": 0},
+          "prerequisites": {"minItems": 1}
+        }
+      }
+    }
+  ]
+}

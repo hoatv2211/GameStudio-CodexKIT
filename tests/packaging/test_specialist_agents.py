@@ -16,6 +16,7 @@ SPECIALIST_IDS = {
     "lua-gameplay",
     "game-data-engineer",
     "technical-artist",
+    "ui-motion-artist",
     "ui-localization-specialist",
     "systems-game-designer",
     "qa-automation",
@@ -28,6 +29,7 @@ SPECIALIST_IDS = {
     "asset-pipeline-specialist",
     "audio-engineer",
     "product-analyst",
+    "game-showcase-capture-producer",
 }
 
 
@@ -39,10 +41,52 @@ class SpecialistAgentCatalogTests(unittest.TestCase):
         )
         self.roles = {entry["id"]: entry for entry in registry["agent_roles"]}
 
-    def test_registry_contains_the_nineteen_opt_in_specialists(self) -> None:
+    def test_registry_contains_all_opt_in_specialists(self) -> None:
         self.assertEqual(SPECIALIST_IDS, set(self.roles) - {"investigator", "implementer", "verifier"})
         for role_id in SPECIALIST_IDS:
             self.assertEqual("specialist", self.roles[role_id]["kind"])
+
+    def test_ui_motion_artist_owns_ui_art_only_and_keeps_runtime_gate(self) -> None:
+        role = self.roles["ui-motion-artist"]
+        self.assertEqual(
+            [
+                "unity-ui-art-and-motion-production",
+                "art-asset-pipeline-preflight",
+                "unity-asset-guid-meta-audit",
+                "build-and-runtime-verification",
+            ],
+            role["required_skills"],
+        )
+        self.assertIn("install animation or tween packages", role["forbidden_actions"])
+        self.assertIn("approve own runtime verdict", role["forbidden_actions"])
+
+    def test_game_showcase_capture_producer_stays_within_capture_and_packaging_scope(self) -> None:
+        role = self.roles["game-showcase-capture-producer"]
+        self.assertEqual(
+            [
+                "game-screenshot-showcase-and-store-packaging",
+                "playtest-evidence",
+                "build-and-runtime-verification",
+                "store-submission-checklist",
+            ],
+            role["required_skills"],
+        )
+        self.assertEqual("Game screenshot showcase production", role["discipline"])
+        self.assertEqual("workspace-write", role["sandbox_mode"])
+        self.assertEqual("high", role["reasoning_effort"])
+        self.assertIn("showcase/**", role["owned_scope_patterns"])
+        self.assertIn("tests/**", role["read_scope_patterns"])
+        self.assertIn("credential access", role["forbidden_actions"])
+        self.assertIn("evidence deletion", role["forbidden_actions"])
+        self.assertEqual(
+            [
+                "focused helper tests",
+                "Unity PlayMode evidence",
+                "artifact integrity",
+            ],
+            role["validation_commands"],
+        )
+        self.assertEqual("screenshot-showcase-writer", role["concurrency_group"])
 
     def test_specialist_metadata_and_templates_match(self) -> None:
         for role_id in SPECIALIST_IDS:

@@ -44,11 +44,11 @@
   <g font-family="Segoe UI, Inter, Helvetica, Arial, sans-serif" font-size="14" font-weight="700">
     <g>
       <rect x="272" y="208" width="152" height="34" rx="17" fill="#0f2536" stroke="#155e75" stroke-width="1.5"/>
-      <text x="348" y="230" text-anchor="middle" fill="#67e8f9">47 SKILLS</text>
+      <text x="348" y="230" text-anchor="middle" fill="#67e8f9">49 SKILLS</text>
     </g>
     <g>
       <rect x="438" y="208" width="152" height="34" rx="17" fill="#10273a" stroke="#1d4ed8" stroke-width="1.5"/>
-      <text x="514" y="230" text-anchor="middle" fill="#93c5fd">22 AGENTS</text>
+      <text x="514" y="230" text-anchor="middle" fill="#93c5fd">24 AGENTS</text>
     </g>
     <g>
       <rect x="604" y="208" width="136" height="34" rx="17" fill="#0f2b22" stroke="#166534" stroke-width="1.5"/>
@@ -56,7 +56,7 @@
     </g>
     <g>
       <rect x="754" y="208" width="198" height="34" rx="17" fill="#2b2410" stroke="#854d0e" stroke-width="1.5"/>
-      <text x="853" y="230" text-anchor="middle" fill="#fcd34d">ROUTING 276/276</text>
+      <text x="853" y="230" text-anchor="middle" fill="#fcd34d">ROUTING 306/306</text>
     </g>
   </g>
 
