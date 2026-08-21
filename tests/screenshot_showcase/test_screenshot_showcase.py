@@ -623,7 +623,9 @@ class ScreenshotShowcaseHelperTests(unittest.TestCase):
                 output_root=export_root,
             )
             self.assertEqual("steam", export_manifest["platform"])
-            self.assertTrue(Path(export_manifest["artifact_path"]).is_relative_to(export_root))
+            canonical_artifact = Path(module._path_identity(Path(export_manifest["artifact_path"])))
+            canonical_export_root = Path(module._path_identity(export_root))
+            self.assertTrue(canonical_artifact.is_relative_to(canonical_export_root))
 
     def test_build_contact_sheet_blocks_reparse_point_output_parent(self) -> None:
         module = self.require_helper_module()
