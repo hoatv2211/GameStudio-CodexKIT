@@ -33,12 +33,12 @@ class CodexPluginPackagingTests(unittest.TestCase):
         self.assertEqual(49, skill_count)
         self.assertEqual(24, agent_count)
         self.assertEqual(7, pack_count)
-        self.assertEqual(305, routing.total)
-        self.assertEqual(305, routing.passed)
+        self.assertEqual(306, routing.total)
+        self.assertEqual(306, routing.passed)
         self.assertIn("49 SKILLS", banner)
         self.assertIn("24 AGENTS", banner)
         self.assertIn("7 PACKS", banner)
-        self.assertIn("ROUTING 305/305", banner)
+        self.assertIn("ROUTING 306/306", banner)
         self.assertIn("MOStudio Kit", banner)
         self.assertIn("<title>MOStudio Kit · Operate live games</title>", landing)
         self.assertIn("# MOStudio Kit", readme)
@@ -46,7 +46,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         self.assertIn('>49</span><span class="stat-label">canonical skills', landing)
         self.assertIn('>24</span><span class="stat-label">canonical agents', landing)
         self.assertIn('>7</span><span class="stat-label">installable packs', landing)
-        self.assertIn(">305/305</span><span class=\"stat-label\">routing evaluation", landing)
+        self.assertIn(">306/306</span><span class=\"stat-label\">routing evaluation", landing)
         self.assertIn(
             '<h3>Content Production</h3><p>Level, narrative, art, animation, and audio production review workflows.</p><span class="pack-count">7 workflows</span>',
             landing,
@@ -57,7 +57,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         )
         self.assertIn("49 canonical skills", readme)
         self.assertIn("24 canonical agent roles", readme)
-        self.assertIn("305 deterministic eval cases", readme)
+        self.assertIn("306 deterministic eval cases", readme)
 
     def test_distribution_versions_are_exact_and_synchronized(self) -> None:
         manifest = json.loads(
@@ -68,8 +68,8 @@ class CodexPluginPackagingTests(unittest.TestCase):
 
         manifest_version = manifest["version"]
         pyproject_version = pyproject["project"]["version"]
-        self.assertEqual("1.6.3", manifest_version)
-        self.assertEqual("1.6.3", pyproject_version)
+        self.assertEqual("1.6.5", manifest_version)
+        self.assertEqual("1.6.5", pyproject_version)
         self.assertEqual(manifest_version, pyproject_version)
 
     def test_root_manifest_packages_the_canonical_skill_catalog(self) -> None:
@@ -78,7 +78,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.6.3", manifest["version"])
+        self.assertEqual("1.6.5", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])

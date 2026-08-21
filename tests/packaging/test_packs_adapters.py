@@ -5740,7 +5740,7 @@ print(json.dumps({
 
                 self.assertFalse(project.exists())
 
-    def test_project_adapter_cli_apply_requires_plan_digest_and_uninstall_rejects_review_args(self) -> None:
+    def test_project_adapter_cli_apply_requires_plan_digest_and_uninstall_requires_apply_approval(self) -> None:
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             project = Path(temp) / "project"
@@ -5789,8 +5789,96 @@ print(json.dumps({
             self.assertNotEqual(0, apply_missing_digest.returncode)
             self.assertIn("--plan-digest", apply_missing_digest.stderr)
             self.assertNotEqual(0, uninstall_with_review.returncode)
-            self.assertIn("cannot be used with --uninstall", uninstall_with_review.stderr)
+            self.assertIn("require --apply", uninstall_with_review.stderr)
             self.assertFalse(project.exists())
+
+    def test_project_adapter_cli_uninstall_requires_explicit_apply_approval(self) -> None:
+        source_root = Path(__file__).resolve().parents[2]
+        from scripts.generate_adapters import _uninstall_plan_digest
+
+        with temporary_directory() as temp:
+            project = Path(temp) / "project"
+            apply_reviewed_project_adapter(
+                source_root,
+                project,
+                reviewer="QA Lead",
+                backup_root=project / ".adapter-backup",
+            )
+            generated = project / ".agents" / "skills" / "studio-project-intake" / "SKILL.md"
+            self.assertTrue(generated.is_file())
+            script = str(source_root / "scripts" / "generate_adapters.py")
+            report = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    script,
+                    str(source_root),
+                    "--target",
+                    "per-project",
+                    "--output",
+                    str(project),
+                    "--uninstall",
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(0, report.returncode, report.stdout + report.stderr)
+            report_payload = json.loads(report.stdout)
+            self.assertEqual("REPORT_ONLY", report_payload["status"])
+            self.assertEqual(_uninstall_plan_digest(project), report_payload["plan_digest"])
+            self.assertTrue(generated.is_file())
+
+            rejected = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    script,
+                    str(source_root),
+                    "--target",
+                    "per-project",
+                    "--output",
+                    str(project),
+                    "--uninstall",
+                    "--reviewer",
+                    "QA Lead",
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertNotEqual(0, rejected.returncode)
+            self.assertIn("require --apply", rejected.stderr)
+            self.assertTrue(generated.is_file())
+
+            approved = subprocess.run(
+                [
+                    sys.executable,
+                    "-B",
+                    script,
+                    str(source_root),
+                    "--target",
+                    "per-project",
+                    "--output",
+                    str(project),
+                    "--uninstall",
+                    "--apply",
+                    "--reviewer",
+                    "QA Lead",
+                    "--backup-root",
+                    str(project.parent / "uninstall-backup"),
+                    "--plan-digest",
+                    _uninstall_plan_digest(project),
+                ],
+                cwd=source_root,
+                check=False,
+                capture_output=True,
+                text=True,
+            )
+            self.assertEqual(0, approved.returncode, approved.stdout + approved.stderr)
+            self.assertFalse(generated.exists())
 
     def test_project_adapter_preserves_unmanaged_specialist_collision(self) -> None:
         import tomllib

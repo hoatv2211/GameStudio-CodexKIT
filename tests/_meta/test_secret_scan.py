@@ -62,6 +62,15 @@ class SecretScanTests(unittest.TestCase):
                 {(finding.kind, finding.path.as_posix()) for finding in findings},
             )
 
+    def test_detects_unquoted_dotenv_and_yaml_high_entropy_assignments(self) -> None:
+        from scripts.secret_scan import scan_text
+
+        value = "AbCdEfGhIjKlMnOpQrStUvWxYz0123456789+/="
+        text = f"API_KEY={value}\napi_key: {value} # deployment key\n"
+        findings = scan_text(text, Path(".env"))
+        self.assertEqual(2, len(findings))
+        self.assertEqual({"high-entropy-secret"}, {finding.kind for finding in findings})
+
 
 if __name__ == "__main__":
     unittest.main()

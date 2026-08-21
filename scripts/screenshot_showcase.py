@@ -144,6 +144,11 @@ def _path_anchor(path: Path) -> Path:
     return Path(absolute.anchor) if absolute.anchor else absolute
 
 
+def _path_identity(path: Path) -> str:
+    """Compare filesystem paths after expanding aliases such as Windows 8.3 names."""
+    return os.path.normcase(os.path.realpath(os.fspath(path)))
+
+
 def _split_missing_ancestors(path: Path) -> tuple[Path, list[Path]]:
     current = path if path.is_absolute() else path.absolute()
     missing: list[Path] = []
@@ -160,11 +165,12 @@ def _split_missing_ancestors(path: Path) -> tuple[Path, list[Path]]:
 
 def _check_existing_path_chain(path: Path, boundary: Path) -> str | None:
     boundary_resolved = boundary.resolve(strict=False)
+    boundary_identity = _path_identity(boundary_resolved)
     current = path if path.is_absolute() else path.absolute()
     while True:
         if _contains_reparse_point(current):
             return f"reparse point is not allowed: {current}"
-        if current == boundary_resolved:
+        if _path_identity(current) == boundary_identity:
             return None
         if current.parent == current:
             return f"path escapes boundary: {path}"

@@ -104,6 +104,8 @@ bundled:
     destination: schemas/ui-design-brief.schema.json
   - source: evals/schema/ui-asset-manifest.schema.json
     destination: schemas/ui-asset-manifest.schema.json
+  - source: evals/schema/ui-decomposition-manifest.schema.json
+    destination: schemas/ui-decomposition-manifest.schema.json
   - source: evals/schema/ui-motion-manifest.schema.json
     destination: schemas/ui-motion-manifest.schema.json
   - source: evals/schema/ui-art-qc-report.schema.json

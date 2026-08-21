@@ -23,9 +23,11 @@ PATTERNS = (
     ("aws-access-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
 )
 ASSIGNMENT_PATTERN = re.compile(
-    r"(?i)\b(?:password|passwd|secret|token|api[_-]?key|client[_-]?secret)\b\s*[:=]\s*['\"]([^'\"]{20,})['\"]"
+    r"(?i)\b(?:password|passwd|secret|token|api[_-]?key|client[_-]?secret)\b"
+    r"\s*[:=]\s*(?:['\"](?P<quoted>[^'\"]{20,})['\"]|(?P<unquoted>[^\s#;,]{20,}))"
 )
 PLACEHOLDER_MARKERS = ("example", "redacted", "placeholder", "changeme", "dummy", "sample")
+PLACEHOLDER_SYNTAX = re.compile(r"(?:\$\{[^}]+\}|\{[^{}]+\}|<[^>]+>)")
 EXCLUDED_DIRECTORY_NAMES = {
     ".archive",
     ".git",
@@ -48,7 +50,9 @@ def _entropy(value: str) -> float:
 
 def _is_placeholder(value: str) -> bool:
     folded = value.casefold()
-    return any(marker in folded for marker in PLACEHOLDER_MARKERS)
+    return any(marker in folded for marker in PLACEHOLDER_MARKERS) or bool(
+        PLACEHOLDER_SYNTAX.search(value)
+    )
 
 
 def _preview(line: str) -> str:
@@ -74,7 +78,7 @@ def scan_text(text: str, path: Path) -> list[SecretFinding]:
         if specific_match:
             continue
         for match in ASSIGNMENT_PATTERN.finditer(line):
-            value = match.group(1)
+            value = match.group("quoted") or match.group("unquoted") or ""
             if _is_placeholder(value) or _entropy(value) < 3.5:
                 continue
             key = ("high-entropy-secret", line_number)

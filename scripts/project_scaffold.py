@@ -10,7 +10,7 @@ import uuid
 
 import yaml
 
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Iterable
 
 try:
@@ -53,6 +53,21 @@ def _is_reparse_point(path: Path) -> bool:
     except OSError:
         return True
     return path.is_symlink() or bool(attributes & 0x400)
+
+
+def _manifest_owned_path(root: Path, relative: object) -> tuple[str, Path]:
+    if not isinstance(relative, str) or not relative.strip():
+        raise ValueError("managed install manifest contains an invalid path")
+    normalized = relative.replace("\\", "/")
+    portable = PurePosixPath(normalized)
+    if portable.is_absolute() or any(part in {"", ".", ".."} for part in portable.parts):
+        raise ValueError(f"managed install manifest path escapes project root: {relative}")
+    target = root.joinpath(*portable.parts)
+    try:
+        target.relative_to(root)
+    except ValueError as error:
+        raise ValueError(f"managed install manifest path escapes project root: {relative}") from error
+    return portable.as_posix(), target
 
 
 def _walk(root: Path, exclusions: Iterable[str] = ()) -> Iterable[tuple[Path, tuple[str, ...], tuple[str, ...]]]:
@@ -557,6 +572,8 @@ def apply_scaffold(
 
 def _load_install_manifest(root: Path) -> dict[str, object] | None:
     path = root / ".agents" / "gamestudio-install.json"
+    if _is_reparse_point(path):
+        raise ValueError("managed install manifest is a symlink or reparse point")
     if not path.is_file():
         return None
     data = json.loads(path.read_text(encoding="utf-8"))
@@ -573,9 +590,8 @@ def scaffold_status(root: Path | str) -> dict[str, object]:
     owned: list[str] = []
     drift: list[str] = []
     for item in manifest.get("files", []):
-        relative = str(item["path"])
-        target = root_path / relative
-        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+        relative, target = _manifest_owned_path(root_path, item.get("path"))
+        if not _is_reparse_point(target) and target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
             owned.append(relative)
         else:
             drift.append(relative)
@@ -601,9 +617,10 @@ def uninit_scaffold(
     removable: list[str] = []
     drift: list[str] = []
     for item in manifest.get("files", []):
-        relative = str(item["path"])
-        target = root_path / relative
-        if target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
+        relative, target = _manifest_owned_path(root_path, item.get("path"))
+        if _is_reparse_point(target):
+            drift.append(relative)
+        elif target.is_file() and hashlib.sha256(target.read_bytes()).hexdigest() == item["sha256"]:
             removable.append(relative)
         else:
             drift.append(relative)
@@ -624,8 +641,9 @@ def uninit_scaffold(
     targets = [*removable, ".agents/gamestudio-install.json"]
     try:
         for relative in targets:
-            source = (root_path / relative).resolve()
-            source.relative_to(root_path)
+            _normalized, source = _manifest_owned_path(root_path, relative)
+            if _is_reparse_point(source):
+                raise ValueError(f"owned scaffold path is a symlink or reparse point: {relative}")
             if not source.is_file():
                 continue
             destination = backup_path / relative

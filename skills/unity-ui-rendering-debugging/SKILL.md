@@ -75,4 +75,4 @@ Record scene/prefab paths, hierarchy, framework version, expected state, inspect
 - [ ] Any proposed edit is reversible and scoped.
 
 ## References and scripts
-Use project scenes, prefabs, UI framework docs already vendored in the project, and Unity logs. Avoid package upgrades during diagnosis.
+Read [references/commands.md](references/commands.md) for stack detection markers, serialized-value inspection, runtime probes, camera culling checks, and the diagnostic order that avoids false draw-order root causes. Use project scenes, prefabs, UI framework docs already vendored in the project, and Unity logs. Avoid package upgrades during diagnosis.

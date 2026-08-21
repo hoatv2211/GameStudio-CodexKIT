@@ -820,6 +820,27 @@ class ScreenshotShowcaseHelperTests(unittest.TestCase):
             self.assertEqual("FAIL", result["verdict"])
             self.assertTrue(any("reparse point is not allowed" in item for item in result["failures"]))
 
+    def test_existing_path_chain_accepts_windows_short_name_alias(self) -> None:
+        module = self.require_helper_module()
+        with TemporaryDirectory() as temp_dir:
+            workspace = Path(temp_dir)
+            alias = workspace / "RUNNER~1" / "work"
+            canonical = workspace / "runneradmin" / "work"
+            original_realpath = module.os.path.realpath
+
+            def realpath(value: object, **_kwargs: object) -> str:
+                text = str(value)
+                alias_root = alias.parent
+                canonical_root = canonical.parent
+                if text.startswith(str(alias_root)):
+                    return str(canonical_root) + text[len(str(alias_root)) :]
+                return original_realpath(value)
+
+            with mock.patch.object(module.os.path, "realpath", side_effect=realpath), mock.patch.object(
+                module, "_contains_reparse_point", return_value=False
+            ):
+                self.assertIsNone(module._check_existing_path_chain(alias, canonical))
+
     def test_verify_capture_record_uses_a_single_opened_file_view(self) -> None:
         module = self.require_helper_module()
         png_a = make_png_bytes(rgb=(255, 0, 0))

@@ -211,11 +211,13 @@ class SkillResourcePackagingTests(unittest.TestCase):
                 skill_path,
             )
 
-    def test_readme_marks_root_script_workflows_as_full_clone_maintenance(self) -> None:
-        readme = (ROOT / "README.md").read_text(encoding="utf-8")
+    def test_wiki_marks_root_script_workflows_as_full_clone_maintenance(self) -> None:
+        guide = (ROOT / "docs" / "wiki-skill-agent-user-guide.md").read_text(
+            encoding="utf-8"
+        )
         section = re.search(
-            r"^## Use in a game project\s*$\n(.*?)(?=^## |\Z)",
-            readme,
+            r"^### Scaffold skills and agents into a game project\s*$\n(.*?)(?=^## |\Z)",
+            guide,
             re.MULTILINE | re.DOTALL,
         )
         self.assertIsNotNone(section)

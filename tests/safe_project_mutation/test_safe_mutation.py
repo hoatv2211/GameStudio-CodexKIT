@@ -1344,5 +1344,76 @@ class SafeMutationTests(unittest.TestCase):
                 report_mutation(Path(temp), [{"path": "../escape.txt", "content": "bad"}])
 
 
+    def test_cli_apply_requires_reviewer_reviewed_manifest_and_digest(self) -> None:
+        from contextlib import redirect_stderr
+        from io import StringIO
+
+        from scripts.safe_mutation import main
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            operations_path = root / "operations.json"
+            operations_path.write_text(
+                json.dumps([{"path": "owned.txt", "content": "after\n"}]),
+                encoding="utf-8",
+            )
+            with redirect_stderr(StringIO()), self.assertRaises(SystemExit):
+                main([
+                    "--root",
+                    str(root),
+                    "--mode",
+                    "apply",
+                    "--operations",
+                    str(operations_path),
+                    "--backup-root",
+                    str(root / ".backup"),
+                ])
+            self.assertFalse((root / "owned.txt").exists())
+
+    def test_cli_apply_accepts_explicit_reviewed_manifest_and_digest(self) -> None:
+        from scripts.safe_mutation import main, report_mutation
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            operations = [{"path": "owned.txt", "content": "after\n"}]
+            operations_path = root / "operations.json"
+            operations_path.write_text(json.dumps(operations), encoding="utf-8")
+            report = report_mutation(root, operations)
+            digest_payload = {
+                "root": report["root"],
+                "operations": report["operations"],
+            }
+            plan_digest = hashlib.sha256(
+                json.dumps(digest_payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+            ).hexdigest()
+            reviewed = {
+                **report,
+                "reviewer": "QA Lead",
+                "plan_digest": plan_digest,
+            }
+            reviewed_path = root / "reviewed.json"
+            reviewed_path.write_text(json.dumps(reviewed), encoding="utf-8")
+
+            exit_code = main([
+                "--root",
+                str(root),
+                "--mode",
+                "apply",
+                "--operations",
+                str(operations_path),
+                "--backup-root",
+                str(root / ".backup"),
+                "--reviewer",
+                "QA Lead",
+                "--reviewed-manifest",
+                str(reviewed_path),
+                "--plan-digest",
+                plan_digest,
+            ])
+
+            self.assertEqual(0, exit_code)
+            self.assertEqual("after\n", (root / "owned.txt").read_text(encoding="utf-8"))
+
+
 if __name__ == "__main__":
     unittest.main()

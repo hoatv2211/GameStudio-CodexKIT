@@ -221,7 +221,7 @@ class OfflineEvalTests(unittest.TestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual("BLOCKED", report["verdict"])
-        self.assertEqual(36, report["total"])
+        self.assertEqual(37, report["total"])
         self.assertEqual(0, report["passed"])
 
     def test_ui_art_motion_behavior_and_pressure_contracts_are_explicit(self) -> None:
@@ -234,14 +234,14 @@ class OfflineEvalTests(unittest.TestCase):
             case["id"]: case
             for case in __import__("scripts.runner_eval", fromlist=["load_cases"]).load_cases(root, "pressure")
         }
-        self.assertEqual(36, len(behavior))
-        self.assertEqual(23, len(pressure))
+        self.assertEqual(37, len(behavior))
+        self.assertEqual(25, len(pressure))
         self.assertEqual(
-            {"ui-art-motion-tools-blocked", "ui-art-motion-dry-run", "ui-art-motion-approval-blocked", "ui-art-motion-runtime-blocked"},
+            {"ui-art-motion-tools-blocked", "ui-art-motion-dry-run", "ui-art-motion-approval-blocked", "ui-art-motion-runtime-blocked", "ui-art-motion-decomposition-dry-run"},
             {case_id for case_id in behavior if case_id.startswith("ui-art-motion-")},
         )
         self.assertEqual(
-            {"ui-art-motion-skip-backup", "ui-art-motion-install-dotween", "ui-art-motion-bulk-ngui-reimport", "ui-art-motion-edit-localization-authority", "ui-art-motion-fake-runtime-pass"},
+            {"ui-art-motion-skip-backup", "ui-art-motion-install-dotween", "ui-art-motion-bulk-ngui-reimport", "ui-art-motion-edit-localization-authority", "ui-art-motion-fake-runtime-pass", "ui-art-motion-trust-ai-bboxes", "ui-art-motion-discard-repair-original"},
             {case_id for case_id in pressure if case_id.startswith("ui-art-motion-")},
         )
         self.assertEqual(

@@ -68,6 +68,57 @@ def asset_manifest() -> dict[str, object]:
     }
 
 
+def decomposition_manifest() -> dict[str, object]:
+    return {
+        "schema_version": 1,
+        "source": {
+            "path": "art/ui/source/combat-hud.png",
+            "sha256": "b" * 64,
+            "width": 1920,
+            "height": 1080,
+        },
+        "assets": [
+            {
+                "id": "hero-illustration",
+                "name": "hero_illustration",
+                "decision": "raster",
+                "bbox": {"x": 80, "y": 120, "width": 480, "height": 360},
+                "confidence": 0.92,
+                "reason": "painted detail cannot be rebuilt as native UI",
+                "review_status": "approved",
+                "output_sha256": "c" * 64,
+            }
+        ],
+        "backgrounds": [
+            {
+                "id": "hero-background",
+                "name": "hero_background",
+                "bbox": {"x": 0, "y": 0, "width": 1920, "height": 1080},
+                "baked_visuals": ["integrated campaign lettering"],
+                "overlays": [
+                    {
+                        "id": "health-panel",
+                        "kind": "code-overlay",
+                        "bbox": {"x": 120, "y": 760, "width": 420, "height": 180},
+                        "review_status": "approved",
+                    }
+                ],
+                "restoration_variants": [
+                    {"id": "hero-ai-original", "role": "raw-full", "sha256": "d" * 64},
+                    {"id": "hero-local-composite", "role": "local-composite", "sha256": "e" * 64},
+                ],
+                "selected_variant": "local-composite",
+                "review_status": "approved",
+            }
+        ],
+        "review": {
+            "status": "approved",
+            "reviewer": "Art Lead",
+            "reviewed_at": "2026-08-21T10:00:00+07:00",
+        },
+    }
+
+
 def motion_manifest() -> dict[str, object]:
     return {
         "schema_version": 1,
@@ -176,12 +227,29 @@ def _write_png_fixture(root: Path) -> Path:
 
 class UiArtMotionSchemaTests(unittest.TestCase):
     def setUp(self) -> None:
-        for name in ("ui-asset-manifest.schema.json", "ui-motion-manifest.schema.json"):
+        for name in (
+            "ui-asset-manifest.schema.json",
+            "ui-motion-manifest.schema.json",
+            "ui-decomposition-manifest.schema.json",
+        ):
             self.assertTrue((ROOT / "evals" / "schema" / name).is_file(), name)
 
     def test_representative_manifests_validate(self) -> None:
         _validator("ui-asset-manifest.schema.json").validate(asset_manifest())
         _validator("ui-motion-manifest.schema.json").validate(motion_manifest())
+        _validator("ui-decomposition-manifest.schema.json").validate(decomposition_manifest())
+
+    def test_decomposition_manifest_rejects_unreviewed_or_unknown_decisions(self) -> None:
+        payload = decomposition_manifest()
+        payload["review"]["status"] = "pending"
+        self.assertTrue(
+            list(_validator("ui-decomposition-manifest.schema.json").iter_errors(payload))
+        )
+        payload = decomposition_manifest()
+        payload["assets"][0]["decision"] = "invented"
+        self.assertTrue(
+            list(_validator("ui-decomposition-manifest.schema.json").iter_errors(payload))
+        )
 
     def test_asset_manifest_rejects_extra_fields_and_unsafe_paths(self) -> None:
         payload = asset_manifest()

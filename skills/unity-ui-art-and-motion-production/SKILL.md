@@ -1,6 +1,6 @@
 ---
 name: unity-ui-art-and-motion-production
-description: Use when new or revised Unity UI visuals, icons, panels, 9-slice sprites, component states, HUD or menu layouts, popup motion, or screen transitions must be produced through Figma and integrated into uGUI, NGUI, or UI Toolkit; not for UI debugging, localization-only work, character animation, or general art-pipeline audits.
+description: Use when new or revised Unity UI visuals, icons, panels, 9-slice sprites, component states, HUD or menu layouts, popup motion, screen transitions, or flattened UI screenshot decomposition must be produced through Figma and integrated into uGUI, NGUI, or UI Toolkit; not for UI debugging, localization-only work, character animation, or general art-pipeline audits.
 version: 0.1.0
 author: GameStudio-CodexKIT
 license: MIT
@@ -16,14 +16,18 @@ metadata:
     packs: [content-production]
     side_effects: files
     artifact: ui-art-motion-production.json
-    required_evidence: [figma-revision, design-brief, asset-manifest, motion-manifest, art-qc, import-plan, runtime-evidence]
+    required_evidence: [figma-revision, design-brief, decomposition-manifest, asset-manifest, motion-manifest, art-qc, import-plan, runtime-evidence]
     owner: HoaTV Studio
     reviewer: Art Lead
     maturity: experimental
     last_reviewed: 2026-08-21
     provenance:
-      derived_from: none
-      patterns_from: [Figma export provenance, Unity UI import evidence, safe-project-mutation]
+      derived_from:
+        repo: 50kg/image-to-slice
+        path: src/core/slice-detection/prompt-builder.js; src/core/background-decomposition/prompt-builder.js; tests/ui-ai-inpaint-results.test.js
+        commit: 402c20542f73e41f2393b6dfe3a5096c8c1a9521
+        license: MIT
+      patterns_from: [Figma export provenance, Unity UI import evidence, safe-project-mutation, image-to-slice decomposition and repair contract]
       copied_text: none
 ---
 # Unity UI Art and Motion Production
@@ -41,9 +45,12 @@ observed.
 
 Use for new or revised HUDs, menus, panels, icons, 9-slice frames, atlas-ready
 sprites, component states, popup transitions, screen transitions, and UI
-micro-motion with an identified Unity stack. Read `references/design-brief.md`
+micro-motion with an identified Unity stack. Use it also when a flattened or
+AI-generated UI screenshot must be decomposed into reviewed raster/native UI
+candidates before Figma export. Read `references/design-brief.md`
 before generating or iterating visual candidates, `references/figma-ai.md` when
 the visual source or AI provenance is in scope, and
+`references/flattened-ui-decomposition.md` for screenshot decomposition, and
 `references/visual-iteration.md` when a candidate needs bounded variants or
 static QC. Read the stack-specific reference (`ugui.md`, `ngui.md`, or
 `ui-toolkit.md`) before selecting import settings or motion drivers.
@@ -58,7 +65,8 @@ runtime PASS without runtime evidence.
 
 ## Required inputs and context discovery
 
-Collect project and Unity identity, active stack(s), design brief, Figma file/page/node and
+Collect project and Unity identity, active stack(s), design brief, optional source screenshot and
+decomposition manifest, Figma file/page/node and
 revision, approved component/variant/token references, export files and
 SHA-256 hashes, AI provider/model/prompt/reference/output provenance when used,
 target prefabs or UXML/USS/controller paths, owners, reviewer, dependency
@@ -83,7 +91,10 @@ install DOTween, LeanTween, Rive, Spine, or another tween/runtime package.
    color/material language, references, exact copy policy, negative constraints,
    and one-variable variants. Completion criterion: the closed design-brief
    schema passes and a reviewer can identify the visual system.
-2. **Bind visual authority.** Capture the Figma revision, component states,
+2. **Bind visual authority.** If a flattened screenshot was used, validate the
+   decomposition manifest first: source hash/dimensions, original-pixel bboxes,
+   raster/native decisions, overlay intersections, retained restoration
+   variants, and reviewer approval. Then capture the Figma revision, component states,
    tokens, export names, rights, and reviewer; record AI provenance and hashes.
    Completion criterion: `figma-ai.md` evidence is complete or the item is
    explicitly `BLOCKED`.
@@ -159,6 +170,8 @@ and a reactivation prompt.
 ## Verification checklist
 
 - [ ] Figma revision, rights, reviewer, and AI provenance are recorded.
+- [ ] Optional decomposition source hash, original-pixel bboxes, overlay masks,
+  restoration variants, and human review status are recorded.
 - [ ] Design brief, prompt lineage, variant status, and negative constraints are recorded.
 - [ ] Both manifests pass closed-schema validation and source revision parity.
 - [ ] Static art QC passes dimensions, alpha, text policy, and variant checks.
@@ -171,6 +184,8 @@ and a reactivation prompt.
 ## References and scripts
 
 - `references/figma-ai.md`: visual authority, export and AI provenance.
+- `references/flattened-ui-decomposition.md`: screenshot classification,
+  original-pixel bboxes, background repair, and variant retention.
 - `references/design-brief.md`: design-system prompt structure and variant contract.
 - `references/visual-iteration.md`: bounded variants, static art QC, and evidence boundary.
 - `references/ugui.md`: Canvas, Sprite/Atlas, Animator, and uGUI runtime checks.

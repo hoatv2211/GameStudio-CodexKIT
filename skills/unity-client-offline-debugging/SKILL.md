@@ -75,4 +75,4 @@ Record entry scene, expected scene, offline flag source, network behavior, local
 - [ ] No Unity asset was mutated during diagnosis.
 
 ## References and scripts
-Use Unity logs, project bootstrap code, configuration sources, and project-local offline run guides. No generic script can replace project-specific startup tracing.
+Read [references/commands.md](references/commands.md) for offline flag precedence, bootstrap ordering, player-log paths, network timeout inspection, and the startup-versus-UI boundary check. Use Unity logs, project bootstrap code, configuration sources, and project-local offline run guides. No generic script can replace project-specific startup tracing.

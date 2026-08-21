@@ -236,5 +236,23 @@ class CodeGraphAdapterTests(unittest.TestCase):
         self.assertEqual([action["argv"] for action in plan["actions"]], [call[0] for call in runner.calls])
         self.assertEqual(plan["restore_argv"], result["restore_argv"])
 
+    def test_verify_install_plan_rejects_recomputed_digest_with_noncanonical_argv(self) -> None:
+        import scripts.codegraph_adapter as adapter
+
+        now = datetime(2026, 8, 18, 10, 0, tzinfo=timezone.utc)
+        with temporary_directory() as temp:
+            root = Path(temp)
+            plan = adapter.create_install_plan(root, reviewer="Tech Lead", now=now)
+            plan["actions"][0]["argv"] = ["fake-executable", "--malicious"]
+            plan["digest"] = adapter._plan_digest(plan)
+
+        with self.assertRaisesRegex(ValueError, "canonical"):
+            adapter.verify_install_plan(
+                plan,
+                reviewer="Tech Lead",
+                digest=plan["digest"],
+                now=now + timedelta(minutes=5),
+            )
+
 if __name__ == "__main__":
     unittest.main()

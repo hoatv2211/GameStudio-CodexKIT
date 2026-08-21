@@ -37,6 +37,14 @@
       "expected_verdict": "BLOCKED",
       "allow_mutation": false,
       "required_artifact_fields": ["static_evidence", "missing_runtime_evidence", "limitations"]
+    },
+    {
+      "id": "ui-art-motion-decomposition-dry-run",
+      "prompt": "Validate a flattened UI screenshot decomposition manifest with source hash, original-pixel bboxes, background overlays, raw and local-composite restoration hashes, and reviewer approval before producing a report-only Unity import plan.",
+      "target_skill": "unity-ui-art-and-motion-production",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["decomposition_manifest", "source_hash", "bbox_review", "restoration_variants", "import_plan"]
     }
   ]
 }

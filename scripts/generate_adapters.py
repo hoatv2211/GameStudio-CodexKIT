@@ -1416,6 +1416,53 @@ def _plan_digest(mutation_report: dict[str, Any]) -> str:
     return hashlib.sha256(encoded).hexdigest()
 
 
+def _uninstall_plan_digest(project: Path | str) -> str:
+    """Digest the current ownership state before an adapter uninstall apply."""
+    project_path = Path(project).resolve()
+    registry_path = project_path / ".agents" / "registry.json"
+    registry_hash = (
+        hashlib.sha256(registry_path.read_bytes()).hexdigest()
+        if registry_path.is_file() and not _is_reparse_point(registry_path)
+        else None
+    )
+    owned_state: list[dict[str, object]] = []
+    if registry_hash is not None:
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        normalized_files = (
+            _registry_owned_files(project_path, registry)
+            if isinstance(registry, dict)
+            else None
+        )
+        if normalized_files is None:
+            owned_state.append({"invalid_registry_ownership": True})
+        else:
+            for owned, candidate in normalized_files:
+                owned_state.append(
+                    {
+                        "path": owned["path"],
+                        "sha256": owned["sha256"],
+                        "observed_sha256": _regular_file_sha256(candidate),
+                    }
+                )
+    payload = {
+        "root": str(project_path),
+        "registry_sha256": registry_hash,
+        "owned": sorted(owned_state, key=lambda item: str(item["path"])),
+    }
+    encoded = json.dumps(payload, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(encoded).hexdigest()
+
+
+def _validate_uninstall_backup_root(project: Path | str, backup_root: Path | str) -> Path:
+    project_path = Path(project).resolve()
+    backup_path = Path(backup_root).resolve()
+    if backup_path == project_path or backup_path.is_relative_to(project_path):
+        raise ValueError("uninstall backup root must be disjoint from project root")
+    if backup_path.exists() and not backup_path.is_dir():
+        raise ValueError("uninstall backup root must be a directory path")
+    return backup_path
+
+
 def _validated_backup_root(
     project: Path,
     backup_root: Path | str,
@@ -1561,6 +1608,63 @@ def _partial_uninstall_report(adapter: object) -> _UninstallReport:
         "preserved_drift": [],
         "remaining_owned": _remaining_manifest_files(adapter),
     })
+
+
+def report_uninstall_project_adapter(project: Path | str) -> dict[str, object]:
+    """Return a non-mutating uninstall preview and approval digest."""
+    project_path = Path(project).resolve()
+    registry_path = _safe_project_path(
+        project_path,
+        ".agents/registry.json",
+        required_prefix=(".agents",),
+    )
+    report: dict[str, object] = {
+        "status": "REPORT_ONLY",
+        "target": "per-project",
+        "root": str(project_path),
+        "plan_digest": _uninstall_plan_digest(project_path),
+        "removed": [],
+        "proposed": [],
+        "preserved_drift": [],
+        "remaining_owned": [],
+    }
+    if not registry_path.exists():
+        return report
+    registry = json.loads(registry_path.read_text(encoding="utf-8"))
+    if not isinstance(registry, dict):
+        raise ValueError("project .agents/registry.json must be an object")
+    adapter = registry.get("kit_adapter")
+    if not isinstance(adapter, dict):
+        report["status"] = "PARTIAL"
+        report["remaining_owned"] = _remaining_manifest_files(adapter)
+        return report
+    if adapter.get("adapter_id") not in {
+        "GameStudio-CodexKIT/per-project/v1",
+        "GameStudio-CodexKIT/per-project/v2",
+    }:
+        report["status"] = "PARTIAL"
+        report["remaining_owned"] = _remaining_manifest_files(adapter)
+        return report
+    normalized_files = _normalized_owned_files(project_path, adapter)
+    if normalized_files is None:
+        report["status"] = "PARTIAL"
+        report["remaining_owned"] = _remaining_manifest_files(adapter)
+        return report
+    proposed: list[str] = []
+    preserved_drift: list[str] = []
+    remaining_owned: list[dict[str, str]] = []
+    for owned, candidate in normalized_files:
+        if _owned_regular_file_matches(candidate, owned["sha256"]):
+            proposed.append(owned["path"])
+        else:
+            preserved_drift.append(owned["path"])
+            remaining_owned.append(owned)
+    report["proposed"] = sorted(proposed)
+    report["preserved_drift"] = sorted(preserved_drift)
+    report["remaining_owned"] = sorted(remaining_owned, key=lambda item: item["path"])
+    if preserved_drift:
+        report["status"] = "PARTIAL"
+    return report
 
 def _normalized_owned_files(
     project: Path,
@@ -3009,9 +3113,8 @@ def main(argv: list[str] | None = None) -> int:
     parser.add_argument("root", nargs="?", default=".")
     parser.add_argument("--target", required=True, choices=["hermes", "codex", "per-project"])
     parser.add_argument("--output", required=True)
-    action = parser.add_mutually_exclusive_group()
-    action.add_argument("--apply", action="store_true")
-    action.add_argument("--uninstall", action="store_true")
+    parser.add_argument("--apply", action="store_true")
+    parser.add_argument("--uninstall", action="store_true")
     parser.add_argument("--reviewer")
     parser.add_argument("--backup-root")
     parser.add_argument("--plan-digest")
@@ -3019,8 +3122,21 @@ def main(argv: list[str] | None = None) -> int:
     if args.uninstall:
         if args.target != "per-project":
             parser.error("--uninstall is only supported for per-project adapters")
-        if args.reviewer or args.backup_root or args.plan_digest:
-            parser.error("--reviewer, --backup-root, and --plan-digest cannot be used with --uninstall")
+        if not args.apply:
+            if args.reviewer or args.backup_root or args.plan_digest:
+                parser.error("--reviewer, --backup-root, and --plan-digest require --apply")
+            print(json.dumps(report_uninstall_project_adapter(Path(args.output)), indent=2))
+            return 0
+        if not args.reviewer or not args.reviewer.strip():
+            parser.error("--reviewer is required with --uninstall --apply")
+        if not args.backup_root:
+            parser.error("--backup-root is required with --uninstall --apply")
+        if not args.plan_digest or not args.plan_digest.strip():
+            parser.error("--plan-digest is required with --uninstall --apply")
+        _validate_uninstall_backup_root(Path(args.output), Path(args.backup_root))
+        current_digest = _uninstall_plan_digest(Path(args.output))
+        if args.plan_digest.strip() != current_digest:
+            parser.error("adapter uninstall plan changed since report")
         print(json.dumps(uninstall_project_adapter(Path(args.output)), indent=2))
         return 0
     if args.apply:

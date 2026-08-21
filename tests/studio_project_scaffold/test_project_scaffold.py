@@ -1,6 +1,8 @@
 from __future__ import annotations
 
 import json
+import os
+import shutil
 import sys
 import unittest
 from contextlib import redirect_stderr, redirect_stdout
@@ -249,6 +251,98 @@ class ProjectScaffoldTests(unittest.TestCase):
             self.assertEqual(root.name, profile["workspace"]["name"])
             self.assertTrue((root / ".agents" / "references" / "workspace-map.md").is_file())
             self.assertTrue((root / ".agents" / "references" / "validation-matrix.md").is_file())
+
+    def test_uninit_refuses_owned_symlink_without_deleting_external_target(self) -> None:
+        from unittest import mock
+
+        from scripts.project_scaffold import scaffold_project, uninit_scaffold
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            report = scaffold_project(root)
+            result = self._apply_scaffold_for_test(root, report)
+            self.assertEqual("PASS", result["status"])
+
+            external = root.parent / f"{root.name}-external-owned.txt"
+            self.addCleanup(external.unlink, missing_ok=True)
+            external.write_text((root / "AGENTS.md").read_text(encoding="utf-8"), encoding="utf-8")
+            owned = root / "AGENTS.md"
+            owned.unlink()
+            try:
+                os.symlink(external, owned)
+            except (OSError, NotImplementedError):
+                owned.write_text(external.read_text(encoding="utf-8"), encoding="utf-8")
+                original_resolve = Path.resolve
+
+                def resolve(path: Path, *args: object, **kwargs: object) -> Path:
+                    if path == owned:
+                        return external
+                    return original_resolve(path, *args, **kwargs)
+
+                resolve_patch = mock.patch.object(Path, "resolve", autospec=True, side_effect=resolve)
+            else:
+                resolve_patch = mock.patch.object(Path, "resolve", wraps=Path.resolve)
+
+            with mock.patch(
+                "scripts.project_scaffold._is_reparse_point",
+                side_effect=lambda path: Path(path) == owned,
+            ):
+                preview = uninit_scaffold(root)
+            self.assertIn("AGENTS.md", preview["preserved_drift"])
+            self.assertNotIn("AGENTS.md", preview["removable"])
+
+            backup_root = root.parent / f"{root.name}-uninit-backup"
+            self.addCleanup(shutil.rmtree, backup_root, ignore_errors=True)
+            with mock.patch(
+                "scripts.project_scaffold._is_reparse_point",
+                side_effect=lambda path: Path(path) == owned,
+            ), resolve_patch:
+                applied = uninit_scaffold(
+                    root,
+                    apply=True,
+                    reviewer="Producer",
+                    backup_root=backup_root,
+                )
+            self.assertNotIn("AGENTS.md", applied["removed"])
+            self.assertTrue(external.is_file())
+
+    def test_uninit_rejects_manifest_path_escape(self) -> None:
+        from scripts.project_scaffold import scaffold_project, uninit_scaffold
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            report = scaffold_project(root)
+            result = self._apply_scaffold_for_test(root, report)
+            self.assertEqual("PASS", result["status"])
+            external = root.parent / f"{root.name}-external-owned.txt"
+            self.addCleanup(external.unlink, missing_ok=True)
+            external.write_text("external\n", encoding="utf-8")
+            manifest_path = root / ".agents" / "gamestudio-install.json"
+            manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+            manifest["files"][0]["path"] = "../" + external.name
+            manifest_path.write_text(json.dumps(manifest), encoding="utf-8")
+
+            with self.assertRaisesRegex(ValueError, "escapes project root"):
+                uninit_scaffold(root)
+            with self.assertRaisesRegex(ValueError, "escapes project root"):
+                uninit_scaffold(
+                    root,
+                    apply=True,
+                    reviewer="Producer",
+                    backup_root=root.parent / f"{root.name}-uninit-backup",
+                )
+            self.assertTrue(external.is_file())
+
+    @staticmethod
+    def _apply_scaffold_for_test(root: Path, report: dict[str, object]) -> dict[str, object]:
+        from scripts.project_scaffold import apply_scaffold
+
+        return apply_scaffold(
+            root,
+            reviewer="Producer",
+            backup_root=root / ".scaffold-backup",
+            approved_plan_digest=report["plan_digest"],
+        )
 
     def test_apply_type_checks_and_normalizes_approval_metadata(self) -> None:
         from unittest import mock

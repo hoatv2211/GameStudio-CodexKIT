@@ -866,12 +866,11 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         self.assertNotIn("Phase 1 implements four Golden Paths", text)
         self.assertNotIn("Ship has no Phase-1 Golden Path", text)
 
-    def test_readme_examples_and_eight_family_catalog_match_current_routes(self) -> None:
-        text = self.read("README.md")
-        golden_path_section = text.split("## Unity/MMORPG Golden Paths", 1)[1].split(
-            "## Role-first workflow", 1
+    def test_wiki_examples_and_eight_family_catalog_match_current_routes(self) -> None:
+        text = self.read("docs/wiki-skill-agent-user-guide.md")
+        route_section = text.split("## Golden Paths and role-first routing", 1)[1].split(
+            "## Prompt templates", 1
         )[0]
-        role_section = text.split("## Role-first workflow", 1)[1].split("## Install", 1)[0]
 
         expected_families = (
             "Project adoption and routing",
@@ -885,7 +884,7 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         )
         for family in expected_families:
             with self.subTest(family=family):
-                self.assertIn(family, golden_path_section)
+                self.assertIn(family, route_section)
 
         expected_rows = (
             (
@@ -910,9 +909,9 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         )
         for role, request in expected_rows:
             with self.subTest(role=role):
-                self.assertIn(role, role_section)
-                self.assertIn(request, role_section)
-        self.assertNotIn("verify this Unity build", role_section)
+                self.assertIn(role, route_section)
+                self.assertIn(request, route_section)
+        self.assertNotIn("verify this Unity build", route_section)
 
     def test_public_docs_state_current_eight_family_scope(self) -> None:
         expected_intents = (
@@ -923,7 +922,7 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
             "Handle Incident",
         )
         for relative_path in (
-            "README.md",
+            "docs/wiki-skill-agent-user-guide.md",
             "docs/architecture/overview.md",
             "docs/architecture/project-init-and-studio-expansion.md",
         ):
@@ -950,7 +949,7 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         landing = self.read("docs/index.html")
 
         for phrase in (
-            "305/305",
+            "306/306",
             "18 governed dogfood",
             "Eight Golden Path families",
             "--workflow",

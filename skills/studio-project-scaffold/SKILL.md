@@ -60,8 +60,8 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
    Completion criterion: unmanaged agents and active configuration remain preserved.
 8. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
    Completion criterion: scaffold output is parseable and unresolved runtime facts remain Unverified or BLOCKED.
-9. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
-   Completion criterion: uninstall never deletes unmanaged or drifted project content.
+9. Run uninstall report-only first and review its `plan_digest`, `proposed`, `preserved_drift`, and `remaining_owned` paths. Apply only with a named reviewer, a disjoint backup root, and that matching digest. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
+   Completion criterion: uninstall never deletes unmanaged or drifted project content and cannot bypass the approval gates.
 
 ## Evidence and output contract
 Produce `scaffold-report.json` with subsystem detection, source snapshots, proposed files, created files, preserved files, collisions, reviewer, and verification results. The separate per-project adapter report uses the implemented fields named in workflow step 4; do not rename them into the scaffold report.
