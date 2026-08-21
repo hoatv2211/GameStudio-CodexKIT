@@ -5,7 +5,7 @@ import os
 import shutil
 import sys
 import unittest
-from contextlib import redirect_stderr, redirect_stdout
+from contextlib import nullcontext, redirect_stderr, redirect_stdout
 from io import StringIO
 from pathlib import Path
 
@@ -281,7 +281,7 @@ class ProjectScaffoldTests(unittest.TestCase):
 
                 resolve_patch = mock.patch.object(Path, "resolve", autospec=True, side_effect=resolve)
             else:
-                resolve_patch = mock.patch.object(Path, "resolve", wraps=Path.resolve)
+                resolve_patch = nullcontext()
 
             with mock.patch(
                 "scripts.project_scaffold._is_reparse_point",

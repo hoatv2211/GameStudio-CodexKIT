@@ -609,7 +609,10 @@ class ScreenshotShowcaseHelperTests(unittest.TestCase):
             deck = copy.deepcopy(VALID_EXPORT_DECK_INPUT)
             manifest = module.build_contact_sheet(records, contact_sheet)
             self.assertEqual("review.html", contact_sheet.name)
-            self.assertEqual(contact_sheet, Path(manifest["artifact_path"]))
+            self.assertEqual(
+                module._path_identity(contact_sheet),
+                module._path_identity(Path(manifest["artifact_path"])),
+            )
             self.assertEqual(2, len(manifest["records"]))
 
             export_root = temp_root / "exports"
@@ -833,7 +836,8 @@ class ScreenshotShowcaseHelperTests(unittest.TestCase):
                 alias_root = alias.parent
                 canonical_root = canonical.parent
                 if text.startswith(str(alias_root)):
-                    return str(canonical_root) + text[len(str(alias_root)) :]
+                    mapped = str(canonical_root) + text[len(str(alias_root)) :]
+                    return original_realpath(mapped)
                 return original_realpath(value)
 
             with mock.patch.object(module.os.path, "realpath", side_effect=realpath), mock.patch.object(
