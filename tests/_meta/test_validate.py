@@ -118,6 +118,24 @@ class ValidateRepositoryTests(unittest.TestCase):
         self.make_valid()
         self.assertEqual([], self.issues())
 
+    def test_rejects_invalid_code_intelligence_provider_registry(self) -> None:
+        self.make_valid()
+        registry = self.root / "registry" / "code-intelligence-providers.yaml"
+        registry.write_text("schema_version: 1\nproviders:\n- executable_argv: [provider]\n", encoding="utf-8")
+        self.assertIn("code_intelligence.providers", self.codes())
+
+    def test_rejects_unknown_code_intelligence_upstream(self) -> None:
+        self.make_valid()
+        registry = self.root / "registry" / "code-intelligence-providers.yaml"
+        registry.write_text(
+            "schema_version: 1\nproviders:\n"
+            "- id: provider\n  display_name: Provider\n  role: advanced-optional\n  maturity: experimental\n"
+            "  priority: 10\n  opt_in_required: true\n  terms_review_required: false\n"
+            "  capabilities: [impact]\n  limitations: []\n  upstream_source: missing-source\n",
+            encoding="utf-8",
+        )
+        self.assertIn("code_intelligence.upstream", self.codes())
+
     def test_accepts_beta_maturity_without_promotion_record(self) -> None:
         self.make_valid()
         capability_path = self.root / "registry" / "capabilities.yaml"

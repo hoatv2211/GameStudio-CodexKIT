@@ -207,6 +207,124 @@ def inspect_codegraph(
     )
 
 
+def _normalized_language_tokens(
+    values: object,
+    *,
+    require_list: bool,
+) -> tuple[str, ...]:
+    if require_list:
+        if (
+            not isinstance(values, list)
+            or not values
+            or any(not isinstance(item, str) or not item.strip() for item in values)
+        ):
+            return ()
+    elif (
+        isinstance(values, (str, bytes, dict))
+        or not isinstance(values, (list, tuple))
+        or any(not isinstance(item, str) or not item.strip() for item in values)
+    ):
+        raise ValueError("required_languages must contain nonblank strings")
+    return tuple(dict.fromkeys(item.strip().casefold() for item in values))
+
+
+def to_code_intelligence_status(
+    status: CodeGraphStatus,
+    *,
+    repository: str,
+    revision: str | None,
+    worktree_identity: str | None,
+    required_languages: tuple[str, ...] = (),
+):
+    """Map legacy status data into the shared read-only status contract."""
+
+    try:
+        from scripts.code_intelligence import (
+            CodeIntelligenceStatus,
+            normalize_index_state,
+        )
+    except ModuleNotFoundError:
+        from code_intelligence import CodeIntelligenceStatus, normalize_index_state
+
+    raw = status.raw_status if isinstance(status.raw_status, dict) else {}
+    index = _index_payload(raw)
+    worktree = _worktree_payload(raw)
+    index_revision = index.get("revision") or raw.get("revision")
+    index_worktree_identity = (
+        worktree.get("identity")
+        or worktree.get("digest")
+        or raw.get("worktreeIdentity")
+    )
+    required = _normalized_language_tokens(required_languages, require_list=False)
+    supported = _normalized_language_tokens(raw.get("languages"), require_list=True)
+    missing = tuple(language for language in required if language not in supported)
+
+    normalized_state = normalize_index_state(status.state)
+    limitations = [status.detail]
+    normalized_version = (
+        status.version.strip()
+        if isinstance(status.version, str) and status.version.strip()
+        else None
+    )
+    if normalized_state == "FRESH" and normalized_version is None:
+        normalized_state = "BROKEN"
+        limitations.append(
+            "Legacy CodeGraph fresh status lacks a resolved provider version."
+        )
+    elif normalized_state == "FRESH" and not status.existing_index:
+        normalized_state = "NOT_INITIALIZED"
+        limitations.append(
+            "Legacy CodeGraph fresh status lacks the local .codegraph index artifact."
+        )
+    elif normalized_state == "FRESH" and (
+        not isinstance(index_revision, str)
+        or not isinstance(revision, str)
+        or index_revision != revision
+    ):
+        normalized_state = "STALE_HEAD"
+        limitations.append(
+            "Legacy CodeGraph index revision does not match the current revision."
+        )
+    elif normalized_state == "FRESH" and (
+        not isinstance(index_worktree_identity, str)
+        or not isinstance(worktree_identity, str)
+        or index_worktree_identity != worktree_identity
+    ):
+        normalized_state = "STALE_WORKTREE"
+        limitations.append(
+            "Legacy CodeGraph index worktree identity does not match the current worktree."
+        )
+    if normalized_state == "FRESH" and missing:
+        normalized_state = "PARTIAL_LANGUAGE"
+        limitations.append(
+            "Legacy CodeGraph status does not prove required language coverage."
+        )
+
+    return CodeIntelligenceStatus(
+        provider="codegraph",
+        provider_version=normalized_version,
+        repository=repository,
+        revision=revision,
+        worktree_identity=worktree_identity,
+        index_revision=(
+            str(index_revision) if index_revision is not None else None
+        ),
+        index_worktree_identity=(
+            str(index_worktree_identity)
+            if index_worktree_identity is not None
+            else None
+        ),
+        index_state=normalized_state,
+        capabilities=("status", "context", "dependency-path", "impact"),
+        required_languages=required,
+        supported_languages=supported,
+        missing_languages=missing,
+        artifact_paths=(".codegraph/",) if status.existing_index else (),
+        side_effects=(),
+        limitations=tuple(dict.fromkeys(limitations)),
+    )
+
+
 def _utc_now(now: datetime | None) -> datetime:
     value = now or datetime.now(timezone.utc)
     if value.tzinfo is None:

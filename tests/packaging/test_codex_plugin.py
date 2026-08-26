@@ -29,24 +29,29 @@ class CodexPluginPackagingTests(unittest.TestCase):
         banner = (ROOT / "docs" / "assets" / "banner.svg").read_text(encoding="utf-8")
         landing = (ROOT / "docs" / "index.html").read_text(encoding="utf-8")
         readme = (ROOT / "README.md").read_text(encoding="utf-8")
+        vietnamese = (ROOT / "docs" / "huong-dan-su-dung-skill-agent.md").read_text(encoding="utf-8")
+        wiki = (ROOT / "docs" / "wiki-skill-agent-user-guide.md").read_text(encoding="utf-8")
+        adoption = (ROOT / "docs" / "adoption.md").read_text(encoding="utf-8")
+        architecture = (ROOT / "docs" / "architecture" / "overview.md").read_text(encoding="utf-8")
+        project_init = (ROOT / "docs" / "architecture" / "project-init-and-studio-expansion.md").read_text(encoding="utf-8")
 
-        self.assertEqual(49, skill_count)
+        self.assertEqual(50, skill_count)
         self.assertEqual(24, agent_count)
         self.assertEqual(7, pack_count)
-        self.assertEqual(306, routing.total)
-        self.assertEqual(306, routing.passed)
-        self.assertIn("49 SKILLS", banner)
+        self.assertEqual(316, routing.total)
+        self.assertEqual(316, routing.passed)
+        self.assertIn("50 SKILLS", banner)
         self.assertIn("24 AGENTS", banner)
         self.assertIn("7 PACKS", banner)
-        self.assertIn("ROUTING 306/306", banner)
+        self.assertIn("ROUTING 316/316", banner)
         self.assertIn("MOStudio Kit", banner)
         self.assertIn("<title>MOStudio Kit · Operate live games</title>", landing)
         self.assertIn("# MOStudio Kit", readme)
         self.assertIn("`GameStudio-CodexKIT` repository", readme)
-        self.assertIn('>49</span><span class="stat-label">canonical skills', landing)
+        self.assertIn('>50</span><span class="stat-label">canonical skills', landing)
         self.assertIn('>24</span><span class="stat-label">canonical agents', landing)
         self.assertIn('>7</span><span class="stat-label">installable packs', landing)
-        self.assertIn(">306/306</span><span class=\"stat-label\">routing evaluation", landing)
+        self.assertIn(">316/316</span><span class=\"stat-label\">routing evaluation", landing)
         self.assertIn(
             '<h3>Content Production</h3><p>Level, narrative, art, animation, and audio production review workflows.</p><span class="pack-count">7 workflows</span>',
             landing,
@@ -55,9 +60,20 @@ class CodexPluginPackagingTests(unittest.TestCase):
             '["game-screenshot-showcase-and-store-packaging", "content-production", "workflow", "medium", "Use when a Unity team needs approved PlayMode screenshots, immutable capture evidence, reviewed showcase slides, or report-only store screenshot packaging without auto-upload, signing, or submission."]',
             landing,
         )
-        self.assertIn("49 canonical skills", readme)
+        self.assertIn("50 canonical skills", readme)
         self.assertIn("24 canonical agent roles", readme)
-        self.assertIn("306 deterministic eval cases", readme)
+        self.assertIn("316 deterministic eval cases", readme)
+        self.assertIn("skills-50%20canonical", readme)
+        self.assertIn("routing%20eval-316%2F316", readme)
+        self.assertNotIn("49 skills", landing)
+        self.assertEqual(1, landing.count('["code-intelligence-contract",'))
+        self.assertIn("## 4. Toàn bộ 50 skill", vietnamese)
+        self.assertIn("artifact của 50 skill", vietnamese)
+        self.assertIn("[All 50 skills](#all-50-skills)", wiki)
+        self.assertIn("## All 50 skills", wiki)
+        self.assertIn("each of the 50 skills", adoption)
+        self.assertIn("Canonical registries contain 50 skills", project_init)
+        self.assertIn("covers 49 routed skills with 316 cases", architecture)
 
     def test_distribution_versions_are_exact_and_synchronized(self) -> None:
         manifest = json.loads(
@@ -68,8 +84,8 @@ class CodexPluginPackagingTests(unittest.TestCase):
 
         manifest_version = manifest["version"]
         pyproject_version = pyproject["project"]["version"]
-        self.assertEqual("1.6.5", manifest_version)
-        self.assertEqual("1.6.5", pyproject_version)
+        self.assertEqual("1.7.0", manifest_version)
+        self.assertEqual("1.7.0", pyproject_version)
         self.assertEqual(manifest_version, pyproject_version)
 
     def test_root_manifest_packages_the_canonical_skill_catalog(self) -> None:
@@ -78,7 +94,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.6.5", manifest["version"])
+        self.assertEqual("1.7.0", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])
@@ -98,6 +114,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         experimental = {entry_id for entry_id, value in maturity.items() if value == "experimental"}
         self.assertEqual(
             {
+                "code-intelligence-contract",
                 "unity-ui-art-and-motion-production",
                 "game-screenshot-showcase-and-store-packaging",
             },
@@ -109,7 +126,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
             for directory in (ROOT / manifest["skills"]).iterdir()
             if directory.is_dir() and (directory / "SKILL.md").is_file()
         }
-        self.assertEqual(49, len(registered))
+        self.assertEqual(50, len(registered))
         self.assertEqual(registered, packaged)
 
     def test_packaged_skills_expose_branded_codex_ui_metadata(self) -> None:

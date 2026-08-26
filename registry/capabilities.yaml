@@ -44,6 +44,15 @@ capabilities:
   maturity: beta
   depends_on:
   - studio-project-intake
+- id: code-intelligence-contract
+  path: skills/code-intelligence-contract/SKILL.md
+  type: gate
+  packs:
+  - studio-core
+  risk_level: read-only
+  maturity: experimental
+  depends_on:
+  - using-game-studio-skills
 - id: build-and-runtime-verification
   path: skills/build-and-runtime-verification/SKILL.md
   type: gate

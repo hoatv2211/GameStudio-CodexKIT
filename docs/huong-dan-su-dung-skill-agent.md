@@ -8,7 +8,7 @@ và bằng chứng nào phải có trước khi tin một kết quả `PASS`.
 Phiên bản tiếng Anh sẵn sàng để đăng lên GitHub Wiki nằm tại
 [`docs/wiki-skill-agent-user-guide.md`](wiki-skill-agent-user-guide.md).
 
-Catalog hiện tại gồm **49 canonical skill**, **24 canonical agent role** và
+Catalog hiện tại gồm **50 canonical skill**, **24 canonical agent role** và
 **7 pack**. Skill là quy trình có thể tái sử dụng. Agent là vai trò nhận một
 phạm vi công việc cụ thể và sử dụng một hoặc nhiều skill để hoàn thành phạm vi
 đó. Agent không thay thế skill và không tự mở rộng quyền mutation.
@@ -120,7 +120,7 @@ Việc chọn agent chuyên gia không hạ risk. `game-data-engineer` vẫn kh�
 chạy destructive SQL; `build-release-engineer` vẫn không được tự publish; agent
 read-only không được sửa source.
 
-## 4. Toàn bộ 49 skill
+## 4. Toàn bộ 50 skill
 
 ### 4.1 Studio Core — định tuyến, an toàn và bằng chứng
 
@@ -128,6 +128,7 @@ read-only không được sửa source.
 | ---------------------------------- | ------------------------------------------------------------------------- | --------------------------------------------------------------------------------------- |
 | `using-game-studio-skills`       | Bắt đầu bất kỳ task nào, cần xác định route/risk/evidence       | “Audit repo này và chọn đúng workflow; chưa được sửa.”                      |
 | `studio-project-intake`          | Tiếp nhận repo lạ, gom goal, engine, scope, owner, constraint          | “Tạo task packet cho Unity client + C++ server này.”                                |
+| `code-intelligence-contract`     | Thu thập evidence dependency, call-chain, blast-radius theo contract trung lập provider | “Kiểm tra blast radius, không cài hoặc refresh provider.” |
 | `studio-workspace-routing`       | Workspace có nested Git roots hoặc nhiều repo liên quan               | “Route client/server/workbench theo project-profile và validation slice.”            |
 | `studio-agent-orchestration`     | Có từ hai workstream độc lập và cần chia agent                     | “Lập agent-plan với một investigator, hai writer không trùng file và verifier.” |
 | `safe-project-mutation`          | Sắp đổi file/generated state và cần report, digest, backup, restore  | “Dry-run thay ba config này; chưa apply trước review.”                            |
@@ -556,7 +557,7 @@ lý do để bỏ qua approval.
 
 ## 11. Nguồn tra cứu canonical
 
-- [Skill catalog](CATALOG.md): trigger, type, risk và artifact của 49 skill.
+- [Skill catalog](CATALOG.md): trigger, type, risk và artifact của 50 skill.
 - [Agent role registry](../registry/agent-roles.yaml): ownership, forbidden
   actions, required skills và validation commands của 24 role.
 - [Architecture](architecture/overview.md): source of truth, layers, role/skill

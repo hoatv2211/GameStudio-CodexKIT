@@ -1,6 +1,6 @@
 {
   "name": "game-studio-codex-kit",
-  "version": "1.6.5",
+  "version": "1.7.0",
   "description": "Evidence-first full game studio workflows for Codex across project init, production, content, engineering, QA, product analytics, release, and live operations.",
   "author": {
     "name": "hoatv2211",

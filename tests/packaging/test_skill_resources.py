@@ -13,7 +13,7 @@ from scripts.common import load_yaml
 
 ROOT = Path(__file__).resolve().parents[2]
 SCRIPT_REFERENCE = re.compile(r"scripts/([A-Za-z0-9_.-]+\.py)")
-SUPPORTED_SUFFIXES = {".json", ".py", ".toml"}
+SUPPORTED_SUFFIXES = {".json", ".py", ".toml", ".yaml", ".yml"}
 
 
 def normalize_resource(entry: object) -> tuple[str, str]:
@@ -43,6 +43,49 @@ def assert_safe_relative_path(test: unittest.TestCase, value: str) -> PurePosixP
 
 
 class SkillResourcePackagingTests(unittest.TestCase):
+    def test_code_intelligence_distribution_contract(self) -> None:
+        capabilities = load_yaml(ROOT / "registry" / "capabilities.yaml")["capabilities"]
+        capability = next(item for item in capabilities if item["id"] == "code-intelligence-contract")
+        self.assertEqual(
+            {
+                "id": "code-intelligence-contract",
+                "path": "skills/code-intelligence-contract/SKILL.md",
+                "type": "gate",
+                "packs": ["studio-core"],
+                "risk_level": "read-only",
+                "maturity": "experimental",
+                "depends_on": ["using-game-studio-skills"],
+            },
+            capability,
+        )
+        packs = {item["id"]: item for item in load_yaml(ROOT / "registry" / "packs.yaml")["packs"]}
+        self.assertEqual(1, packs["studio-core"]["skills"].count("code-intelligence-contract"))
+
+        resources = load_yaml(ROOT / "registry" / "skill-resources.yaml")["bundled"]
+        self.assertEqual(
+            [
+                "code_intelligence.py",
+                {"source": "evals/schema/code-intelligence-evidence.schema.json", "destination": "schemas/code-intelligence-evidence.schema.json"},
+                {"source": "registry/code-intelligence-providers.yaml", "destination": "references/code-intelligence-providers.yaml"},
+            ],
+            resources["code-intelligence-contract"],
+        )
+        scaffold = resources["studio-project-scaffold"]
+        self.assertIn("code_intelligence.py", scaffold)
+        self.assertIn(
+            {"source": "registry/code-intelligence-providers.yaml", "destination": "references/code-intelligence-providers.yaml"},
+            scaffold,
+        )
+
+        upstream = {item["id"] for item in load_yaml(ROOT / "registry" / "upstream-sources.yaml")["sources"]}
+        providers = load_yaml(ROOT / "registry" / "code-intelligence-providers.yaml")["providers"]
+        ids = [item["id"] for item in providers]
+        self.assertEqual(len(ids), len(set(ids)))
+        for provider in providers:
+            self.assertFalse(any("argv" in key or "executable" in key for key in provider))
+            if provider["upstream_source"] is not None:
+                self.assertIn(provider["upstream_source"], upstream)
+
     def test_generated_skill_resources_are_in_sync(self) -> None:
         result = subprocess.run(
             [sys.executable, "-B", "scripts/sync_skill_resources.py", ".", "--check"],
@@ -327,7 +370,10 @@ class SkillResourcePackagingTests(unittest.TestCase):
                 f"resource registry mismatch for {skill_id}",
             )
             if declared_repository_only:
-                self.assertIn("full repository clone", body)
+                self.assertTrue(
+                    "full repository clone" in body or "full kit clone" in body,
+                    skill_path,
+                )
 
             for source_value, destination_value in bundled_resources:
                 source = ROOT.joinpath(*PurePosixPath(source_value).parts)

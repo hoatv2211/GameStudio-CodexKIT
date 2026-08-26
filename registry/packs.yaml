@@ -8,6 +8,7 @@ packs:
   - studio-project-intake
   - studio-agent-orchestration
   - studio-workspace-routing
+  - code-intelligence-contract
   - safe-project-mutation
   - build-and-runtime-verification
   - evidence-first-debugging

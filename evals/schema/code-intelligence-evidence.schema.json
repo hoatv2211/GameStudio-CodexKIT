@@ -1,0 +1,476 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/code-intelligence-evidence.schema.json",
+  "title": "GameStudio normalized Code Intelligence evidence",
+  "x-semantic-validator": "scripts.code_intelligence.validate_evidence_semantics",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "provider",
+    "provider_version",
+    "repository",
+    "revision",
+    "worktree_identity",
+    "index_revision",
+    "index_worktree_identity",
+    "index_state",
+    "capability",
+    "query",
+    "resolved_subjects",
+    "required_languages",
+    "supported_languages",
+    "missing_languages",
+    "affected_paths",
+    "generated_boundaries",
+    "edges",
+    "query_state",
+    "evidence_label",
+    "graph_verdict",
+    "source_confirmations",
+    "test_confirmations",
+    "side_effects",
+    "limitations",
+    "disagreements",
+    "commands",
+    "artifacts",
+    "next_action"
+  ],
+  "properties": {
+    "schema_version": {"const": 1},
+    "provider": {"$ref": "#/$defs/kebab"},
+    "provider_version": {"$ref": "#/$defs/nullableText"},
+    "repository": {"$ref": "#/$defs/text"},
+    "revision": {"$ref": "#/$defs/nullableText"},
+    "worktree_identity": {"$ref": "#/$defs/nullableText"},
+    "index_revision": {"$ref": "#/$defs/nullableText"},
+    "index_worktree_identity": {"$ref": "#/$defs/nullableText"},
+    "index_state": {
+      "enum": [
+        "UNAVAILABLE",
+        "NOT_INITIALIZED",
+        "FRESH",
+        "STALE_HEAD",
+        "STALE_WORKTREE",
+        "PARTIAL_LANGUAGE",
+        "BROKEN",
+        "SIDE_EFFECT_VIOLATION",
+        "USER_DISABLED"
+      ]
+    },
+    "capability": {"$ref": "#/$defs/kebab"},
+    "query": {"$ref": "#/$defs/query"},
+    "resolved_subjects": {"$ref": "#/$defs/textArray"},
+    "required_languages": {"$ref": "#/$defs/kebabArray"},
+    "supported_languages": {"$ref": "#/$defs/kebabArray"},
+    "missing_languages": {"$ref": "#/$defs/kebabArray"},
+    "affected_paths": {"$ref": "#/$defs/textArray"},
+    "generated_boundaries": {"$ref": "#/$defs/textArray"},
+    "edges": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/edge"}
+    },
+    "query_state": {
+      "enum": [
+        "COMPLETE",
+        "STATUS_BLOCKED",
+        "EMPTY_UNCERTAIN",
+        "AMBIGUOUS",
+        "CAPABILITY_MISMATCH"
+      ]
+    },
+    "evidence_label": {
+      "enum": ["Verified", "Snapshot", "Unverified", "BLOCKED"]
+    },
+    "graph_verdict": {
+      "enum": ["PASS", "UNVERIFIED", "BLOCKED"]
+    },
+    "source_confirmations": {"$ref": "#/$defs/textArray"},
+    "test_confirmations": {"$ref": "#/$defs/textArray"},
+    "source_test_fallback": {"$ref": "#/$defs/sourceTestFallback"},
+    "side_effects": {"$ref": "#/$defs/textArray"},
+    "limitations": {"$ref": "#/$defs/textArray"},
+    "disagreements": {"$ref": "#/$defs/textArray"},
+    "commands": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/command"}
+    },
+    "artifacts": {"$ref": "#/$defs/textArray"},
+    "next_action": {"$ref": "#/$defs/text"}
+  },
+  "additionalProperties": false,
+  "$defs": {
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": ".*\\S.*"
+    },
+    "nullableText": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/text"}
+      ]
+    },
+    "kebab": {
+      "type": "string",
+      "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*$"
+    },
+    "textArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/text"}
+    },
+    "kebabArray": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {"$ref": "#/$defs/kebab"}
+    },
+    "query": {
+      "type": "object",
+      "required": ["query_id", "subjects"],
+      "properties": {
+        "query_id": {"$ref": "#/$defs/text"},
+        "subjects": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"$ref": "#/$defs/text"}
+        }
+      },
+      "additionalProperties": false
+    },
+    "edge": {
+      "type": "object",
+      "required": [
+        "relation",
+        "source",
+        "target",
+        "source_locator",
+        "origin",
+        "confidence",
+        "provenance"
+      ],
+      "properties": {
+        "relation": {"$ref": "#/$defs/text"},
+        "source": {"$ref": "#/$defs/text"},
+        "target": {"$ref": "#/$defs/text"},
+        "source_locator": {"$ref": "#/$defs/text"},
+        "origin": {"$ref": "#/$defs/text"},
+        "confidence": {
+          "enum": [
+            "EXTRACTED",
+            "INFERRED",
+            "AMBIGUOUS",
+            "SEMANTIC",
+            "LLM",
+            "UNKNOWN"
+          ]
+        },
+        "provenance": {
+          "enum": [
+            "SOURCE_EXTRACTED",
+            "INFERRED",
+            "SEMANTIC",
+            "LLM",
+            "UNKNOWN"
+          ]
+        }
+      },
+      "additionalProperties": false
+    },
+    "command": {
+      "type": "object",
+      "required": ["command", "exit_code"],
+      "properties": {
+        "command": {"$ref": "#/$defs/text"},
+        "exit_code": {
+          "type": ["integer", "null"]
+        }
+      },
+      "additionalProperties": false
+    },
+    "acknowledgedGeneratedAuthorities": {
+      "oneOf": [
+        {
+          "type": "array",
+          "minItems": 1,
+          "maxItems": 1,
+          "prefixItems": [{"const": "NOT_APPLICABLE"}],
+          "items": false
+        },
+        {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {
+            "allOf": [
+              {"$ref": "#/$defs/text"},
+              {
+                "not": {
+                  "pattern": "^\\s*[Nn][Oo][Tt]_[Aa][Pp][Pp][Ll][Ii][Cc][Aa][Bb][Ll][Ee]\\s*$"
+                }
+              }
+            ]
+          }
+        }
+      ]
+    },
+    "sourceTestFallback": {
+      "type": "object",
+      "required": [
+        "decision",
+        "graph_verdict",
+        "graph_blocker",
+        "source_owners",
+        "known_callers",
+        "known_consumers",
+        "generated_authorities",
+        "test_commands",
+        "reviewer",
+        "residual_risk",
+        "missing_requirements"
+      ],
+      "properties": {
+        "decision": {"enum": ["BLOCKED", "REVIEWER_ACKNOWLEDGED_FALLBACK"]},
+        "graph_verdict": {"const": "BLOCKED"},
+        "graph_blocker": {"type": "string"},
+        "source_owners": {"$ref": "#/$defs/textArray"},
+        "known_callers": {"$ref": "#/$defs/textArray"},
+        "known_consumers": {"$ref": "#/$defs/textArray"},
+        "generated_authorities": {"$ref": "#/$defs/textArray"},
+        "test_commands": {"$ref": "#/$defs/textArray"},
+        "reviewer": {"$ref": "#/$defs/nullableText"},
+        "residual_risk": {"type": "string"},
+        "missing_requirements": {"$ref": "#/$defs/textArray"}
+      },
+      "additionalProperties": false,
+      "allOf": [
+        {
+          "if": {
+            "properties": {"decision": {"const": "REVIEWER_ACKNOWLEDGED_FALLBACK"}},
+            "required": ["decision"]
+          },
+          "then": {
+            "properties": {
+              "graph_blocker": {"$ref": "#/$defs/text"},
+              "source_owners": {"minItems": 1},
+              "known_callers": {"minItems": 1},
+              "known_consumers": {"minItems": 1},
+              "generated_authorities": {
+                "$ref": "#/$defs/acknowledgedGeneratedAuthorities"
+              },
+              "test_commands": {"minItems": 1},
+              "reviewer": {"$ref": "#/$defs/text"},
+              "residual_risk": {"$ref": "#/$defs/text"},
+              "missing_requirements": {"maxItems": 0}
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {"decision": {"const": "BLOCKED"}},
+            "required": ["decision"]
+          },
+          "then": {
+            "properties": {
+              "missing_requirements": {"minItems": 1}
+            }
+          }
+        }
+      ]
+    }
+  },
+  "allOf": [
+    {
+      "if": {"required": ["source_test_fallback"]},
+      "then": {
+        "properties": {
+          "evidence_label": {"const": "BLOCKED"},
+          "graph_verdict": {"const": "BLOCKED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "index_state": {
+            "enum": [
+              "UNAVAILABLE",
+              "NOT_INITIALIZED",
+              "STALE_HEAD",
+              "STALE_WORKTREE",
+              "PARTIAL_LANGUAGE",
+              "BROKEN",
+              "SIDE_EFFECT_VIOLATION",
+              "USER_DISABLED"
+            ]
+          }
+        },
+        "required": ["index_state"]
+      },
+      "then": {
+        "properties": {
+          "query_state": {"const": "STATUS_BLOCKED"},
+          "evidence_label": {"const": "BLOCKED"},
+          "graph_verdict": {"const": "BLOCKED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "missing_languages": {"minItems": 1}
+        },
+        "required": ["missing_languages"]
+      },
+      "then": {
+        "properties": {
+          "index_state": {"const": "PARTIAL_LANGUAGE"},
+          "query_state": {"const": "STATUS_BLOCKED"},
+          "evidence_label": {"const": "BLOCKED"},
+          "graph_verdict": {"const": "BLOCKED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"query_state": {"const": "EMPTY_UNCERTAIN"}},
+        "required": ["query_state"]
+      },
+      "then": {
+        "properties": {
+          "resolved_subjects": {"maxItems": 0},
+          "affected_paths": {"maxItems": 0},
+          "edges": {"maxItems": 0},
+          "limitations": {
+            "contains": {"const": "No graph result is not proof that no dependency exists."}
+          },
+          "evidence_label": {"const": "Unverified"},
+          "graph_verdict": {"const": "UNVERIFIED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "index_state": {"const": "FRESH"},
+          "resolved_subjects": {"maxItems": 0},
+          "affected_paths": {"maxItems": 0},
+          "edges": {"maxItems": 0}
+        },
+        "required": ["index_state", "resolved_subjects", "affected_paths", "edges"]
+      },
+      "then": {
+        "properties": {
+          "query_state": {"const": "EMPTY_UNCERTAIN"},
+          "evidence_label": {"const": "Unverified"},
+          "graph_verdict": {"const": "UNVERIFIED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "query_state": {
+            "enum": ["AMBIGUOUS", "CAPABILITY_MISMATCH"]
+          }
+        },
+        "required": ["query_state"]
+      },
+      "then": {
+        "properties": {
+          "evidence_label": {"const": "BLOCKED"},
+          "graph_verdict": {"const": "BLOCKED"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "edges": {
+            "contains": {
+              "type": "object",
+              "anyOf": [
+                {
+                  "properties": {
+                    "confidence": {"not": {"const": "EXTRACTED"}}
+                  },
+                  "required": ["confidence"]
+                },
+                {
+                  "properties": {
+                    "provenance": {"not": {"const": "SOURCE_EXTRACTED"}}
+                  },
+                  "required": ["provenance"]
+                }
+              ]
+            }
+          }
+        },
+        "required": ["edges"]
+      },
+      "then": {
+        "properties": {
+          "evidence_label": {
+            "enum": ["Snapshot", "Unverified", "BLOCKED"]
+          },
+          "graph_verdict": {
+            "enum": ["UNVERIFIED", "BLOCKED"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "disagreements": {"minItems": 1}
+        },
+        "required": ["disagreements"]
+      },
+      "then": {
+        "properties": {
+          "evidence_label": {
+            "enum": ["Snapshot", "Unverified", "BLOCKED"]
+          },
+          "graph_verdict": {
+            "enum": ["UNVERIFIED", "BLOCKED"]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {"graph_verdict": {"const": "PASS"}},
+        "required": ["graph_verdict"]
+      },
+      "then": {
+        "properties": {
+          "index_state": {"const": "FRESH"},
+          "query_state": {"const": "COMPLETE"},
+          "evidence_label": {"const": "Verified"},
+          "provider_version": {"$ref": "#/$defs/text"},
+          "revision": {"$ref": "#/$defs/text"},
+          "worktree_identity": {"$ref": "#/$defs/text"},
+          "index_revision": {"$ref": "#/$defs/text"},
+          "index_worktree_identity": {"$ref": "#/$defs/text"},
+          "resolved_subjects": {"minItems": 1, "maxItems": 1},
+          "missing_languages": {"maxItems": 0},
+          "side_effects": {"maxItems": 0},
+          "artifacts": {"minItems": 1},
+          "edges": {
+            "minItems": 1,
+            "items": {
+              "type": "object",
+              "properties": {
+                "confidence": {"const": "EXTRACTED"},
+                "provenance": {"const": "SOURCE_EXTRACTED"}
+              },
+              "required": ["confidence", "provenance"]
+            }
+          }
+        }
+      }
+    }
+  ]
+}

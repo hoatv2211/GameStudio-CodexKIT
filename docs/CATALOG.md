@@ -1,6 +1,6 @@
 # Skill Catalog
 
-49 canonical skills across seven additive packs. Every row links to the canonical `SKILL.md`.
+50 canonical skills across seven additive packs. Every row links to the canonical `SKILL.md`.
 
 - **Use when** is the routing trigger. The agent selects by matching this, so scan this column first.
 - **Type** is the library layer: `root`, `router`, `workflow`, `diagnostic`, `gate`, `safety`, `governance`, `interactive`.
@@ -28,6 +28,7 @@
 | [`bug-hunt-swarm`](../skills/bug-hunt-swarm/SKILL.md) | An unknown crash, intermittent failure, or cross-subsystem bug needs parallel read-only reproduction lanes, ranked hypotheses, suspect paths, and an... | workflow | read-only | `bug-packets.json` |
 | [`build-and-runtime-verification`](../skills/build-and-runtime-verification/SKILL.md) | Running build, compile, test, launch, or runtime checks and producing a verdict tied to exact commands, exit codes, artifact paths, limitations, and... | gate | read-only | `verdict.md` |
 | [`evidence-first-debugging`](../skills/evidence-first-debugging/SKILL.md) | Debugging a crash, lỗi, failing game, tool, build, service, script, or reproducible local code failure requires repro or reproduction, giả thuyết or... | workflow | low | `debug-verdict.md` |
+| [`code-intelligence-contract`](../skills/code-intelligence-contract/SKILL.md) | Optional provider-neutral dependency, call-chain, blast-radius, architecture, and domain-flow evidence. | gate | read-only | `code-intelligence-evidence.json` |
 | [`feature-to-work-packets`](../skills/feature-to-work-packets/SKILL.md) | Decomposing an approved specification into ordered work packets with a file owner, exact paths, single-writer ownership, dependencies, risks, evidence,... | workflow | low | `work-packets.yaml` |
 | [`game-feature-brainstorming`](../skills/game-feature-brainstorming/SKILL.md) | Exploring a game feature, mechanic, player experience, or production approach and the team needs two or three options with trade-offs before choosing a... | interactive | read-only | `design-options.md` |
 | [`game-feature-to-spec`](../skills/game-feature-to-spec/SKILL.md) | An approved, chosen, or selected game mechanic direction must become a testable specification with acceptance criteria, state transitions, inputs,... | workflow | low | `feature-spec.md` |

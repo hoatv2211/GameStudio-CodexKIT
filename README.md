@@ -16,7 +16,7 @@ MOStudio Kit is distributed from the `GameStudio-CodexKIT` repository. The
 public product name is MOStudio Kit; repository URLs and the stable plugin ID
 `game-studio-codex-kit` keep the technical project name.
 
-[![Skills](<https://img.shields.io/badge/skills-49%20canonical-brightgreen>)](skills/) [![Routing](<https://img.shields.io/badge/routing%20eval-306%2F306-blue>)](evals/routing/) [![Tests](<https://img.shields.io/badge/unittest-test%20suite-informational>)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](<https://img.shields.io/badge/skills-50%20canonical-brightgreen>)](skills/) [![Routing](<https://img.shields.io/badge/routing%20eval-316%2F316-blue>)](evals/routing/) [![Tests](<https://img.shields.io/badge/unittest-test%20suite-informational>)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Why MOStudio Kit
 
@@ -133,8 +133,8 @@ For more examples, use the
 
 ## Evidence, not confidence
 
-The current catalog contains **49 canonical skills**, **24 canonical agent roles**,
-seven installable packs, and **306 deterministic eval cases** for Tier-A routing.
+The current catalog contains **50 canonical skills**, **24 canonical agent roles**,
+seven installable packs, and **316 deterministic eval cases** for Tier-A routing.
 Local deterministic tests, model-runner evidence, real-project dogfood, and
 lifecycle maturity are deliberately reported as separate things.
 

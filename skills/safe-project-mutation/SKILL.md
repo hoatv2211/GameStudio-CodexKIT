@@ -48,17 +48,19 @@ Require repository root, exact operations, owned paths, excluded paths, expected
 Default to report-only. Reject path traversal, source deletion, out-of-scope writes, unknown generated ownership, active editor/build/server conflicts, missing reviewer, or missing restore information.
 
 ## Workflow
-1. Normalize every target path and prove it remains inside the approved root.
-   Completion criterion: the report lists no unresolved or out-of-scope target.
-2. Run report-only mode and calculate proposed changes without writing files.
+1. Normalize every target path and prove it remains inside the approved root. Require a pre-change impact query under `code-intelligence-contract` before non-trivial code edits; do not expand write scope automatically.
+   Completion criterion: affected paths, source owners, generated authorities, and approved write scope are explicit, or the graph lane is BLOCKED.
+2. If the graph lane is BLOCKED, mutation may proceed only with Decision: `REVIEWER_ACKNOWLEDGED_FALLBACK`. Record explicit missing graph coverage/blocker, authoritative source owners, known callers/consumers, generated authorities or exact `NOT_APPLICABLE`, focused test commands, named reviewer, and residual risk. Preserve existing risk, approval, backup, and restore gates; any unresolved generated, cross-repository, or dynamic boundary remains BLOCKED, and graph verdict stays BLOCKED.
+   Completion criterion: fallback fields are complete and approved write scope remains unchanged.
+3. Run report-only mode and calculate proposed changes without writing files.
    Completion criterion: hashes and diff intent exist while source state is unchanged.
-3. Create backups for existing targets and a manifest for creates, updates, and restore actions.
+4. Create backups for existing targets and a manifest for creates, updates, and restore actions.
    Completion criterion: each operation has a backup or an explicit “created file; remove on restore” action.
-4. Apply only the reviewed manifest.
+5. Apply only the reviewed manifest.
    Completion criterion: actual hashes match the manifest’s expected outputs.
-5. Run the declared verification command and capture exit code and artifacts.
+6. Run the declared verification command and capture exit code and artifacts.
    Completion criterion: success is supported by fresh output or labeled BLOCKED.
-6. Exercise restore in a fixture or provide a verified restore command for the real scope.
+7. Exercise restore in a fixture or provide a verified restore command for the real scope.
    Completion criterion: the original hashes can be reproduced.
 
 ## Evidence and output contract
@@ -72,6 +74,8 @@ Record pending versus applied operations, manifest path, backup root, verificati
 - Never back up after mutation.
 - Never delete source assets; archive or leave BLOCKED.
 - Never hand-edit generated outputs without changing their source.
+- Stale, broken, partial, unavailable, disabled, or unsupported graph state is BLOCKED graph evidence, not permission to assume a small blast radius.
+- A reviewer fallback never converts graph BLOCKED into PASS or widens file ownership.
 
 ## Verification checklist
 - [ ] Report-only mode did not mutate the fixture.

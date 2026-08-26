@@ -66,3 +66,27 @@ sources:
     restore_path: .research/repos/vibeforge1111__keep-codex-fast
     snapshot_clean: true
     provenance_use: Declared source for safe-project-mutation.
+  - id: graphify-labs-graphify
+    remote: https://github.com/Graphify-Labs/graphify.git
+    commit: 43d54acbfa9e731f7a592bb582c1f4b9d48ed73e
+    license: Apache-2.0
+    license_path: LICENSE
+    restore_path: .research/repos/Graphify-Labs__graphify
+    snapshot_clean: true
+    provenance_use: Provider-contract and edge-provenance research only; no copied implementation.
+  - id: egonex-ai-understand-anything
+    remote: https://github.com/Egonex-AI/Understand-Anything.git
+    commit: 32944829e7a63a9fa9c55d811d7f98a9530c6a6a
+    license: MIT
+    license_path: LICENSE
+    restore_path: .research/repos/Egonex-AI__Understand-Anything
+    snapshot_clean: true
+    provenance_use: Optional onboarding, architecture, and business-flow provider research; no copied implementation.
+  - id: abhigyanpatwari-gitnexus
+    remote: https://github.com/abhigyanpatwari/GitNexus.git
+    commit: 031e123731b9e335a5931befdd0ea0e4ed886371
+    license: PolyForm-Noncommercial-1.0.0
+    license_path: LICENSE
+    restore_path: .research/repos/abhigyanpatwari__GitNexus
+    snapshot_clean: true
+    provenance_use: External advanced-provider pattern research only; noncommercial source content is not copied into the MIT kit.

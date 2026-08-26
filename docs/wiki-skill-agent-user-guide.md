@@ -1,7 +1,7 @@
 # MOStudio Kit Skill and Agent User Guide
 
 > Wiki-ready English guide for Codex App/CLI and Hermes Agent users. This page
-> covers all **49 canonical skills**, **24 canonical agent roles**, and the
+> covers all **50 canonical skills**, **24 canonical agent roles**, and the
 > operating rules that keep game-project work evidence-based and reversible.
 
 MOStudio Kit is designed for operating real game projects: Unity clients,
@@ -16,7 +16,7 @@ complete it. Selecting a specialist never grants additional mutation authority.
 2. [Golden Paths and role-first routing](#golden-paths-and-role-first-routing)
 3. [Prompt templates](#prompt-templates)
 4. [Evidence and risk model](#evidence-and-risk-model)
-5. [All 49 skills](#all-49-skills)
+5. [All 50 skills](#all-50-skills)
 6. [All 24 agent roles](#all-24-agent-roles)
 7. [Multi-agent orchestration](#multi-agent-orchestration)
 8. [End-to-end examples](#end-to-end-examples)
@@ -169,7 +169,7 @@ A specialist role does not reduce risk. `game-data-engineer` cannot run
 destructive SQL without approval. `build-release-engineer` cannot publish or
 sign a release. Read-only agents cannot edit production source.
 
-## All 49 skills
+## All 50 skills
 
 ### Studio Core
 
@@ -177,6 +177,7 @@ sign a release. Read-only agents cannot edit production source.
 |---|---|---|
 | `using-game-studio-skills` | Starting any task and selecting route, risk, and evidence expectations | “Audit this repository and select the correct workflow. Do not edit yet.” |
 | `studio-project-intake` | Adopting an unfamiliar repository and collecting goals, engine, owners, and constraints | “Create an intake task packet for this Unity client and C++ server.” |
+| `code-intelligence-contract` | Optional provider-neutral dependency, call-chain, and blast-radius evidence | “Inspect this symbol's blast radius without installing or refreshing any provider.” |
 | `studio-workspace-routing` | A workspace contains nested Git roots or several related repositories | “Route client, server, and workbench repos through the project profile.” |
 | `studio-agent-orchestration` | Two or more independent workstreams justify bounded agents | “Create an agent plan with disjoint writers and an independent verifier.” |
 | `safe-project-mutation` | File or generated-state changes require report, digest, backup, and restore | “Dry-run these three config changes. Do not apply before review.” |

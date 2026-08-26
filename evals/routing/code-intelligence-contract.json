@@ -1,0 +1,12 @@
+{"target_skill":"code-intelligence-contract","cases":[
+  {"prompt":"Trace dependency call chain and blast radius before changing this C++ symbol","expected_skill":"code-intelligence-contract","type":"positive"},
+  {"prompt":"Dùng optional vendor-neutral code-intelligence provider kiểm tra dependency call-chain blast-radius cho Lua packet handler","expected_skill":"code-intelligence-contract","type":"positive"},
+  {"prompt":"Optional vendor-neutral code-intelligence provider index is stale; dependency call-chain blast-radius cannot be PASS","expected_skill":"code-intelligence-contract","type":"positive"},
+  {"prompt":"Optional vendor-neutral code-intelligence provider reports an inferred AST dependency call-chain; keep it Snapshot","expected_skill":"code-intelligence-contract","type":"positive"},
+  {"prompt":"Optional vendor-neutral code-intelligence provider returned empty dependency call-chain; empty is not proof of absence","expected_skill":"code-intelligence-contract","type":"positive"},
+  {"prompt":"pure intake only: create a project task packet with goal scope risk engine version and do-not-touch paths","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"Review production milestone schedule dependencies owners dates and escalation","expected_skill":"production-risk-and-dependency-review","type":"negative","owner":"production-risk-and-dependency-review"},
+  {"prompt":"pure debugging only: reproduce a failing test rank hypotheses instrument root cause and add regression proof","expected_skill":"evidence-first-debugging","type":"negative","owner":"evidence-first-debugging"},
+  {"prompt":"Run parallel read-only review lanes on this known diff and integrate severity findings","expected_skill":"review-swarm","type":"negative","owner":"review-swarm"},
+  {"prompt":"Run optional vendor-neutral code-intelligence dependency call-chain blast-radius under the shared contract first, then explicit handoff to safe-project-mutation","expected_skill":"code-intelligence-contract","type":"collision"}
+]}

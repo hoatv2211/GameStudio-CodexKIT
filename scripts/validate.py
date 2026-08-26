@@ -14,12 +14,14 @@ from typing import Any, Iterable
 
 try:
     from scripts.common import load_yaml, parse_frontmatter
+    from scripts.code_intelligence import load_provider_descriptors
     from scripts.dogfood_eval import load_profile
     from scripts.promotion_evidence import load_promotion_records, validate_promotion_record
     from scripts.release_preflight import load_release_preflight_schema
     from scripts.sync_skill_resources import load_skill_resources, sync_skill_resources
 except ModuleNotFoundError:
     from common import load_yaml, parse_frontmatter
+    from code_intelligence import load_provider_descriptors
     from dogfood_eval import load_profile
     from promotion_evidence import load_promotion_records, validate_promotion_record
     from release_preflight import load_release_preflight_schema
@@ -1105,6 +1107,7 @@ def _validate_repository_maintenance_bundle(root: Path, issues: list[Issue]) -> 
                         f"missing repository identity marker: {marker}",
                     )
 
+
     if agent_path.is_file():
         try:
             agent = tomllib.loads(agent_path.read_text(encoding="utf-8-sig"))
@@ -1224,6 +1227,33 @@ def _validate_repository_maintenance_bundle(root: Path, issues: list[Issue]) -> 
                         f"repository-local id must not enter scaffold templates: {internal_id}",
                     )
 
+def _validate_code_intelligence_providers(root: Path, issues: list[Issue]) -> None:
+    registry_path = root / "registry" / "code-intelligence-providers.yaml"
+    if not registry_path.exists():
+        return
+    try:
+        providers = load_provider_descriptors(registry_path)
+    except (OSError, ValueError) as error:
+        _issue(issues, "code_intelligence.providers", registry_path, str(error))
+        return
+    upstream_path = root / "registry" / "upstream-sources.yaml"
+    try:
+        upstream = load_yaml(upstream_path) if upstream_path.is_file() else {}
+    except (OSError, ValueError) as error:
+        _issue(issues, "code_intelligence.upstream", upstream_path, str(error))
+        return
+    sources = upstream.get("sources", []) if isinstance(upstream, dict) else []
+    source_ids = {item.get("id") for item in sources if isinstance(item, dict)}
+    for provider in providers:
+        if provider.upstream_source is not None and provider.upstream_source not in source_ids:
+            _issue(
+                issues,
+                "code_intelligence.upstream",
+                registry_path,
+                f"{provider.id} references unknown upstream source {provider.upstream_source}",
+            )
+
+
 def validate_repository(root: Path | str) -> list[Issue]:
     root_path = Path(root).resolve()
     issues: list[Issue] = []
@@ -1249,6 +1279,7 @@ def validate_repository(root: Path | str) -> list[Issue]:
     capability_ids = _validate_registries(root_path, issues)
     _validate_agent_roles(root_path, issues, capability_ids)
     _validate_skill_resources(root_path, issues)
+    _validate_code_intelligence_providers(root_path, issues)
     _validate_repository_maintenance_bundle(root_path, issues)
     _validate_plugin_package(root_path, capability_ids, issues)
     return sorted(issues, key=lambda issue: (str(issue.path), issue.code, issue.message))

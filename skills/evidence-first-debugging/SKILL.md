@@ -50,8 +50,8 @@ Inspection and instrumentation are preferred. Any mutation follows test-first di
 ## Workflow
 1. Reproduce the symptom with the smallest deterministic command or fixture.
    Completion criterion: failure occurs for the expected reason, or reproduction is BLOCKED with evidence.
-2. Trace the data and control path from observed failure toward its source.
-   Completion criterion: component boundaries and the first incorrect state are identified.
+2. Trace the data and control path from observed failure toward its source using native inspection and, when available, a fresh code-intelligence provider.
+   Completion criterion: component boundaries and the first incorrect state are identified; inferred, dynamic, generated, and stale graph edges are labeled rather than treated as causal proof. Source, logs, tests, and runtime evidence own the root-cause verdict.
 3. Rank hypotheses and add minimal instrumentation that distinguishes them.
    Completion criterion: one hypothesis is supported and alternatives are weakened by output.
 4. Write a failing regression test or executable check before the fix.
@@ -71,6 +71,7 @@ Include the exact failing symptom, confirmed root cause or remaining hypotheses,
 - Do not edit code before reproduction or a failing check.
 - Do not stack speculative fixes.
 - Do not replace a root-cause explanation with “timing issue” or “Unity quirk” without evidence.
+- No graph result is not proof that no dependency exists. Confirm important edges with source, logs, tests, or runtime evidence.
 - Do not mark intermittent or unavailable reproduction as PASS.
 
 ## Verification checklist

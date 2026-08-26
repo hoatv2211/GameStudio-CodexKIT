@@ -50,7 +50,7 @@ All lanes are read-only. Reviewers may inspect files and run non-mutating checks
 ## Workflow
 1. Freeze the review target and define non-overlapping lane questions.
    Completion criterion: every concern has one lane and no lane owns writes.
-2. Give each lane the minimum repository context and exact evidence format.
+2. Give each lane the minimum repository context and exact evidence format. Add one optional independent dependency/impact lane when a fresh provider is available; the lane stays read-only, owns graph blast-radius findings, owns source disagreements and missing coverage, and cannot issue runtime PASS.
    Completion criterion: lane reports cite affected paths and concrete evidence.
 3. Run lanes independently without sharing conclusions mid-review.
    Completion criterion: findings are not contaminated by another lane’s verdict.
@@ -70,6 +70,8 @@ Record target revision, lane assignments, commands run, findings accepted or rej
 - Reviewers may not “quickly fix” issues they discover.
 - A clean static review does not prove runtime behavior.
 - Duplicate findings must not inflate severity.
+- Graph extraction, inferred semantics, and runtime behavior are separate evidence classes; stale or unsupported graph data is BLOCKED.
+- A BLOCKED graph lane never becomes a clean dependency finding; source review continues independently.
 
 ## Verification checklist
 - [ ] Target revision is fixed.

@@ -37,7 +37,7 @@ The observations below are local Windows results from the refreshed checkout. CI
 | Gate | Observation |
 |---|---|
 | Structural and provenance validation | 0 errors, 0 warnings |
-| Tier-A routing | 306/306 cases, rank-1 accuracy 1.0 across 48 routed skills |
+| Tier-A routing | 316/316 cases, rank-1 accuracy 1.0 across 49 routed skills |
 | External-catalog collision | 10/10 — studio routes beat six generic neighboring skills |
 | Secret scan | 0 findings |
 | Network and package policy | PASS |
@@ -67,7 +67,7 @@ Limitations, stated plainly:
 
 `Snapshot` at catalog level, `Verified` for one skill.
 
-The catalog is marked `beta` on the basis of maintainer-confirmed application in one commercial-style Unity 6 (6000.3.10f1) WebGL MMORPG client with a Lua gameplay layer and multiple concurrent agent sessions sharing one worktree. Per `AGENTS.md`, `beta` records adoption; it does not assert individual verified dogfood evidence for each of the 49 skills.
+The catalog is marked `beta` on the basis of maintainer-confirmed application in one commercial-style Unity 6 (6000.3.10f1) WebGL MMORPG client with a Lua gameplay layer and multiple concurrent agent sessions sharing one worktree. Per `AGENTS.md`, `beta` records adoption; it does not assert individual verified dogfood evidence for each of the 50 skills.
 
 One skill exceeds that bar. `localization-authority-audit` has a promotion record in `registry/promotion-evidence.yaml` with hash-bound artifacts under `registry/promotion-artifacts/localization-authority-audit-fpc/`, covering two cases with real command logs, exit codes, and a project snapshot. Validation reports it as `verified: 1, stale: 0, invalid: 0`. The record expires 2027-02-17 and is bound to a static profile.
 
