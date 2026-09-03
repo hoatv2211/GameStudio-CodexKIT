@@ -143,6 +143,14 @@
       "expected_verdict": "PASS",
       "allow_mutation": false,
       "required_artifact_fields": ["preserved_agents", "ownership", "activation"]
+    },
+    {
+      "id": "repeated-work-strategy-gate",
+      "prompt": "Normalize the same field across twelve similar records. Assess an existing tool or batch workflow before manual edits, choose manual, reuse, extend, or create-tool, cluster failures by cause, and preserve all mutation approval gates.",
+      "target_skill": "using-game-studio-skills",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["repetition_assessment", "strategy", "tool_reuse", "failure_clusters", "safety_gates"]
     }
   ]
 }

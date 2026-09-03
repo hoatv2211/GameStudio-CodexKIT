@@ -13,6 +13,25 @@ from tests._meta.support import temporary_directory
 
 
 class ProjectScaffoldTests(unittest.TestCase):
+    def test_generated_agent_contract_includes_repeated_work_policy(self) -> None:
+        from scripts.project_scaffold import scaffold_files
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            files = scaffold_files(root, profile={"repositories": []})
+            agents = files[root / "AGENTS.md"].casefold()
+
+            for phrase in (
+                "three or more similar records, files, or assets",
+                "reuse or extend an existing tool",
+                "dry-run",
+                "manifest or structured log",
+                "failure cluster",
+                "does not expand approval",
+            ):
+                with self.subTest(phrase=phrase):
+                    self.assertIn(phrase, agents)
+
     def test_detects_subsystems_and_reports_without_writing_by_default(self) -> None:
         from scripts.project_scaffold import detect_subsystems, scaffold_project
 

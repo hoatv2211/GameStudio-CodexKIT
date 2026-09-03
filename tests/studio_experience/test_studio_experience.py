@@ -866,6 +866,25 @@ class StudioExperienceDocumentationContractTests(unittest.TestCase):
         self.assertNotIn("Phase 1 implements four Golden Paths", text)
         self.assertNotIn("Ship has no Phase-1 Golden Path", text)
 
+    def test_root_skill_requires_a_repeated_work_strategy_gate(self) -> None:
+        text = self.read("skills/using-game-studio-skills/SKILL.md").casefold()
+
+        for phrase in (
+            "three or more similar records, files, or assets",
+            "manual, reuse, extend, or create-tool",
+            "deterministic",
+            "resumable",
+            "idempotent",
+            "dry-run",
+            "bounded output",
+            "manifest or structured log",
+            "quarantine",
+            "failure cluster",
+            "does not expand authority",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, text)
+
     def test_wiki_examples_and_eight_family_catalog_match_current_routes(self) -> None:
         text = self.read("docs/wiki-skill-agent-user-guide.md")
         route_section = text.split("## Golden Paths and role-first routing", 1)[1].split(

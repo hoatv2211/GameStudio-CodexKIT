@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: null
     maturity: beta
-    last_reviewed: 2026-08-07
+    last_reviewed: 2026-09-03
     provenance:
       derived_from:
         repo: Dimillian/Skills
@@ -48,8 +48,8 @@ Collect requested mode, catalog and registries, existing descriptions, project-l
 Writes are limited to owned skill, eval, registry, and documentation paths. Never mutate `.research` sources, external projects, generated adapters, or copied NC content.
 
 ## Workflow
-1. Scan the catalog for exact, neighboring, deprecated, or updateable capabilities.
-   Completion criterion: the decision is update, new skill, backlog, or no action.
+1. Scan the catalog and bundled helpers for exact, neighboring, deprecated, reusable, or updateable capabilities.
+   Completion criterion: the decision is reuse, update, new skill or tool, backlog, or no action, with existing workflows and tools preferred.
 2. In `author` mode, create failing routing, behavior, or pressure cases from observed needs before editing the skill.
    Completion criterion: the gap is reproducible and not a hypothetical preference.
 3. Write the smallest complete skill with closed schema, provenance, safety, evidence, workflow criteria, and concise triggers.
@@ -69,12 +69,15 @@ Record requested mode, preflight decision, skill/eval files, provenance source, 
 
 ## Pitfalls and anti-rationalization
 - “A new skill would be cleaner” does not beat updating an existing one.
+- “Several items need the same edit” requires a tool assessment, not automatic tool creation or manual per-item repair.
+- A small one-off task does not justify a reusable helper without evidence of future value.
 - High overlap with undeclared provenance is a Gate 10 failure.
 - Target metrics are never observed metrics.
 - Missing live dogfood is BLOCKED, not a maturity PASS.
 
 ## Verification checklist
 - [ ] Update-first preflight was performed.
+- [ ] Existing tools were assessed before a new helper was proposed.
 - [ ] New behavior had a failing case first.
 - [ ] Provenance and license are complete.
 - [ ] Routing, behavior, pressure, and safety gates ran.

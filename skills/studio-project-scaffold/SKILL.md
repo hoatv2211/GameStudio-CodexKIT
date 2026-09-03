@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: Producer
     maturity: beta
-    last_reviewed: 2026-08-07
+    last_reviewed: 2026-09-03
     provenance:
       derived_from: none
       patterns_from: [sanitized multi-project governance fixtures]
@@ -50,7 +50,7 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
    Completion criterion: detected subsystems and unknown areas are reported.
 3. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
    Completion criterion: every existing governance artifact is marked preserve, merge, or BLOCKED.
-4. Render the minimum scaffold with evidence, ownership, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
+4. Render the minimum scaffold with evidence, ownership, repeated-work tooling, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
    Completion criterion: `scaffold-report.json` lists exact proposed and preserved scaffold files without writes.
 5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
    Completion criterion: the reviewed adapter report identifies every proposed write and collision without mutation.

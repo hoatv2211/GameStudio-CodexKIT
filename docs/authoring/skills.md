@@ -16,6 +16,14 @@ Use `skill-authoring-and-audit` in `author` mode before creating or changing a c
 10. Validate repository-root discovery for Codex, per-skill copying for Hermes Agent, and project-local role materialization from `registry/agent-roles.yaml`, then regenerate only the packs or adapter exports being distributed.
 11. Run structural validation, routing, external-catalog collision, secret, policy, cross-agent packaging, and full unittest discovery.
 
+## Repeated-work tooling gate
+
+Before prescribing manual repetition across records, files, or assets, assess existing skills, helpers, converters, CLIs, and batch workflows. Three or more similar targets, or any high-volume set, requires an explicit manual, reuse, extend, or create-tool decision; it does not automatically justify new infrastructure.
+
+Prefer reuse or extension. Keep small one-off work direct when that is clearer and lower risk. A new or extended mutating helper needs report-only or dry-run behavior, bounded scope and output, a manifest or structured log, validation, and a safe rerun contract. Long pipelines must be resumable, repeated operations must be idempotent or completed-state aware, and recoverable item failures should be quarantined without hiding a shared-integrity failure.
+
+Author workflows so agents repair the owning rule, converter, or pipeline for a failure cluster and rerun that cluster instead of hand-editing each failed item. Tooling never changes the underlying approval class for commit, service control, databases, Unity mutation, publishing, credentials, or destructive actions.
+
 ## Project adapter contract
 
 Keep project adapter documentation and tests aligned with its safety boundary: report-only by default; apply requires a named reviewer, disjoint backup root, and approved plan digest. The overlay combines packaged generic agent templates with the profile specialist overlay, emits inert activation for manual review, and leaves `.codex/config.toml` untouched. Record per-file ownership so unmanaged local agents survive regeneration and hash-safe uninstall can return `PARTIAL` recovery with remaining owned paths instead of deleting drifted content.

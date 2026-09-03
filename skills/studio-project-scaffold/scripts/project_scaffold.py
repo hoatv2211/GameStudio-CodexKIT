@@ -256,6 +256,11 @@ def scaffold_files(
 - One writer owns each file or generated output.
 - Preserve external, vendor, binary, generated, and credential paths.
 - Use Verified, Snapshot, Unverified, and BLOCKED evidence labels.
+- For three or more similar records, files, or assets, assess a tool or batch workflow before manual processing.
+- Prefer reuse or extend an existing tool; do not build a helper for a small one-off task without evidence of reuse value.
+- Repeated-work tools must be deterministic, bounded, validated, safely rerunnable, and use a manifest or structured log. Mutating tools require dry-run; long pipelines require resumable progress; repeated operations require idempotent or completed-state handling.
+- Quarantine recoverable item failures, repair the owning rule or converter by failure cluster, and fail fast when shared integrity is invalid.
+- Automation does not expand approval: commit, service, database, Unity mutation, publish, credential, and destructive gates remain in force.
 - Do not commit, publish, start services, import databases, or perform destructive cleanup without explicit approval.
 """
     contract = f"""<!-- {GENERATED_HEADER} -->
