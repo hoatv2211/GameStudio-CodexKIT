@@ -17,7 +17,7 @@ Use this workflow only inside the `GameStudio-CodexKIT` source repository. Invok
 | Skill, agent, workflow, trigger, provenance, or maturity change | Run update-first authoring and audit with failing routing or behavior evidence before changing canonical content. |
 | Registry, pack, persona, or catalog drift | Change the canonical entry and verify every dependent index or count. |
 | Generator, adapter, or bundled resource change | Edit the root owner, regenerate only affected outputs, and inspect preservation behavior. |
-| Plugin metadata, semantic version, or release readiness | Compare the distributed payload and run release preflight; internal-only changes do not bump the plugin version. |
+| Plugin metadata, semantic version, or release readiness | Compare the distributed payload and run release preflight; internal-only changes do not bump the plugin version. After a version bump is pushed, inspect the full required GitHub Actions matrix for the exact commit and version; missing or non-terminal runs remain `BLOCKED`, and any failed job prevents readiness. |
 | Documentation-only maintenance | Verify links, counts, commands, and source-of-truth alignment without broad formatting churn. |
 | Architecture improvement or cleanup | Require evidence of the maintenance problem, exact scope, restore path, and regression coverage. |
 

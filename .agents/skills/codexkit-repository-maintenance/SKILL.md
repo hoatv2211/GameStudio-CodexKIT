@@ -63,7 +63,7 @@ Routing does not transfer repository integration ownership. Reuse the specialist
 7. Run focused verification, then every local gate required by `AGENTS.md`.
    Completion criterion: each command has an exit code and any artifact path required for a PASS claim.
 8. Inspect distribution and version impact.
-   Completion criterion: internal maintenance files remain outside registries, packs, adapters, scaffold templates, and plugin version changes unless the distributed payload actually changed.
+   Completion criterion: internal maintenance files remain outside registries, packs, adapters, scaffold templates, and plugin version changes unless the distributed payload actually changed. Any plugin version change remains `BLOCKED` for deploy or release readiness until every required GitHub Actions job for the exact pushed commit and version reaches terminal PASS; local PASS is not a substitute.
 9. Produce the handoff.
    Completion criterion: the report contains scope, changes, evidence, risks, restore information, and separately authorized next actions.
 

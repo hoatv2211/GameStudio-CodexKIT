@@ -3,10 +3,11 @@
 from __future__ import annotations
 
 import hashlib
+import os
 import re
 import subprocess
 from dataclasses import asdict, dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath, PureWindowsPath
 from typing import Any, Mapping, Protocol, Sequence
 
 try:
@@ -162,6 +163,23 @@ def _default_git_text_runner(args: list[str], *, cwd: Path) -> str:
     return result.stdout or ""
 
 
+def _normalize_git_repository_path(repository: str) -> str:
+    """Preserve Git's absolute path syntax across host operating systems."""
+
+    normalized = repository.replace("\\", "/")
+    windows_path = PureWindowsPath(repository)
+    posix_path = PurePosixPath(repository)
+    foreign_windows = os.name != "nt" and windows_path.is_absolute()
+    foreign_posix = (
+        os.name == "nt"
+        and posix_path.is_absolute()
+        and not windows_path.is_absolute()
+    )
+    if foreign_windows or foreign_posix:
+        return normalized
+    return Path(repository).resolve().as_posix()
+
+
 def capture_repository_identity(
     root: Path | str,
     *,
@@ -187,7 +205,7 @@ def capture_repository_identity(
         unstaged = command(["diff", "--binary"], cwd=root_path)
         staged = command(["diff", "--binary", "--cached"], cwd=root_path)
         repository_path = (
-            Path(repository).resolve().as_posix()
+            _normalize_git_repository_path(repository)
             if repository
             else root_path.as_posix()
         )

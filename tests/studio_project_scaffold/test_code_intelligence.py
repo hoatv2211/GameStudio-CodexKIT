@@ -583,6 +583,16 @@ class CodeIntelligenceStatusTests(unittest.TestCase):
         self.assertTrue(identity.complete)
         self.assertEqual(expected_calls, calls)
 
+    def test_git_repository_identity_preserves_foreign_absolute_path_syntax(self) -> None:
+        from unittest import mock
+
+        from scripts.code_intelligence import _normalize_git_repository_path
+
+        with mock.patch("scripts.code_intelligence.os.name", "posix"):
+            self.assertEqual("D:/game", _normalize_git_repository_path("D:/game"))
+            self.assertEqual("D:/game", _normalize_git_repository_path(r"D:\game"))
+        self.assertEqual("/srv/game", _normalize_git_repository_path("/srv/game"))
+
     def test_untracked_worktree_requires_privacy_safe_content_identity(self) -> None:
         from inspect import signature
         from unittest import mock
@@ -694,8 +704,9 @@ class CodeIntelligenceStatusTests(unittest.TestCase):
 
         from scripts.code_intelligence import capture_repository_identity
 
+        reported_repository = Path.cwd().as_posix()
         outputs = {
-            ("rev-parse", "--show-toplevel"): "D:/reported-game\n",
+            ("rev-parse", "--show-toplevel"): f"{reported_repository}\n",
             ("rev-parse", "HEAD"): "abc123\n",
             ("status", "--porcelain=v1", "-z", "--untracked-files=all"): "",
             ("diff", "--binary"): "",
