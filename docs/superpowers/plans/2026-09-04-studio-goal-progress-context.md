@@ -721,7 +721,7 @@ Expected: PASS for all three projection sizes and the `BLOCKED` overflow case.
 
 - [ ] **Step 6: Run the Caveman originality comparison**
 
-Run: `python -B scripts/check_originality.py . "C:\Users\MAD\.agents\skills\caveman"`
+Run: `python -B scripts/check_originality.py . "$HOME/.agents/skills/caveman"`
 
 Expected: exit `0` and no undeclared overlap. If the installed source is unavailable, record lifecycle audit `BLOCKED`; do not weaken the provenance test or copy source text.
 
@@ -1242,7 +1242,7 @@ Expected: every command exits `0`. A failure is `FAIL`, not a partial PASS; repa
 Run:
 
 ```text
-python -B scripts/check_originality.py . "C:\Users\MAD\.agents\skills\caveman"
+python -B scripts/check_originality.py . "$HOME/.agents/skills/caveman"
 python -B scripts/catalog_audit.py .
 python -B scripts/dogfood_eval.py . --export evidence/local/dogfood-cases.jsonl
 python -B scripts/dogfood_eval.py . --status evidence/local/dogfood-status.json
