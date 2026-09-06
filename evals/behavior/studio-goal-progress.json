@@ -1,0 +1,88 @@
+{
+  "cases": [
+    {
+      "id": "goal-progress-weighted-verification",
+      "prompt": "Use only this trusted reduced input: goal_id=goal-eval-weighted, plan_version=1, progress_stream=evidence/local/goals/goal-eval-weighted/progress.jsonl, packets=[{id:packet-a,progress_weight:2,status:verified,evidence_ids:[ev-a]},{id:packet-b,progress_weight:8,status:queued,evidence_ids:[]}], accepted evidence ev-a={label:Verified,kind:command,command:'python -B scripts/validate.py .',exit_code:0,workflow_id:build-and-runtime-verification,packet_id:packet-a}. Return exact goal_id goal-eval-weighted, verified_weight 2, active_planned_weight 10, percent 20.0, display_percent 20, and evidence_refs [ev-a]. Do not infer any other completion.",
+      "target_skill": "studio-goal-progress",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["goal_id", "plan_version", "verified_weight", "active_planned_weight", "percent", "display_percent", "evidence_refs", "progress_stream"],
+      "expected_artifact_subset": {
+        "goal_id": "goal-eval-weighted",
+        "plan_version": 1,
+        "verified_weight": 2,
+        "active_planned_weight": 10,
+        "percent": 20.0,
+        "display_percent": 20,
+        "evidence_refs": ["ev-a"],
+        "progress_stream": "evidence/local/goals/goal-eval-weighted/progress.jsonl"
+      }
+    },
+    {
+      "id": "goal-progress-plan-recalculation",
+      "prompt": "Use only this accepted revision input: goal_id=goal-eval-revision; plan v1 packets packet-a weight 2 status verified with Verified evidence ev-a and packet-b weight 8 status queued; plan.revised has previous_manifest_hash=aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa, new_manifest_hash=bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb, plan_version=2, retained packet-a weight 2 status verified, and new packet-c weight 3 status queued. Return exact plan_version 2, verified_weight 2, active_planned_weight 5, percent 40.0, display_percent 40, revision_history [aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa,bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb], and evidence_refs [ev-a].",
+      "target_skill": "studio-goal-progress",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["goal_id", "plan_version", "revision_history", "verified_weight", "active_planned_weight", "percent", "display_percent", "evidence_refs"],
+      "expected_artifact_subset": {
+        "goal_id": "goal-eval-revision",
+        "plan_version": 2,
+        "revision_history": ["aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa", "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb"],
+        "verified_weight": 2,
+        "active_planned_weight": 5,
+        "percent": 40.0,
+        "display_percent": 40,
+        "evidence_refs": ["ev-a"]
+      }
+    },
+    {
+      "id": "goal-progress-eta-paused",
+      "prompt": "Use only this trusted state: goal_id=goal-eval-paused, packets=[{id:packet-a,progress_weight:3,status:waiting_input,estimate_seconds:{low:60,high:120}}], verified_weight=0, active_planned_weight=3, percent=0.0, stale=false. Return exact eta_status Paused, eta_reason waiting_input, eta_summary 'ETA paused', percent 0.0, and evidence_label Snapshot; waiting time is not progress.",
+      "target_skill": "studio-goal-progress",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["goal_id", "eta_status", "eta_reason", "eta_summary", "percent", "evidence_label"],
+      "expected_artifact_subset": {
+        "goal_id": "goal-eval-paused",
+        "eta_status": "Paused",
+        "eta_reason": "waiting_input",
+        "eta_summary": "ETA paused",
+        "percent": 0.0,
+        "evidence_label": "Snapshot"
+      }
+    },
+    {
+      "id": "goal-progress-app-server-blocked",
+      "prompt": "Use only this trusted portable state: goal_id=goal-eval-portable, progress.jsonl replay status=READY, verified_weight=1, active_planned_weight=4, percent=25.0. Codex App Server initialization response is explicitly unavailable and no supported transport binding exists. Return verdict BLOCKED for native enrichment with portable_status READY, integration_status BLOCKED, blocked_capability codex_app_server, reason 'Codex App Server integration unavailable', and next_action 'Continue from portable progress.jsonl'.",
+      "target_skill": "studio-goal-progress",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["goal_id", "portable_status", "integration_status", "blocked_capability", "reason", "next_action"],
+      "expected_artifact_subset": {
+        "goal_id": "goal-eval-portable",
+        "portable_status": "READY",
+        "integration_status": "BLOCKED",
+        "blocked_capability": "codex_app_server",
+        "reason": "Codex App Server integration unavailable",
+        "next_action": "Continue from portable progress.jsonl"
+      }
+    },
+    {
+      "id": "goal-progress-gui-read-only",
+      "prompt": "Use only this already-running authenticated loopback dashboard input: goal_id=goal-eval-gui, explicit goal_root=D:/goals/goal-eval-gui, server_info status=READY, compact and full routes already exist, public state allowlist=[goal_state,packets,progress,eta,next_action], controls=[tabs,filters,safe_artifact_links], mutation_controls=[]. Do not start a service or browser. Return exact views [compact,full], read_only true, mutation_controls [], and sanitized_fields [goal_state,packets,progress,eta,next_action].",
+      "target_skill": "studio-goal-progress",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["goal_id", "views", "read_only", "controls", "mutation_controls", "sanitized_fields"],
+      "expected_artifact_subset": {
+        "goal_id": "goal-eval-gui",
+        "views": ["compact", "full"],
+        "read_only": true,
+        "controls": ["tabs", "filters", "safe_artifact_links"],
+        "mutation_controls": [],
+        "sanitized_fields": ["goal_state", "packets", "progress", "eta", "next_action"]
+      }
+    }
+  ]
+}

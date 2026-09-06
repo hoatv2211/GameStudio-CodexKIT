@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Context Brief"
+  short_description: "Exact compact context projections for active studio Goals"
+  default_prompt: "Use $studio-context-brief to generate brief, working, and resume context projections from trusted structured Goal state without replacing studio-handoff."

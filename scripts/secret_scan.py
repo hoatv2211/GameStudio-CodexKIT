@@ -22,9 +22,19 @@ PATTERNS = (
     ("github-token", re.compile(r"\bgh[pousr]_[A-Za-z0-9]{30,}\b")),
     ("aws-access-key", re.compile(r"\bAKIA[0-9A-Z]{16}\b")),
 )
+DOTTED_CALLABLE_PATTERN = r"(?:[A-Za-z_][A-Za-z0-9_]*\.)+[A-Za-z_][A-Za-z0-9_]*"
+DOTTED_CALL_VALUE_PATTERN = rf"{DOTTED_CALLABLE_PATTERN}\([^#;\r\n]*"
 ASSIGNMENT_PATTERN = re.compile(
-    r"(?i)\b(?:password|passwd|secret|token|api[_-]?key|client[_-]?secret)\b"
-    r"\s*[:=]\s*(?:['\"](?P<quoted>[^'\"]{20,})['\"]|(?P<unquoted>[^\s#;,]{20,}))"
+    r"(?i)\b(?:password|passwd|secret|token|api[_-]?key|client[_-]?secret|"
+    r"access_token|aws_secret_access_key)\b"
+    rf"\s*[:=]\s*(?:['\"](?P<quoted>[^'\"]{{20,}})['\"]|"
+    rf"(?P<unquoted>(?:{DOTTED_CALL_VALUE_PATTERN}|[^\s#;,]{{20,}})))"
+)
+RUNTIME_CALL_PATTERN = re.compile(
+    DOTTED_CALLABLE_PATTERN + r"\(\s*(?:\d+\s*(?:,\s*\d+\s*)*)?\)"
+)
+DOTTED_CALL_PATTERN = re.compile(
+    DOTTED_CALLABLE_PATTERN + r"\((?P<arguments>.*)\)\s*"
 )
 PLACEHOLDER_MARKERS = ("example", "redacted", "placeholder", "changeme", "dummy", "sample")
 PLACEHOLDER_SYNTAX = re.compile(r"(?:\$\{[^}]+\}|\{[^{}]+\}|<[^>]+>)")
@@ -60,6 +70,26 @@ def _preview(line: str) -> str:
     return stripped[:12] + "...[redacted]" if len(stripped) > 12 else "[redacted]"
 
 
+def _is_runtime_call_assignment(line: str, match: re.Match[str]) -> bool:
+    start = match.start("unquoted")
+    candidate = line[start:]
+    runtime_call = RUNTIME_CALL_PATTERN.match(candidate)
+    if runtime_call is None:
+        return False
+    remainder = candidate[runtime_call.end() :].lstrip()
+    return not remainder or remainder.startswith(("#", ";"))
+
+
+def _has_only_safe_call_arguments(value: str) -> bool:
+    call = DOTTED_CALL_PATTERN.fullmatch(value)
+    if call is None:
+        return False
+    arguments = [argument.strip() for argument in call.group("arguments").split(",")]
+    return bool(arguments) and all(
+        argument.isdecimal() or _is_placeholder(argument) for argument in arguments
+    )
+
+
 def scan_text(text: str, path: Path) -> list[SecretFinding]:
     findings: list[SecretFinding] = []
     seen: set[tuple[str, int]] = set()
@@ -78,8 +108,15 @@ def scan_text(text: str, path: Path) -> list[SecretFinding]:
         if specific_match:
             continue
         for match in ASSIGNMENT_PATTERN.finditer(line):
-            value = match.group("quoted") or match.group("unquoted") or ""
-            if _is_placeholder(value) or _entropy(value) < 3.5:
+            quoted = match.group("quoted")
+            unquoted = match.group("unquoted")
+            value = quoted or unquoted or ""
+            if unquoted and _is_runtime_call_assignment(line, match):
+                continue
+            dotted_call = bool(unquoted and re.match(DOTTED_CALLABLE_PATTERN + r"\(", unquoted))
+            if dotted_call and _has_only_safe_call_arguments(value):
+                continue
+            if (not dotted_call and _is_placeholder(value)) or _entropy(value) < 3.5:
                 continue
             key = ("high-entropy-secret", line_number)
             if key not in seen:
@@ -96,6 +133,8 @@ def scan_repository(root: Path | str) -> list[SecretFinding]:
     ):
         relative = path.relative_to(root_path)
         parts = relative.parts
+        if parts and parts[0] == ".superpowers":
+            continue
         if any(part in EXCLUDED_DIRECTORY_NAMES or part.startswith(".tmp-") for part in parts[:-1]):
             continue
         if len(parts) >= 2 and parts[0] == "evidence" and parts[1] == "local":

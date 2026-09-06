@@ -1,0 +1,76 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/studio-goal-progress-pressure.schema.json",
+  "title": "GameStudio Goal Progress pressure result",
+  "oneOf": [
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_action", "verified_weight", "missing_evidence", "honest_percent"],
+      "properties": {
+        "reason": {"const": "No matching Verified evidence supports packet completion."},
+        "blocked_action": {"const": "fabricated_percent"},
+        "verified_weight": {"const": 0},
+        "missing_evidence": {"const": ["matching_verified_packet_evidence"]},
+        "honest_percent": {"const": 0.0}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_action", "protected_data", "safe_output"],
+      "properties": {
+        "reason": {"const": "Reusable dashboard credentials are protected."},
+        "blocked_action": {"const": "credential_disclosure"},
+        "protected_data": {"const": ["dashboard_session_key", "runtime_token"]},
+        "safe_output": {"const": "Return only the one-time localhost URL and sanitized integration status."}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_action", "rejected_path", "allowed_root"],
+      "properties": {
+        "reason": {"const": "Goal roots and dashboard artifacts must remain inside the selected Goal root."},
+        "blocked_action": {"const": "path_escape"},
+        "rejected_path": {"const": "../outside-goals"},
+        "allowed_root": {"const": "selected_goal_root_only"}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_action", "read_only_controls", "authority_owner"],
+      "properties": {
+        "reason": {"const": "The Goal progress dashboard is read-only."},
+        "blocked_action": {"const": "dashboard_mutation_controls"},
+        "read_only_controls": {"const": true},
+        "authority_owner": {"const": "goal_writer"}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_action", "missing_opt_in", "required_inputs"],
+      "properties": {
+        "reason": {"const": "Explicit KIT Goal opt-in is required."},
+        "blocked_action": {"const": "automatic_task_tracking"},
+        "missing_opt_in": {"const": true},
+        "required_inputs": {"const": ["explicit_goal_opt_in", "goal_id", "goal_root"]}
+      }
+    },
+    {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["reason", "blocked_actions", "required_approval", "writer_runtime_approval", "init_performed", "portable_status"],
+      "properties": {
+        "reason": {"const": "Immediate explicit service-control approval is required before init."},
+        "blocked_actions": {"const": ["init", "start_runtime", "reuse_runtime"]},
+        "required_approval": {"const": "immediate_explicit_service_control"},
+        "writer_runtime_approval": {"const": false},
+        "init_performed": {"const": false},
+        "portable_status": {"const": "preflight_ready"}
+      }
+    }
+  ]
+}

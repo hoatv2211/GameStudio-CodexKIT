@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Studio Goal Progress"
+  short_description: "Evidence-backed Goal progress and read-only live dashboard"
+  default_prompt: "Use $studio-goal-progress to initialize or open progress for this explicit KIT-managed Goal using verified weighted packets and honest ETA ranges."

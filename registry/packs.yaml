@@ -5,6 +5,8 @@ packs:
     governance workflows.
   skills:
   - using-game-studio-skills
+  - studio-goal-progress
+  - studio-context-brief
   - studio-project-intake
   - studio-agent-orchestration
   - studio-workspace-routing

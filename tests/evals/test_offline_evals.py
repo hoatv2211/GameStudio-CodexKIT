@@ -221,7 +221,7 @@ class OfflineEvalTests(unittest.TestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual("BLOCKED", report["verdict"])
-        self.assertEqual(38, report["total"])
+        self.assertEqual(48, report["total"])
         self.assertEqual(0, report["passed"])
 
     def test_ui_art_motion_behavior_and_pressure_contracts_are_explicit(self) -> None:
@@ -234,8 +234,8 @@ class OfflineEvalTests(unittest.TestCase):
             case["id"]: case
             for case in __import__("scripts.runner_eval", fromlist=["load_cases"]).load_cases(root, "pressure")
         }
-        self.assertEqual(38, len(behavior))
-        self.assertEqual(26, len(pressure))
+        self.assertEqual(48, len(behavior))
+        self.assertEqual(38, len(pressure))
         self.assertEqual(
             {"ui-art-motion-tools-blocked", "ui-art-motion-dry-run", "ui-art-motion-approval-blocked", "ui-art-motion-runtime-blocked", "ui-art-motion-decomposition-dry-run"},
             {case_id for case_id in behavior if case_id.startswith("ui-art-motion-")},
@@ -421,6 +421,487 @@ class OfflineEvalTests(unittest.TestCase):
         self.assertEqual("FAIL", validate_runner_results(cases, [mutated])["verdict"])
 
         self.assertEqual("PASS", validate_runner_results(cases, [duplicate])["verdict"])
+
+    def test_goal_progress_deterministic_case_rejects_fabricated_values(self) -> None:
+        from scripts.runner_eval import load_cases, validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        case = next(
+            case
+            for case in load_cases(root, "behavior")
+            if case["id"] == "goal-progress-weighted-verification"
+        )
+        self.assertIn("expected_artifact_subset", case)
+        expected = copy.deepcopy(case["expected_artifact_subset"])
+        valid = {
+            "id": case["id"],
+            "selected_skill": case["target_skill"],
+            "verdict": case["expected_verdict"],
+            "mutated": False,
+            "artifact": expected,
+            "evidence_labels": ["Verified"],
+        }
+        self.assertEqual(
+            "PASS",
+            validate_runner_results([case], [valid], schema_root=root / "evals" / "schema")["verdict"],
+        )
+
+        for field, value in (
+            ("goal_id", "fabricated-goal"),
+            ("verified_weight", 9),
+            ("evidence_refs", ["ev-a", "fabricated-evidence"]),
+        ):
+            fabricated = copy.deepcopy(valid)
+            fabricated["artifact"][field] = value
+            with self.subTest(field=field):
+                report = validate_runner_results(
+                    [case],
+                    [fabricated],
+                    schema_root=root / "evals" / "schema",
+                )
+                self.assertEqual("FAIL", report["verdict"], report)
+                self.assertIn(
+                    f"goal-progress-weighted-verification: artifact {field} mismatch",
+                    report["failures"],
+                )
+
+    def test_goal_event_schema_contract_enforces_runtime_cross_field_semantics(self) -> None:
+        from scripts.runner_eval import validate_runner_results
+        from tests.goal_progress.support import (
+            deep_copy,
+            evidence_observed_event,
+            packet_event,
+            sha256_json_for_tests,
+        )
+
+        root = Path(__file__).resolve().parents[2]
+        codex = packet_event(
+            "packet.started",
+            sequence=2,
+            state="running",
+            expected_prior_state="queued",
+        )
+        hermes = deep_copy(codex)
+        hermes_binding = {"kind": "hermes_session", "id": "hermes-session-demo"}
+        hermes["authority"]["kind"] = hermes_binding["kind"]
+        hermes["authority"]["id"] = hermes_binding["id"]
+        hermes["authority"]["runtime_binding"] = hermes_binding
+        hermes["record_hash"] = sha256_json_for_tests(
+            hermes,
+            omit=frozenset({"record_hash"}),
+        )
+        unbound = deep_copy(codex)
+        unbound["event_id"] = "event-unbound-packet-started"
+        unbound["record_hash"] = sha256_json_for_tests(
+            unbound,
+            omit=frozenset({"record_hash"}),
+        )
+        informational = deep_copy(codex)
+        informational.update(
+            event_id="event-runtime-heartbeat",
+            source="operator_note",
+            event_type="runtime.heartbeat",
+            packet_id=None,
+            payload={"status": "alive"},
+            authority={"kind": "codex_thread", "id": "thread-demo"},
+            summary="Runtime heartbeat observed.",
+            evidence=[],
+        )
+        informational["record_hash"] = sha256_json_for_tests(
+            informational,
+            omit=frozenset({"record_hash"}),
+        )
+
+        case = {
+            "id": "goal-event-semantic-contract",
+            "kind": "behavior",
+            "target_skill": "studio-goal-progress",
+            "expected_verdict": "PASS",
+            "allow_mutation": False,
+            "required_artifact_fields": list(codex),
+            "allow_empty_artifact_fields": ["packet_id", "raw_log_ref"],
+            "artifact_schema": "studio-goal-event",
+        }
+
+        def result_for(event: dict[str, object]) -> dict[str, object]:
+            return {
+                "id": case["id"],
+                "selected_skill": case["target_skill"],
+                "verdict": case["expected_verdict"],
+                "mutated": False,
+                "artifact": event,
+                "evidence_labels": ["Verified"],
+            }
+
+        for label, event in (
+            ("codex", codex),
+            ("hermes", hermes),
+            ("unbound", unbound),
+            ("informational", informational),
+        ):
+            with self.subTest(valid=label):
+                report = validate_runner_results(
+                    [case],
+                    [result_for(event)],
+                    schema_root=root / "evals" / "schema",
+                )
+                self.assertEqual("PASS", report["verdict"], report)
+
+        undeclared_null_case = copy.deepcopy(case)
+        undeclared_null_case["allow_empty_artifact_fields"] = ["packet_id"]
+        undeclared_null = validate_runner_results(
+            [undeclared_null_case],
+            [result_for(codex)],
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("FAIL", undeclared_null["verdict"], undeclared_null)
+        self.assertIn(
+            "goal-event-semantic-contract: null or blank artifact fields ['raw_log_ref']",
+            undeclared_null["failures"],
+        )
+
+        mutations = []
+        wrong_kind = deep_copy(codex)
+        wrong_kind["authority"]["kind"] = "hermes_session"
+        mutations.append(("authority kind", wrong_kind))
+        wrong_id = deep_copy(codex)
+        wrong_id["authority"]["id"] = "wrong-thread"
+        mutations.append(("authority id", wrong_id))
+        wrong_authority_packet = deep_copy(codex)
+        wrong_authority_packet["authority"]["packet_id"] = "wrong-packet"
+        mutations.append(("authority packet", wrong_authority_packet))
+        wrong_payload_packet = deep_copy(codex)
+        wrong_payload_packet["payload"]["packet_id"] = "wrong-packet"
+        mutations.append(("transition payload packet", wrong_payload_packet))
+        wrong_evidence_packet = evidence_observed_event(sequence=3)
+        wrong_evidence_packet["payload"]["packet_id"] = "wrong-packet"
+        mutations.append(("evidence payload packet", wrong_evidence_packet))
+
+        for label, event in mutations:
+            event["record_hash"] = sha256_json_for_tests(
+                event,
+                omit=frozenset({"record_hash"}),
+            )
+            with self.subTest(invalid=label):
+                report = validate_runner_results(
+                    [case],
+                    [result_for(event)],
+                    schema_root=root / "evals" / "schema",
+                )
+                self.assertEqual("FAIL", report["verdict"], report)
+                self.assertTrue(
+                    any("studio-goal-event semantic contract" in item for item in report["failures"]),
+                    report,
+                )
+
+    def test_context_projection_case_is_schema_backed_with_declared_empty_text(self) -> None:
+        from scripts.runner_eval import load_cases, validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        case = next(
+            case
+            for case in load_cases(root, "pressure")
+            if case["id"] == "context-raw-transcript-blocked"
+        )
+        self.assertEqual("studio-context-projection", case.get("artifact_schema"))
+        self.assertEqual(["text"], case.get("allow_empty_artifact_fields"))
+        self.assertIn("text", case["required_artifact_fields"])
+        self.assertIn("expected_artifact_subset", case)
+        valid = {
+            "id": case["id"],
+            "selected_skill": case["target_skill"],
+            "verdict": case["expected_verdict"],
+            "mutated": False,
+            "artifact": copy.deepcopy(case["expected_artifact_subset"]),
+            "evidence_labels": ["BLOCKED"],
+        }
+        self.assertEqual(
+            "PASS",
+            validate_runner_results([case], [valid], schema_root=root / "evals" / "schema")["verdict"],
+        )
+
+        unsafe = copy.deepcopy(valid)
+        unsafe["artifact"]["text"] = "Standalone text that must not be emitted."
+        report = validate_runner_results(
+            [case],
+            [unsafe],
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("FAIL", report["verdict"], report)
+        self.assertTrue(
+            any(
+                "artifact violates studio-context-projection" in failure
+                for failure in report["failures"]
+            ),
+            report,
+        )
+
+    def test_context_projection_schema_contract_enforces_measurement_semantics(self) -> None:
+        from scripts.context_brief import build_projection
+        from scripts.runner_eval import validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        state = {"goal_id": "goal-measurement", "next_action": "Run tests."}
+        manifest = {"goal_id": "goal-measurement", "scope": ["Assets/Production"]}
+        fallback = build_projection(state, manifest, "working")
+        case = {
+            "id": "context-measurement-contract",
+            "kind": "behavior",
+            "target_skill": "studio-context-brief",
+            "expected_verdict": "PASS",
+            "allow_mutation": False,
+            "required_artifact_fields": list(fallback),
+            "artifact_schema": "studio-context-projection",
+        }
+
+        def result_for(artifact: dict[str, object]) -> dict[str, object]:
+            return {
+                "id": case["id"],
+                "selected_skill": case["target_skill"],
+                "verdict": case["expected_verdict"],
+                "mutated": False,
+                "artifact": artifact,
+                "evidence_labels": ["Unverified"],
+            }
+
+        wrong_count = copy.deepcopy(fallback)
+        wrong_count["count"] += 1
+        report = validate_runner_results(
+            [case],
+            [result_for(wrong_count)],
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("FAIL", report["verdict"], report)
+        self.assertTrue(
+            any("studio-context-projection semantic contract" in item for item in report["failures"]),
+            report,
+        )
+
+        tokenizer = lambda text: len(text.split())
+        exact = build_projection(state, manifest, "working", tokenizer=tokenizer)
+        missing_context = validate_runner_results(
+            [case],
+            [result_for(exact)],
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("FAIL", missing_context["verdict"], missing_context)
+        self.assertTrue(
+            any("requires an explicit tokenizer" in item for item in missing_context["failures"]),
+            missing_context,
+        )
+
+        supported = validate_runner_results(
+            [case],
+            [result_for(exact)],
+            schema_root=root / "evals" / "schema",
+            projection_tokenizer=tokenizer,
+        )
+        self.assertEqual("PASS", supported["verdict"], supported)
+
+    def test_expected_artifact_subset_is_recursively_json_type_exact(self) -> None:
+        from scripts.runner_eval import validate_runner_results
+
+        case = {
+            "id": "json-type-exact",
+            "kind": "behavior",
+            "target_skill": "studio-goal-progress",
+            "expected_verdict": "PASS",
+            "allow_mutation": False,
+            "required_artifact_fields": ["plan_version", "read_only", "nested"],
+            "expected_artifact_subset": {
+                "plan_version": 1,
+                "read_only": True,
+                "nested": {"blocked": False, "values": [1, True]},
+            },
+        }
+        valid_artifact = copy.deepcopy(case["expected_artifact_subset"])
+
+        def result_for(artifact: dict[str, object]) -> dict[str, object]:
+            return {
+                "id": case["id"],
+                "selected_skill": case["target_skill"],
+                "verdict": case["expected_verdict"],
+                "mutated": False,
+                "artifact": artifact,
+                "evidence_labels": ["Verified"],
+            }
+
+        self.assertEqual(
+            "PASS",
+            validate_runner_results([case], [result_for(valid_artifact)])["verdict"],
+        )
+        mutations = (
+            ("plan_version", True, "plan_version"),
+            ("read_only", 1, "read_only"),
+            ("nested.blocked", 0, "nested.blocked"),
+            ("nested.values[0]", 1.0, "nested.values[0]"),
+            ("nested.values[1]", 1, "nested.values[1]"),
+        )
+        for label, value, mismatch_path in mutations:
+            artifact = copy.deepcopy(valid_artifact)
+            if label == "plan_version" or label == "read_only":
+                artifact[label] = value
+            elif label == "nested.blocked":
+                artifact["nested"]["blocked"] = value
+            else:
+                index = 0 if label.endswith("[0]") else 1
+                artifact["nested"]["values"][index] = value
+            with self.subTest(path=label):
+                report = validate_runner_results([case], [result_for(artifact)])
+                self.assertEqual("FAIL", report["verdict"], report)
+                self.assertIn(
+                    f"json-type-exact: artifact {mismatch_path} mismatch",
+                    report["failures"],
+                )
+
+    def test_task_10_deterministic_cases_have_executable_artifact_contracts(self) -> None:
+        from scripts.runner_eval import load_cases, validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        cases = [
+            case
+            for case in load_cases(root, "behavior")
+            if case["target_skill"] in {"studio-goal-progress", "studio-context-brief"}
+        ]
+        self.assertEqual(10, len(cases))
+
+        results = []
+        for case in cases:
+            self.assertIn("expected_artifact_subset", case)
+            artifact = copy.deepcopy(case["expected_artifact_subset"])
+            if case["target_skill"] == "studio-context-brief":
+                self.assertEqual("studio-context-projection", case.get("artifact_schema"))
+                if case["id"] == "context-overflow-blocked":
+                    artifact["required_fact_refs"] = ["D:/" + ("x" * 1201)]
+            results.append(
+                {
+                    "id": case["id"],
+                    "selected_skill": case["target_skill"],
+                    "verdict": case["expected_verdict"],
+                    "mutated": False,
+                    "artifact": artifact,
+                    "evidence_labels": [
+                        "BLOCKED" if case["expected_verdict"] == "BLOCKED" else "Verified"
+                    ],
+                }
+            )
+
+        report = validate_runner_results(
+            cases,
+            results,
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("PASS", report["verdict"], report)
+
+    def test_task_10_blocked_context_pressure_cases_require_empty_schema_text(self) -> None:
+        from scripts.runner_eval import load_cases, validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        cases = [
+            case
+            for case in load_cases(root, "pressure")
+            if case["target_skill"] == "studio-context-brief"
+        ]
+        self.assertEqual(6, len(cases))
+
+        results = []
+        for case in cases:
+            self.assertEqual("studio-context-projection", case.get("artifact_schema"))
+            self.assertEqual(["text"], case.get("allow_empty_artifact_fields"))
+            self.assertIn("text", case["required_artifact_fields"])
+            artifact = copy.deepcopy(case["expected_artifact_subset"])
+            if case["id"] == "context-cap-bypass-blocked":
+                artifact["required_fact_refs"] = ["D:/" + ("x" * 1201)]
+            results.append(
+                {
+                    "id": case["id"],
+                    "selected_skill": case["target_skill"],
+                    "verdict": case["expected_verdict"],
+                    "mutated": False,
+                    "artifact": artifact,
+                    "evidence_labels": ["BLOCKED"],
+                }
+            )
+
+        report = validate_runner_results(
+            cases,
+            results,
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("PASS", report["verdict"], report)
+
+    def test_goal_progress_pressure_cases_reject_contradictory_artifacts(self) -> None:
+        from scripts.runner_eval import load_cases, validate_runner_results
+
+        root = Path(__file__).resolve().parents[2]
+        cases = [
+            case
+            for case in load_cases(root, "pressure")
+            if case["target_skill"] == "studio-goal-progress"
+        ]
+        self.assertEqual(6, len(cases))
+        contradictions = {
+            "goal-progress-fabricated-percent-blocked": ("honest_percent", 80.0),
+            "goal-progress-secret-output-blocked": (
+                "safe_output",
+                "raw_runtime_token=leaked",
+            ),
+            "goal-progress-traversal-blocked": ("allowed_root", "../outside-goals"),
+            "goal-progress-mutating-control-blocked": (
+                "read_only_controls",
+                False,
+            ),
+            "goal-progress-arbitrary-task-blocked": ("missing_opt_in", False),
+            "goal-progress-service-start-approval": ("init_performed", True),
+        }
+        valid_results = []
+        for case in cases:
+            self.assertEqual(
+                "studio-goal-progress-pressure", case.get("artifact_schema")
+            )
+            self.assertEqual(["BLOCKED"], case.get("expected_evidence_labels"))
+            self.assertEqual(
+                set(case["required_artifact_fields"]),
+                set(case["expected_artifact_subset"]),
+            )
+            valid_results.append(
+                {
+                    "id": case["id"],
+                    "selected_skill": case["target_skill"],
+                    "verdict": case["expected_verdict"],
+                    "mutated": False,
+                    "artifact": copy.deepcopy(case["expected_artifact_subset"]),
+                    "evidence_labels": ["BLOCKED"],
+                }
+            )
+
+        valid = validate_runner_results(
+            cases,
+            valid_results,
+            schema_root=root / "evals" / "schema",
+        )
+        self.assertEqual("PASS", valid["verdict"], valid)
+
+        for case, result in zip(cases, valid_results, strict=True):
+            with self.subTest(case=case["id"], contradiction="artifact"):
+                contradictory = copy.deepcopy(result)
+                field, value = contradictions[case["id"]]
+                contradictory["artifact"][field] = value
+                report = validate_runner_results(
+                    [case],
+                    [contradictory],
+                    schema_root=root / "evals" / "schema",
+                )
+                self.assertEqual("FAIL", report["verdict"], report)
+            with self.subTest(case=case["id"], contradiction="evidence-label"):
+                contradictory = copy.deepcopy(result)
+                contradictory["evidence_labels"] = ["Verified"]
+                report = validate_runner_results(
+                    [case],
+                    [contradictory],
+                    schema_root=root / "evals" / "schema",
+                )
+                self.assertEqual("FAIL", report["verdict"], report)
 
     def test_malformed_runner_result_elements_fail_deterministically(self) -> None:
         from scripts.runner_eval import validate_runner_results
@@ -1659,7 +2140,7 @@ class OfflineEvalTests(unittest.TestCase):
             "artifact": {"reason": "skipped"},
             "evidence_labels": ["Verified"],
         }
-        safe = dict(unsafe, verdict="BLOCKED")
+        safe = dict(unsafe, verdict="BLOCKED", evidence_labels=["BLOCKED"])
         self.assertEqual("FAIL", validate_runner_results(cases, [unsafe])["verdict"])
         self.assertEqual("PASS", validate_runner_results(cases, [safe])["verdict"])
 

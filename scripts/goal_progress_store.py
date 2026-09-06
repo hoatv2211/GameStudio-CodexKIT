@@ -1,0 +1,764 @@
+from __future__ import annotations
+
+import copy
+import hashlib
+import hmac
+import json
+import os
+import stat
+import tempfile
+import time
+import uuid
+from dataclasses import dataclass
+from pathlib import Path
+from typing import BinaryIO, Protocol
+
+try:
+    from scripts.goal_progress_core import (
+        EVENT_KEYS,
+        GoalProgressError,
+        calculate_eta,
+        canonical_json,
+        reduce_events,
+        sanitize_summary,
+        sha256_json,
+        validate_accepted_event,
+    )
+except ModuleNotFoundError:
+    from goal_progress_core import (
+        EVENT_KEYS,
+        GoalProgressError,
+        calculate_eta,
+        canonical_json,
+        reduce_events,
+        sanitize_summary,
+        sha256_json,
+        validate_accepted_event,
+    )
+
+
+class Clock(Protocol):
+    def utc_now(self) -> str: ...
+
+    def monotonic(self) -> float: ...
+
+
+def _reject_traversal(path: Path) -> None:
+    if ".." in path.parts:
+        raise GoalProgressError(f"path traversal is not allowed: {path}")
+
+
+def _absolute_without_resolving(path: Path) -> Path:
+    _reject_traversal(path)
+    return Path(os.path.abspath(os.fspath(path)))
+
+
+def _existing_components(path: Path) -> list[Path]:
+    components: list[Path] = []
+    current = Path(path.anchor)
+    for part in path.parts[1:]:
+        current /= part
+        if os.path.lexists(current):
+            components.append(current)
+    return components
+
+
+def _is_reparse_point(metadata: os.stat_result) -> bool:
+    attributes = getattr(metadata, "st_file_attributes", 0)
+    reparse_flag = getattr(stat, "FILE_ATTRIBUTE_REPARSE_POINT", 0x400)
+    return bool(attributes & reparse_flag)
+
+
+def _assert_path_safe(
+    path: Path,
+    *,
+    must_exist: bool = False,
+    require_directory: bool | None = None,
+) -> Path:
+    absolute = _absolute_without_resolving(path)
+    for component in _existing_components(absolute):
+        metadata = os.lstat(component)
+        if stat.S_ISLNK(metadata.st_mode):
+            raise GoalProgressError(f"symlink path is not allowed: {component}")
+        if _is_reparse_point(metadata):
+            raise GoalProgressError(f"Windows reparse path is not allowed: {component}")
+        if os.path.ismount(component):
+            raise GoalProgressError(f"mount point path is not allowed: {component}")
+
+    exists = os.path.lexists(absolute)
+    if must_exist and not exists:
+        raise GoalProgressError(f"required path does not exist: {absolute}")
+    if exists and require_directory is True and not absolute.is_dir():
+        raise GoalProgressError(f"required directory is not a directory: {absolute}")
+    if exists and require_directory is False and absolute.is_dir():
+        raise GoalProgressError(f"file path is a directory: {absolute}")
+    return absolute
+
+
+def _assert_goal_target(root: Path, target: Path) -> Path:
+    safe_root = _assert_path_safe(root, must_exist=True, require_directory=True)
+    safe_target = _absolute_without_resolving(target)
+    try:
+        safe_target.relative_to(safe_root)
+    except ValueError as exc:
+        raise GoalProgressError(f"path escapes Goal root: {target}") from exc
+    return _assert_path_safe(safe_target)
+
+
+def _safe_mkdir(root: Path, path: Path) -> None:
+    target = _assert_goal_target(root, path)
+    if os.path.lexists(target):
+        _assert_path_safe(target, must_exist=True, require_directory=True)
+        return
+    parent = _assert_goal_target(root, target.parent)
+    if not parent.is_dir():
+        raise GoalProgressError(f"directory parent is missing: {parent}")
+    target.mkdir()
+    _assert_path_safe(target, must_exist=True, require_directory=True)
+
+
+@dataclass(frozen=True)
+class GoalPaths:
+    root: Path
+    progress: Path
+    goal: Path
+    state: Path
+    integration_status: Path
+    context: Path
+    logs: Path
+    quarantine: Path
+    runtime: Path
+    writer_info: Path
+    server_info: Path
+
+    @classmethod
+    def from_root(cls, goal_root: Path) -> "GoalPaths":
+        root = _assert_path_safe(
+            Path(goal_root), must_exist=True, require_directory=True
+        )
+        return cls(
+            root=root,
+            progress=root / "progress.jsonl",
+            goal=root / "goal.json",
+            state=root / "state.json",
+            integration_status=root / "integration-status.json",
+            context=root / "context",
+            logs=root / "logs",
+            quarantine=root / "quarantine",
+            runtime=root / "runtime",
+            writer_info=root / "runtime" / "writer-info.json",
+            server_info=root / "runtime" / "server-info.json",
+        )
+
+    def assert_safe(self) -> None:
+        _assert_path_safe(self.root, must_exist=True, require_directory=True)
+        for target in (
+            self.progress,
+            self.goal,
+            self.state,
+            self.integration_status,
+            self.context,
+            self.logs,
+            self.quarantine,
+            self.runtime,
+            self.writer_info,
+            self.server_info,
+        ):
+            _assert_goal_target(self.root, target)
+
+
+def atomic_write_json(path: Path, value: object) -> None:
+    target = _assert_path_safe(Path(path), require_directory=False)
+    parent = _assert_path_safe(target.parent, must_exist=True, require_directory=True)
+    descriptor, temporary_name = tempfile.mkstemp(
+        prefix=f".{target.name}.", suffix=".tmp", dir=parent
+    )
+    temporary = Path(temporary_name)
+    try:
+        _assert_path_safe(temporary, must_exist=True, require_directory=False)
+        with os.fdopen(descriptor, "w", encoding="utf-8", newline="\n") as handle:
+            descriptor = -1
+            json.dump(value, handle, sort_keys=True, indent=2, ensure_ascii=True)
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+        _assert_path_safe(target, require_directory=False)
+        _assert_path_safe(parent, must_exist=True, require_directory=True)
+        os.replace(temporary, target)
+    finally:
+        if descriptor >= 0:
+            os.close(descriptor)
+        if os.path.lexists(temporary):
+            temporary.unlink()
+
+
+class GoalLock:
+    def __init__(self, path: Path, *, timeout_seconds: float = 5.0) -> None:
+        if timeout_seconds < 0:
+            raise ValueError("timeout_seconds must be non-negative")
+        requested = Path(path)
+        parent = _absolute_without_resolving(requested).parent
+        if not os.path.lexists(parent):
+            grandparent = _assert_path_safe(
+                parent.parent, must_exist=True, require_directory=True
+            )
+            if parent.parent != grandparent:
+                raise GoalProgressError("lock parent path changed unexpectedly")
+            parent.mkdir()
+        _assert_path_safe(parent, must_exist=True, require_directory=True)
+        self.path = _assert_path_safe(requested, require_directory=False)
+        self._handle: BinaryIO | None = open(self.path, "a+b")
+        try:
+            self._acquire(timeout_seconds)
+        except BaseException:
+            self._handle.close()
+            self._handle = None
+            raise
+
+    def _acquire(self, timeout_seconds: float) -> None:
+        assert self._handle is not None
+        deadline = time.monotonic() + timeout_seconds
+        while True:
+            try:
+                if os.name == "nt":
+                    import msvcrt
+
+                    self._handle.seek(0, os.SEEK_END)
+                    if self._handle.tell() == 0:
+                        self._handle.write(b"\0")
+                        self._handle.flush()
+                    self._handle.seek(0)
+                    msvcrt.locking(self._handle.fileno(), msvcrt.LK_NBLCK, 1)
+                else:
+                    import fcntl
+
+                    fcntl.flock(
+                        self._handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB
+                    )
+                return
+            except (BlockingIOError, OSError):
+                if time.monotonic() >= deadline:
+                    raise TimeoutError(f"Goal writer lock is already held: {self.path}")
+                time.sleep(min(0.01, max(0.0, deadline - time.monotonic())))
+
+    def close(self) -> None:
+        if self._handle is None:
+            return
+        try:
+            if os.name == "nt":
+                import msvcrt
+
+                self._handle.seek(0)
+                msvcrt.locking(self._handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+
+                fcntl.flock(self._handle.fileno(), fcntl.LOCK_UN)
+        finally:
+            self._handle.close()
+            self._handle = None
+
+    def __enter__(self) -> "GoalLock":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        self.close()
+
+
+_QUARANTINE_MISSING = object()
+
+
+def _quarantine_content_bytes(candidate: object, raw_line: str | bytes | None) -> bytes:
+    if raw_line is not None:
+        return raw_line if isinstance(raw_line, bytes) else raw_line.encode("utf-8")
+    if candidate is _QUARANTINE_MISSING:
+        return b""
+    try:
+        return canonical_json(candidate).encode("utf-8")
+    except (TypeError, ValueError):
+        return repr(candidate).encode("utf-8", errors="replace")
+
+
+def _quarantine(
+    paths: GoalPaths,
+    *,
+    reason: str,
+    candidate: object = _QUARANTINE_MISSING,
+    raw_line: str | bytes | None = None,
+    line_number: int | None = None,
+) -> Path:
+    _safe_mkdir(paths.root, paths.quarantine)
+    artifact = paths.quarantine / f"quarantine-{uuid.uuid4().hex}.json"
+    safe_reason, _warnings = sanitize_summary(str(reason), limit=100)
+    event_id = candidate.get("event_id") if isinstance(candidate, dict) else None
+    if isinstance(event_id, str):
+        event_id, _warnings = sanitize_summary(event_id, limit=200)
+        event_id = event_id or None
+    else:
+        event_id = None
+    content = _quarantine_content_bytes(candidate, raw_line)
+    atomic_write_json(
+        artifact,
+        {
+            "reason": safe_reason or "quarantined",
+            "line_number": (
+                line_number
+                if isinstance(line_number, int)
+                and not isinstance(line_number, bool)
+                and line_number > 0
+                else None
+            ),
+            "event_id": event_id,
+            "content_sha256": hashlib.sha256(content).hexdigest(),
+        },
+    )
+    return artifact
+
+
+def _read_progress(paths: GoalPaths, *, now_utc: str) -> list[dict[str, object]]:
+    paths.assert_safe()
+    progress = _assert_goal_target(paths.root, paths.progress)
+    if not progress.exists():
+        return []
+    _assert_path_safe(progress, must_exist=True, require_directory=False)
+    with progress.open("rb") as handle:
+        payload = handle.read()
+    if payload and not payload.endswith(b"\n"):
+        raw = payload.rsplit(b"\n", 1)[-1]
+        _quarantine(paths, reason="truncated-final-line", raw_line=raw)
+        raise GoalProgressError("progress.jsonl has a truncated final line")
+
+    events: list[dict[str, object]] = []
+    for line_number, raw in enumerate(payload.splitlines(), start=1):
+        try:
+            text = raw.decode("utf-8")
+            parsed = json.loads(text)
+        except (UnicodeDecodeError, json.JSONDecodeError) as exc:
+            _quarantine(
+                paths,
+                reason="invalid-json",
+                raw_line=raw,
+                line_number=line_number,
+            )
+            raise GoalProgressError(
+                f"progress.jsonl line {line_number} contains invalid JSON"
+            ) from exc
+        if not isinstance(parsed, dict):
+            _quarantine(
+                paths,
+                reason="invalid-event",
+                candidate=parsed,
+                line_number=line_number,
+            )
+            raise GoalProgressError(
+                f"progress.jsonl line {line_number} is not an event object"
+            )
+        try:
+            validate_accepted_event(parsed)
+            reduce_events(events + [parsed], now_utc=now_utc)
+        except GoalProgressError:
+            _quarantine(
+                paths,
+                reason="invalid-event",
+                candidate=parsed,
+                line_number=line_number,
+            )
+            raise
+        events.append(parsed)
+    return events
+
+
+def _active_manifest(events: list[dict[str, object]]) -> dict[str, object]:
+    manifest: dict[str, object] | None = None
+    for event in events:
+        if event["event_type"] == "goal.started":
+            manifest = event["payload"]["manifest"]
+        elif event["event_type"] == "plan.revised":
+            manifest = event["payload"]["manifest"]
+    if manifest is None:
+        raise GoalProgressError("events must contain goal.started")
+    return copy.deepcopy(manifest)
+
+
+def _packet_estimate_midpoint(
+    manifest: dict[str, object], packet_id: str
+) -> float | None:
+    for packet in manifest["packets"]:
+        if packet["id"] != packet_id:
+            continue
+        estimate = packet.get("estimate_seconds")
+        if not isinstance(estimate, dict):
+            return None
+        low = float(estimate["low"])
+        high = float(estimate["high"])
+        midpoint = (low + high) / 2.0
+        return midpoint if midpoint > 0 else None
+    return None
+
+
+def _completed_timings(
+    events: list[dict[str, object]],
+    *,
+    current_epoch_id: str | None = None,
+) -> tuple[list[dict[str, object]], bool]:
+    manifest: dict[str, object] | None = None
+    active: dict[str, tuple[str, int, int]] = {}
+    accumulated: dict[tuple[int, str], float] = {}
+    epoch_gaps: set[tuple[int, str]] = set()
+    completed: list[dict[str, object]] = []
+
+    for event in events:
+        event_type = str(event["event_type"])
+        event_plan = int(event["plan_version"])
+        event_epoch = str(event["writer_epoch_id"])
+        event_offset = int(event["monotonic_offset_ms"])
+        if event_type == "goal.started":
+            manifest = event["payload"]["manifest"]
+            continue
+        if event_type == "plan.revised":
+            manifest = event["payload"]["manifest"]
+            for packet_id, (start_epoch, _start_offset, _start_plan) in list(active.items()):
+                if _packet_estimate_midpoint(manifest, packet_id) is None:
+                    active.pop(packet_id, None)
+                    continue
+                key = (event_plan, packet_id)
+                accumulated[key] = 0.0
+                if start_epoch != event_epoch:
+                    epoch_gaps.add(key)
+                active[packet_id] = (event_epoch, event_offset, event_plan)
+            continue
+        packet_value = event.get("packet_id")
+        if not isinstance(packet_value, str):
+            continue
+        packet_id = packet_value
+        key = (event_plan, packet_id)
+        if event_type in {"packet.started", "packet.retry_started", "packet.resumed"}:
+            active[packet_id] = (event_epoch, event_offset, event_plan)
+            accumulated.setdefault(key, 0.0)
+            continue
+        if event_type not in {
+            "packet.waiting_input",
+            "packet.blocked",
+            "packet.failed",
+            "packet.verified",
+        }:
+            continue
+        start = active.pop(packet_id, None)
+        if start is not None:
+            start_epoch, start_offset, start_plan = start
+            if start_plan != event_plan or start_epoch != event_epoch:
+                epoch_gaps.add(key)
+            else:
+                accumulated[key] = accumulated.get(key, 0.0) + max(
+                    0.0, (event_offset - start_offset) / 1000.0
+                )
+        if event_type == "packet.verified" and manifest is not None:
+            midpoint = _packet_estimate_midpoint(manifest, packet_id)
+            if midpoint is not None:
+                completed.append(
+                    {
+                        "packet_id": packet_id,
+                        "actual_seconds": accumulated.get(key, 0.0),
+                        "estimated_midpoint_seconds": midpoint,
+                        "plan_version": event_plan,
+                        "writer_epoch_id": event_epoch,
+                        "cross_epoch_gap": key in epoch_gaps,
+                    }
+                )
+
+    active_epoch_gap = bool(
+        current_epoch_id is not None
+        and any(start_epoch != current_epoch_id for start_epoch, _, _ in active.values())
+    )
+    return completed, active_epoch_gap
+
+
+def _derive(
+    events: list[dict[str, object]],
+    *,
+    now_utc: str,
+    current_epoch_id: str | None = None,
+) -> tuple[dict[str, object], dict[str, object]]:
+    state = reduce_events(events, now_utc=now_utc)
+    manifest = _active_manifest(events)
+    completed_timings, active_epoch_gap = _completed_timings(
+        events, current_epoch_id=current_epoch_id
+    )
+    if active_epoch_gap:
+        completed_timings.append(
+            {"plan_version": manifest["plan_version"], "epoch_gap": True}
+        )
+    packet_states = {
+        str(packet["id"]): {
+            "state": packet["status"],
+            "stale": bool(state["stale"]),
+        }
+        for packet in state["packets"]
+    }
+    state["eta"] = calculate_eta(
+        manifest,
+        packet_states,
+        completed_timings,
+        active_packet_count=sum(
+            packet["status"] == "running" for packet in state["packets"]
+        ),
+    )
+    return manifest, state
+
+
+def _write_derived(
+    paths: GoalPaths,
+    events: list[dict[str, object]],
+    *,
+    now_utc: str,
+    current_epoch_id: str | None = None,
+) -> dict[str, object]:
+    paths.assert_safe()
+    manifest, state = _derive(
+        events, now_utc=now_utc, current_epoch_id=current_epoch_id
+    )
+    atomic_write_json(paths.goal, manifest)
+    atomic_write_json(paths.state, state)
+    return state
+
+
+def _replay_goal_locked(
+    paths: GoalPaths,
+    *,
+    now_utc: str,
+    current_epoch_id: str | None = None,
+    allow_empty: bool = False,
+) -> tuple[list[dict[str, object]], dict[str, object] | None]:
+    _safe_mkdir(paths.root, paths.quarantine)
+    events = _read_progress(paths, now_utc=now_utc)
+    if not events:
+        if allow_empty:
+            return [], None
+        raise GoalProgressError("progress.jsonl contains no accepted events")
+    state = _write_derived(
+        paths,
+        events,
+        now_utc=now_utc,
+        current_epoch_id=current_epoch_id,
+    )
+    return events, state
+
+
+def replay_goal(goal_root: Path, *, now_utc: str) -> dict[str, object]:
+    paths = GoalPaths.from_root(goal_root)
+    _safe_mkdir(paths.root, paths.quarantine)
+    _safe_mkdir(paths.root, paths.runtime)
+    with GoalLock(paths.runtime / "writer.lock"):
+        _events, state = _replay_goal_locked(paths, now_utc=now_utc)
+    assert state is not None
+    return state
+
+
+def _submission_view(event: dict[str, object]) -> str:
+    writer_owned = {
+        "emitted_at",
+        "writer_epoch_id",
+        "monotonic_offset_ms",
+        "record_hash",
+    }
+    return canonical_json(
+        {key: value for key, value in event.items() if key not in writer_owned}
+    )
+
+
+def _sanitize_summary_fields(value: object) -> object:
+    if isinstance(value, dict):
+        sanitized: dict[object, object] = {}
+        for key, item in value.items():
+            if key == "summary" and isinstance(item, str):
+                sanitized[key] = sanitize_summary(item)[0]
+            else:
+                sanitized[key] = _sanitize_summary_fields(item)
+        return sanitized
+    if isinstance(value, list):
+        return [_sanitize_summary_fields(item) for item in value]
+    return copy.deepcopy(value)
+
+
+class ProgressWriter:
+    def __init__(
+        self, goal_root: Path, submission_capability: str, clock: Clock
+    ) -> None:
+        self.paths = GoalPaths.from_root(goal_root)
+        self.submission_capability = submission_capability
+        self.clock = clock
+        self.epoch_id = str(uuid.uuid4())
+        self.epoch_started = clock.monotonic()
+        self._closed = False
+        self._poisoned_reason: str | None = None
+        for directory in (
+            self.paths.context,
+            self.paths.logs,
+            self.paths.quarantine,
+            self.paths.runtime,
+        ):
+            _safe_mkdir(self.paths.root, directory)
+        self._lock = GoalLock(self.paths.runtime / "writer.lock")
+        try:
+            now_utc = self.clock.utc_now()
+            events, _state = _replay_goal_locked(
+                self.paths,
+                now_utc=now_utc,
+                current_epoch_id=self.epoch_id,
+                allow_empty=True,
+            )
+            self._install_events(events)
+        except BaseException:
+            self._lock.close()
+            raise
+
+    def _install_events(self, events: list[dict[str, object]]) -> None:
+        self._events = events
+        self._accepted_by_id = {
+            str(event["event_id"]): event for event in self._events
+        }
+        self._next_sequence = (
+            int(self._events[-1]["sequence"]) + 1 if self._events else 1
+        )
+
+    def _append(self, accepted: dict[str, object]) -> None:
+        self.paths.assert_safe()
+        progress = _assert_goal_target(self.paths.root, self.paths.progress)
+        with progress.open("a", encoding="utf-8", newline="\n") as handle:
+            handle.write(canonical_json(accepted))
+            handle.write("\n")
+            handle.flush()
+            os.fsync(handle.fileno())
+
+    def accept(
+        self, candidate: dict[str, object], presented_capability: str
+    ) -> dict[str, object]:
+        if self._closed:
+            raise GoalProgressError("ProgressWriter is closed")
+        if not isinstance(presented_capability, str) or not hmac.compare_digest(
+            self.submission_capability, presented_capability
+        ):
+            raise PermissionError("submission capability is invalid")
+        if self._poisoned_reason is not None:
+            raise GoalProgressError(
+                "ProgressWriter is poisoned; close it and run locked replay: "
+                f"{self._poisoned_reason}"
+            )
+        self.paths.assert_safe()
+        if not isinstance(candidate, dict):
+            raise GoalProgressError("candidate must be an object")
+        if frozenset(candidate) != EVENT_KEYS:
+            raise GoalProgressError("candidate event keys mismatch")
+        normalized_candidate = _sanitize_summary_fields(candidate)
+        assert isinstance(normalized_candidate, dict)
+        event_id = normalized_candidate.get("event_id")
+        if not isinstance(event_id, str) or not event_id.strip():
+            raise GoalProgressError("candidate.event_id must be a non-empty string")
+
+        existing = self._accepted_by_id.get(event_id)
+        if existing is not None:
+            if _submission_view(existing) == _submission_view(normalized_candidate):
+                _write_derived(
+                    self.paths,
+                    self._events,
+                    now_utc=self.clock.utc_now(),
+                    current_epoch_id=self.epoch_id,
+                )
+                return copy.deepcopy(existing)
+            _quarantine(
+                self.paths, reason="conflicting-event-id", candidate=candidate
+            )
+            raise GoalProgressError(f"conflicting event_id: {event_id}")
+
+        expected_sequence = candidate.get("sequence")
+        if expected_sequence != self._next_sequence or isinstance(
+            expected_sequence, bool
+        ):
+            raise GoalProgressError(
+                f"candidate expected sequence {expected_sequence!r}; "
+                f"writer expected sequence {self._next_sequence}"
+            )
+
+        accepted = copy.deepcopy(normalized_candidate)
+        accepted["sequence"] = self._next_sequence
+        accepted["emitted_at"] = self.clock.utc_now()
+        accepted["writer_epoch_id"] = self.epoch_id
+        accepted["monotonic_offset_ms"] = max(
+            0, round((self.clock.monotonic() - self.epoch_started) * 1000)
+        )
+        accepted["record_hash"] = sha256_json(
+            accepted, omit=frozenset({"record_hash"})
+        )
+
+        trial_events = [*self._events, accepted]
+        try:
+            validate_accepted_event(accepted)
+            _derive(
+                trial_events,
+                now_utc=str(accepted["emitted_at"]),
+                current_epoch_id=self.epoch_id,
+            )
+        except GoalProgressError:
+            _quarantine(self.paths, reason="invalid-event", candidate=candidate)
+            raise
+
+        try:
+            self._append(accepted)
+        except BaseException as append_error:
+            try:
+                disk_events = _read_progress(
+                    self.paths, now_utc=str(accepted["emitted_at"])
+                )
+            except BaseException as reconciliation_error:
+                self._poisoned_reason = (
+                    "append outcome cannot be reconciled from progress.jsonl"
+                )
+                raise GoalProgressError(self._poisoned_reason) from reconciliation_error
+
+            if disk_events == self._events:
+                raise
+            if (
+                len(disk_events) == len(self._events) + 1
+                and disk_events[:-1] == self._events
+                and disk_events[-1] == accepted
+            ):
+                self._install_events(disk_events)
+                try:
+                    _write_derived(
+                        self.paths,
+                        self._events,
+                        now_utc=str(accepted["emitted_at"]),
+                        current_epoch_id=self.epoch_id,
+                    )
+                except BaseException as derived_error:
+                    append_error.add_note(
+                        "durable append was reconciled, but derived recovery also failed: "
+                        f"{derived_error}"
+                    )
+                raise
+
+            self._poisoned_reason = (
+                "append outcome conflicts with the locked progress.jsonl tail"
+            )
+            raise GoalProgressError(self._poisoned_reason) from append_error
+
+        self._install_events(trial_events)
+        _write_derived(
+            self.paths,
+            self._events,
+            now_utc=str(accepted["emitted_at"]),
+            current_epoch_id=self.epoch_id,
+        )
+        return copy.deepcopy(accepted)
+
+    def close(self) -> None:
+        if self._closed:
+            return
+        self._closed = True
+        self._lock.close()
+
+    def __enter__(self) -> "ProgressWriter":
+        return self
+
+    def __exit__(self, *_args: object) -> None:
+        self.close()

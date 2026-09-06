@@ -205,6 +205,131 @@ class GovernanceTests(unittest.TestCase):
             )
             self.assertEqual("PASS", check_policy(root)["status"])
 
+    def test_policy_ignores_urllib_error_but_rejects_urllib_request_without_declaration(self) -> None:
+        from scripts.policy_check import check_policy
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            scripts = root / "scripts"
+            scripts.mkdir()
+            scripts.joinpath("exception_only.py").write_text(
+                "import urllib.error\n"
+                "def translate(error):\n"
+                "    return isinstance(error, urllib.error.URLError)\n",
+                encoding="utf-8",
+            )
+            scripts.joinpath("requesting.py").write_text(
+                "import urllib.request\n"
+                "urllib.request.urlopen('http://127.0.0.1:9999')\n",
+                encoding="utf-8",
+            )
+            (root / "policy").mkdir()
+            (root / "policy" / "network-package-policy.yaml").write_text(
+                yaml.safe_dump(
+                    {"allowed_third_party_modules": ["yaml"], "network_access": {}},
+                    sort_keys=False,
+                ),
+                encoding="utf-8",
+            )
+
+            violations = check_policy(root)["network_violations"]
+
+            self.assertEqual(["scripts/requesting.py"], [item["path"] for item in violations])
+
+    def test_policy_rejects_executable_parent_module_network_imports(self) -> None:
+        from scripts.policy_check import check_policy
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            scripts = root / "scripts"
+            scripts.mkdir()
+            sources = {
+                "urllib_error.py": "from urllib import error\n",
+                "urllib_parse.py": "from urllib import parse\n",
+                "http_status.py": "from http import HTTPStatus\n",
+                "urllib_request.py": "from urllib import request as runtime_request\n",
+                "http_client.py": "from http import client as runtime_client\n",
+                "http_server.py": "from http import server as runtime_server\n",
+                "urllib_star.py": "from urllib import *\n",
+                "http_star.py": "from http import *\n",
+            }
+            for name, source in sources.items():
+                scripts.joinpath(name).write_text(source, encoding="utf-8")
+            (root / "policy").mkdir()
+            (root / "policy" / "network-package-policy.yaml").write_text(
+                yaml.safe_dump(
+                    {"allowed_third_party_modules": ["yaml"], "network_access": {}},
+                    sort_keys=False,
+                ),
+                encoding="utf-8",
+            )
+
+            violations = check_policy(root)["network_violations"]
+
+            self.assertEqual(
+                [
+                    "scripts/http_client.py",
+                    "scripts/http_server.py",
+                    "scripts/http_star.py",
+                    "scripts/urllib_request.py",
+                    "scripts/urllib_star.py",
+                ],
+                [item["path"] for item in violations],
+            )
+
+    def test_policy_rejects_surplus_declared_url(self) -> None:
+        from scripts.policy_check import check_policy
+
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / "scripts").mkdir()
+            (root / "scripts" / "loopback.py").write_text(
+                "import urllib.request\n"
+                "urllib.request.urlopen('http://127.0.0.1:9999')\n",
+                encoding="utf-8",
+            )
+            (root / "policy").mkdir()
+            (root / "policy" / "network-package-policy.yaml").write_text(
+                yaml.safe_dump(
+                    {
+                        "allowed_third_party_modules": ["yaml"],
+                        "network_access": {
+                            "scripts/loopback.py": [
+                                "http://127.0.0.1:9999",
+                                "https://external.invalid",
+                            ]
+                        },
+                    },
+                    sort_keys=False,
+                ),
+                encoding="utf-8",
+            )
+
+            report = check_policy(root)
+
+            self.assertEqual("FAIL", report["status"])
+            self.assertEqual(["scripts/loopback.py"], [item["path"] for item in report["network_violations"]])
+
+    def test_repository_policy_declares_goal_progress_loopback_network(self) -> None:
+        from scripts.policy_check import check_policy
+
+        root = Path(__file__).resolve().parents[2]
+        policy = yaml.safe_load((root / "policy" / "network-package-policy.yaml").read_text(encoding="utf-8"))
+        report = check_policy(root)
+
+        self.assertEqual(
+            {
+                "scripts/goal_progress_server.py": [
+                    "http://127.0.0.1:{port}{route}",
+                    "http://127.0.0.1:{self.runtime_info[",
+                ]
+            },
+            policy["network_access"],
+        )
+        self.assertEqual([], report["dependency_violations"])
+        self.assertEqual([], report["network_violations"])
+        self.assertEqual("PASS", report["status"])
+
     def test_catalog_audit_separates_targets_from_observed_metrics(self) -> None:
         from scripts.catalog_audit import audit_catalog
 

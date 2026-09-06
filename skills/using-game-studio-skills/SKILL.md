@@ -63,6 +63,9 @@ When the packet is `READY`, only the selected canonical workflow executes or rev
 ### Stage 3 - normalized evidence card
 After the workflow acts, its observed result is summarized by a normalized evidence card with a runtime verdict of `PASS`, `BLOCKED`, or `FAIL` as applicable. For an unsupported router outcome, the root skill may issue a normalized `BLOCKED` evidence card without a workflow artifact. The router cannot fabricate the final runtime verdict.
 
+## Explicit KIT Goal participation
+Ordinary tasks keep the three-stage contract unchanged and do not acquire progress files. When the operator explicitly opts the current long-running task into a KIT-managed Goal, route Goal preflight and initialization, meaningful-boundary event submission, state recovery, and `Open Progress` to `studio-goal-progress`. The active workflow remains authority for packet completion and evidence truth. If that capability is absent, invalid, or unavailable, Goal progress is `BLOCKED`; never simulate percentage, ETA, events, or a GUI from commentary or elapsed wall time.
+
 ## Workflow
 1. Collect the repository path, project profile, goal, constraints, available tools, do-not-touch paths, and any explicit role, intent, or mode.
    Completion criterion: request context is bounded and unknowns are labeled.
@@ -72,9 +75,11 @@ After the workflow acts, its observed result is summarized by a normalized evide
    Completion criterion: three-or-more or high-volume scopes have an explicit tool assessment, tool contracts match the repeated work strategy gate, and one-off work is not over-engineered.
 4. Select the narrowest canonical workflow. A role preset is advisory and cannot override repository evidence, missing capabilities, or risk gates.
    Completion criterion: the normalized task packet names the selected workflow or reports `BLOCKED` with the missing prerequisite.
-5. Preserve the selected workflow's evidence and mutation contracts without weakening them in Basic mode; the selected workflow, not this router, executes or authorizes its work.
+5. If the task explicitly opted into a KIT-managed Goal, require `studio-goal-progress` preflight before initialization and emit only start, packet transition, evidence observation, plan revision, context refresh, terminal, or explicitly bounded heartbeat events.
+   Completion criterion: ordinary tasks remain unchanged, ordinary commentary and raw tool output do not become progress events, and missing progress capability remains `BLOCKED`.
+6. Preserve the selected workflow's evidence and mutation contracts without weakening them in Basic mode; the selected workflow, not this router, executes or authorizes its work.
    Completion criterion: Basic and Advanced modes differ only in presentation and explicit controls.
-6. If a workflow was selected, require it to return its workflow-specific artifact, a normalized evidence card, and one next action. If routing is unsupported, return no workflow artifact and preserve the task-packet and evidence-card `BLOCKED` state.
+7. If a workflow was selected, require it to return its workflow-specific artifact, a normalized evidence card, and one next action. If routing is unsupported, return no workflow artifact and preserve the task-packet and evidence-card `BLOCKED` state.
    Completion criterion: commands, exit codes, artifacts, limitations, restore information, and blockers remain available without an invented workflow result.
 
 ## Evidence and output contract
@@ -92,6 +97,7 @@ Record repository/path, branch, goal, owned scope, do-not-touch paths, files tou
 
 ## Verification checklist
 - [ ] The primary workflow skill is explicit.
+- [ ] KIT Goal participation is explicit or ordinary task behavior remains unchanged.
 - [ ] Repeated work has an explicit manual, reuse, extend, or create-tool decision.
 - [ ] Every material claim has an evidence label.
 - [ ] Side effects match the declared risk gate.

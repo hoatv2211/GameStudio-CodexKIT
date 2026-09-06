@@ -37,7 +37,7 @@ The observations below are local Windows results from the refreshed checkout. CI
 | Gate | Observation |
 |---|---|
 | Structural and provenance validation | 0 errors, 0 warnings |
-| Tier-A routing | 316/316 cases, rank-1 accuracy 1.0 across 49 routed skills |
+| Tier-A routing | 328/328 cases, rank-1 accuracy 1.0 across 51 routed skills |
 | External-catalog collision | 10/10 — studio routes beat six generic neighboring skills |
 | Secret scan | 0 findings |
 | Network and package policy | PASS |
@@ -60,14 +60,14 @@ These prove **catalog separation and structural integrity**. They do not prove t
 Limitations, stated plainly:
 
 - One runner, one model, one reasoning effort. A second runner may disagree, and until one is executed the generalization is `Unverified`.
-- The snapshot predates the two `experimental` skills added on 2026-08-21, so `unity-ui-art-and-motion-production` and `game-screenshot-showcase-and-store-packaging` are **not** covered by it.
+- The snapshot predates the five current `experimental` skills, so `code-intelligence-contract`, `studio-goal-progress`, `studio-context-brief`, `unity-ui-art-and-motion-production`, and `game-screenshot-showcase-and-store-packaging` are **not** covered by it.
 - Pressure cases prove the agent refused to skip gates in twelve scripted scenarios, not that no bypass exists.
 
 ## Real-project dogfood
 
 `Snapshot` at catalog level, `Verified` for one skill.
 
-The catalog is marked `beta` on the basis of maintainer-confirmed application in one commercial-style Unity 6 (6000.3.10f1) WebGL MMORPG client with a Lua gameplay layer and multiple concurrent agent sessions sharing one worktree. Per `AGENTS.md`, `beta` records adoption; it does not assert individual verified dogfood evidence for each of the 50 skills.
+The catalog is marked `beta` on the basis of maintainer-confirmed application in one commercial-style Unity 6 (6000.3.10f1) WebGL MMORPG client with a Lua gameplay layer and multiple concurrent agent sessions sharing one worktree. Per `AGENTS.md`, `beta` records adoption; it does not assert individual verified dogfood evidence for each of the 52 skills.
 
 One skill exceeds that bar. `localization-authority-audit` has a promotion record in `registry/promotion-evidence.yaml` with hash-bound artifacts under `registry/promotion-artifacts/localization-authority-audit-fpc/`, covering two cases with real command logs, exit codes, and a project snapshot. Validation reports it as `verified: 1, stale: 0, invalid: 0`. The record expires 2027-02-17 and is bound to a static profile.
 
@@ -89,7 +89,7 @@ Ordered by evidentiary value:
 
 1. Run the fifteen exported dogfood scenarios against a governed Hermes runner on a real project. Removes gap 2, adds a second runtime.
 2. Supply sanitized session history so the three operational KPIs become observed rather than `null`. Removes gap 1.
-3. Re-run Tier-B, behavior, and pressure so the two `experimental` skills are covered, then consider promoting them.
+3. Re-run Tier-B, behavior, and pressure so the five `experimental` skills are covered, then consider promoting them.
 4. Add promotion records with hash-bound artifacts for the most-used skills, the way `localization-authority-audit` already has.
 5. External adoption outside the maintaining studio. Currently `Unverified`, and no amount of internal work changes that label.
 
@@ -97,7 +97,7 @@ Ordered by evidentiary value:
 
 | Level | Meaning in this repository |
 |---|---|
-| `experimental` | New or changed; no confirmed studio adoption yet. Two skills. |
+| `experimental` | New or changed; no confirmed studio adoption yet. Five skills. |
 | `beta` | Catalog applied in a real studio project (`Snapshot`). Forty-seven skills. |
 | `stable` | Requires a promotion record with fresh verified dogfood plus Tier-B, behavior, and pressure evidence. **No skill currently qualifies.** |
 | `release` | Additionally requires a runtime matrix and sanitized session history. **`BLOCKED`.** |

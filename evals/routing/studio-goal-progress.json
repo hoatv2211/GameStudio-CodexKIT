@@ -1,0 +1,8 @@
+{"target_skill":"studio-goal-progress","cases":[
+  {"prompt":"Open Progress for the active KIT-managed Goal in a read-only GUI","expected_skill":"studio-goal-progress","type":"positive"},
+  {"prompt":"Calculate verified weighted Goal percentage and an honest ETA range from completed packet evidence","expected_skill":"studio-goal-progress","type":"positive"},
+  {"prompt":"Recover this opted-in KIT Goal by replaying its portable append-only progress event stream","expected_skill":"studio-goal-progress","type":"positive"},
+  {"prompt":"Decompose the approved spec into owned packets with positive progress weights and optional duration estimates","expected_skill":"feature-to-work-packets","type":"negative","owner":"feature-to-work-packets"},
+  {"prompt":"Write a durable cross-session transfer with current git state commands restore steps and reactivation prompt","expected_skill":"studio-handoff","type":"negative","owner":"studio-handoff"},
+  {"prompt":"Open the active KIT Goal progress GUI, but never infer completion percentage from commentary or elapsed wall time","expected_skill":"studio-goal-progress","type":"collision"}
+]}

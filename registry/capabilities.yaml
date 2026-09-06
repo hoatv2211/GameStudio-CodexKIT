@@ -8,6 +8,20 @@ capabilities:
   risk_level: read-only
   maturity: beta
   depends_on: []
+- id: studio-goal-progress
+  path: skills/studio-goal-progress/SKILL.md
+  type: interactive
+  packs: [studio-core]
+  risk_level: low
+  maturity: experimental
+  depends_on: [using-game-studio-skills]
+- id: studio-context-brief
+  path: skills/studio-context-brief/SKILL.md
+  type: workflow
+  packs: [studio-core]
+  risk_level: low
+  maturity: experimental
+  depends_on: [studio-goal-progress]
 - id: studio-project-intake
   path: skills/studio-project-intake/SKILL.md
   type: router

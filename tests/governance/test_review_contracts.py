@@ -36,9 +36,9 @@ class ReviewContractTests(unittest.TestCase):
             "MMORPG",
             "Codex",
             "Hermes Agent",
-            "50 canonical skills",
+            "52 canonical skills",
             "24 canonical agent roles",
-            "316 deterministic eval cases",
+            "328 deterministic eval cases",
         ):
             with self.subTest(readme_phrase=phrase):
                 self.assertIn(phrase, readme)
@@ -74,7 +74,7 @@ class ReviewContractTests(unittest.TestCase):
             path.parent.name for path in (ROOT / "skills").glob("*/SKILL.md")
         )
         role_ids = sorted(path.stem for path in (ROOT / "agents").glob("*.toml"))
-        self.assertEqual(50, len(skill_ids))
+        self.assertEqual(52, len(skill_ids))
         self.assertEqual(24, len(role_ids))
         for identifier in (*skill_ids, *role_ids):
             with self.subTest(identifier=identifier):

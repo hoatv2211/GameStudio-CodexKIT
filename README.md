@@ -16,7 +16,7 @@ MOStudio Kit is distributed from the `GameStudio-CodexKIT` repository. The
 public product name is MOStudio Kit; repository URLs and the stable plugin ID
 `game-studio-codex-kit` keep the technical project name.
 
-[![Skills](<https://img.shields.io/badge/skills-50%20canonical-brightgreen>)](skills/) [![Routing](<https://img.shields.io/badge/routing%20eval-316%2F316-blue>)](evals/routing/) [![Tests](<https://img.shields.io/badge/unittest-test%20suite-informational>)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
+[![Skills](<https://img.shields.io/badge/skills-52%20canonical-brightgreen>)](skills/) [![Routing](<https://img.shields.io/badge/routing%20eval-328%2F328-blue>)](evals/routing/) [![Tests](<https://img.shields.io/badge/unittest-test%20suite-informational>)](tests/) [![License](https://img.shields.io/badge/license-MIT-blue)](LICENSE)
 
 ## Why MOStudio Kit
 
@@ -127,14 +127,21 @@ Return: selected workflow, ranked evidence, commands, exit codes, artifacts,
 limitations, and explicit Verified/Snapshot/Unverified/BLOCKED results.
 ```
 
+For an explicitly opted-in KIT Goal, invoke the two progress workflows directly:
+
+```text
+$studio-goal-progress Open Progress for the active KIT-managed Goal.
+$studio-context-brief Build the working projection without replacing studio-handoff.
+```
+
 For more examples, use the
 [Vietnamese skill and agent guide](docs/huong-dan-su-dung-skill-agent.md) or the
 [complete English skill and agent guide](docs/wiki-skill-agent-user-guide.md).
 
 ## Evidence, not confidence
 
-The current catalog contains **50 canonical skills**, **24 canonical agent roles**,
-seven installable packs, and **316 deterministic eval cases** for Tier-A routing.
+The current catalog contains **52 canonical skills**, **24 canonical agent roles**,
+seven installable packs, and **328 deterministic eval cases** for Tier-A routing.
 Local deterministic tests, model-runner evidence, real-project dogfood, and
 lifecycle maturity are deliberately reported as separate things.
 

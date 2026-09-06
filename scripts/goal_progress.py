@@ -1,0 +1,674 @@
+from __future__ import annotations
+
+import argparse
+import json
+import time
+import urllib.error
+from pathlib import Path
+
+try:
+    from scripts.goal_progress_core import (
+        GoalProgressError,
+        sanitize_summary,
+        validate_manifest,
+    )
+    from scripts.goal_progress_server import (
+        DEFAULT_IDLE_TIMEOUT_SECONDS,
+        ensure_runtime,
+        pending_runtime_block_reason,
+        request_private_json,
+        runtime_is_reusable,
+        serve_runtime,
+        stop_runtime,
+    )
+    from scripts.goal_progress_store import GoalPaths
+except ModuleNotFoundError:
+    from goal_progress_core import GoalProgressError, sanitize_summary, validate_manifest
+    from goal_progress_server import (
+        DEFAULT_IDLE_TIMEOUT_SECONDS,
+        ensure_runtime,
+        pending_runtime_block_reason,
+        request_private_json,
+        runtime_is_reusable,
+        serve_runtime,
+        stop_runtime,
+    )
+    from goal_progress_store import GoalPaths
+
+
+SESSION_LIMIT = 20
+SESSION_HEALTH_TOTAL_SECONDS = 0.5
+SESSION_HEALTH_REQUEST_SECONDS = 0.05
+TERMINAL_GOAL_STATES = frozenset({"completed", "cancelled"})
+
+
+class CliUsageError(GoalProgressError):
+    pass
+
+
+class RuntimeBlocked(GoalProgressError):
+    def __init__(
+        self, message: str, *, details: dict[str, object] | None = None
+    ) -> None:
+        super().__init__(message)
+        self.details = details
+
+
+class JsonArgumentParser(argparse.ArgumentParser):
+    def error(self, message: str) -> None:
+        raise CliUsageError(message)
+
+
+def _positive_integer(value: str) -> int:
+    try:
+        parsed = int(value)
+    except ValueError as exc:
+        raise argparse.ArgumentTypeError("must be a positive integer") from exc
+    if parsed <= 0:
+        raise argparse.ArgumentTypeError("must be a positive integer")
+    return parsed
+
+
+def _emit_json(value: object) -> None:
+    print(json.dumps(value, sort_keys=True, separators=(",", ":"), ensure_ascii=True))
+
+
+def _safe_reason(value: object) -> str:
+    text, _warnings = sanitize_summary(str(value), limit=500)
+    return text or "operation failed"
+
+
+def _load_json_file(path: Path, label: str) -> dict[str, object]:
+    target = Path(path)
+    if not target.is_file() or target.is_symlink():
+        raise GoalProgressError(f"{label} file is unavailable")
+    if target.stat().st_size > 1024 * 1024:
+        raise GoalProgressError(f"{label} file is too large")
+    try:
+        value = json.loads(target.read_text(encoding="utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise GoalProgressError(f"{label} file must contain one JSON object") from exc
+    if not isinstance(value, dict):
+        raise GoalProgressError(f"{label} file must contain one JSON object")
+    return value
+
+
+def _resolved_candidate_root(goal_root: Path) -> Path:
+    requested = Path(goal_root)
+    if ".." in requested.parts:
+        raise GoalProgressError("goal root must not contain traversal")
+    absolute = requested.absolute()
+    parent = absolute.parent
+    if not parent.is_dir() or parent.is_symlink():
+        raise GoalProgressError("goal root parent is unavailable or unsafe")
+    resolved_parent = parent.resolve()
+    return resolved_parent / absolute.name
+
+
+def _prepare_goal_root(goal_root: Path) -> Path:
+    root = _resolved_candidate_root(goal_root)
+    if root.exists():
+        if not root.is_dir() or root.is_symlink():
+            raise GoalProgressError("goal root must be a real directory")
+    else:
+        root.mkdir()
+    return root
+
+
+def _runtime_token_file(goal_root: Path) -> Path:
+    return Path(goal_root) / "runtime" / "submission-token"
+
+
+def _initial_event(manifest: dict[str, object]) -> dict[str, object]:
+    goal_id = str(manifest["goal_id"])
+    plan_version = int(manifest["plan_version"])
+    return {
+        "schema_version": 1,
+        "event_id": f"goal-started-{goal_id}-v{plan_version}",
+        "goal_id": goal_id,
+        "plan_version": plan_version,
+        "sequence": 1,
+        "emitted_at": str(manifest["created_at"]),
+        "writer_epoch_id": "pending-writer-epoch",
+        "monotonic_offset_ms": 0,
+        "source": "kit_workflow",
+        "event_type": "goal.started",
+        "packet_id": None,
+        "payload": {"manifest": manifest},
+        "authority": None,
+        "summary": "Goal started from the canonical manifest.",
+        "evidence": [],
+        "raw_log_ref": None,
+        "record_hash": "0" * 64,
+    }
+
+
+def _http_error_reason(exc: urllib.error.HTTPError) -> str:
+    try:
+        value = json.loads(exc.read().decode("utf-8"))
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        return f"runtime request failed with HTTP {exc.code}"
+    if isinstance(value, dict) and isinstance(value.get("reason"), str):
+        return _safe_reason(value["reason"])
+    return f"runtime request failed with HTTP {exc.code}"
+
+
+def _private_request(
+    runtime_info: dict[str, object],
+    token_file: Path,
+    method: str,
+    route: str,
+    payload: object | None = None,
+) -> dict[str, object]:
+    try:
+        capability = token_file.read_text(encoding="utf-8")
+        return request_private_json(runtime_info, capability, method, route, payload)
+    except urllib.error.HTTPError as exc:
+        reason = _http_error_reason(exc)
+        if exc.code in {401, 403}:
+            raise RuntimeBlocked(reason) from exc
+        raise GoalProgressError(reason) from exc
+    except urllib.error.URLError as exc:
+        raise RuntimeBlocked("private goal runtime is unavailable") from exc
+
+
+def _preflight(args: argparse.Namespace) -> dict[str, object]:
+    manifest = _load_json_file(args.manifest, "manifest")
+    validate_manifest(manifest)
+    goal_root = _resolved_candidate_root(args.goal_root)
+    return {
+        "status": "READY",
+        "goal_id": manifest["goal_id"],
+        "goal_root": str(goal_root),
+        "writer_status": "not-started",
+    }
+
+
+def _init(args: argparse.Namespace) -> dict[str, object]:
+    manifest = _load_json_file(args.manifest, "manifest")
+    validate_manifest(manifest)
+    goal_root = _prepare_goal_root(args.goal_root)
+    paths = GoalPaths.from_root(goal_root)
+    if paths.progress.exists():
+        active = _load_json_file(paths.goal, "goal")
+        if active.get("goal_id") != manifest.get("goal_id"):
+            raise GoalProgressError("existing goal root belongs to another goal")
+    try:
+        runtime = ensure_runtime(
+            paths.root,
+            runtime_token_file=_runtime_token_file(paths.root),
+            idle_timeout_seconds=args.idle_timeout_seconds,
+        )
+    except GoalProgressError as exc:
+        raise RuntimeBlocked(_safe_reason(exc)) from exc
+    if not paths.progress.exists():
+        _private_request(
+            runtime,
+            _runtime_token_file(paths.root),
+            "POST",
+            "/events",
+            _initial_event(manifest),
+        )
+    return {
+        "status": "READY",
+        "goal_id": manifest["goal_id"],
+        "goal_root": str(paths.root.resolve()),
+        "idle_timeout_seconds": args.idle_timeout_seconds,
+        "writer_status": runtime["writer_status"],
+    }
+
+
+def _emit(args: argparse.Namespace) -> dict[str, object]:
+    paths = GoalPaths.from_root(args.goal_root)
+    candidate = _load_json_file(args.candidate, "candidate")
+    try:
+        runtime = ensure_runtime(
+            paths.root,
+            runtime_token_file=_runtime_token_file(paths.root),
+        )
+    except GoalProgressError as exc:
+        raise RuntimeBlocked(_safe_reason(exc)) from exc
+    response = _private_request(
+        runtime,
+        _runtime_token_file(paths.root),
+        "POST",
+        "/events",
+        candidate,
+    )
+    accepted = response.get("accepted")
+    if not isinstance(accepted, dict):
+        raise GoalProgressError("runtime did not return an accepted event")
+    return {
+        "status": "READY",
+        "goal_id": accepted["goal_id"],
+        "goal_root": str(paths.root.resolve()),
+        "event_id": accepted["event_id"],
+        "sequence": accepted["sequence"],
+        "writer_status": runtime["writer_status"],
+    }
+
+
+def _status(args: argparse.Namespace) -> dict[str, object]:
+    paths = GoalPaths.from_root(args.goal_root)
+    state = _load_json_file(paths.state, "state")
+    pending_reason = pending_runtime_block_reason(
+        paths.root, _runtime_token_file(paths.root)
+    )
+    if pending_reason is not None:
+        error = RuntimeBlocked(pending_reason)
+        error.writer_status = "unknown"  # type: ignore[attr-defined]
+        raise error
+    writer_status = (
+        "running"
+        if runtime_is_reusable(paths.root, _runtime_token_file(paths.root))
+        else "stopped"
+    )
+    return {
+        "status": "READY",
+        "goal_root": str(paths.root.resolve()),
+        "writer_status": writer_status,
+        "state": state,
+    }
+
+
+def _goals_directory(repository_root: Path) -> Path:
+    root = Path(repository_root).resolve()
+    canonical = root / "evidence" / "local" / "goals"
+    if canonical.is_dir():
+        return canonical
+    return root
+
+
+def _session_rows(
+    repository_root: Path, *, limit: int | None = None
+) -> list[dict[str, object]]:
+    goals = _goals_directory(repository_root)
+    if not goals.is_dir() or goals.is_symlink():
+        return []
+    rows: list[dict[str, object]] = []
+    for root in goals.iterdir():
+        if not root.is_dir() or root.is_symlink():
+            continue
+        goal_file = root / "goal.json"
+        state_file = root / "state.json"
+        if not goal_file.is_file() or not state_file.is_file():
+            continue
+        try:
+            goal = _load_json_file(goal_file, "goal")
+            state = _load_json_file(state_file, "state")
+        except GoalProgressError:
+            continue
+        rows.append(
+            {
+                "goal_id": goal.get("goal_id"),
+                "goal_root": str(root.resolve()),
+                "goal_state": state.get("goal_state"),
+                "updated_at": state.get("updated_at"),
+                "writer_status": "unknown",
+            }
+        )
+    rows.sort(
+        key=lambda row: (str(row.get("updated_at") or ""), str(row.get("goal_id") or "")),
+        reverse=True,
+    )
+    return rows if limit is None else rows[:limit]
+
+
+def _enrich_writer_status(rows: list[dict[str, object]]) -> None:
+    deadline = time.monotonic() + SESSION_HEALTH_TOTAL_SECONDS
+    for row in rows:
+        root = Path(str(row["goal_root"]))
+        pending_reason = pending_runtime_block_reason(
+            root, _runtime_token_file(root)
+        )
+        if pending_reason is not None:
+            row["writer_status"] = "unknown"
+            row["writer_reason"] = pending_reason
+            continue
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            break
+        row["writer_status"] = (
+            "running"
+            if runtime_is_reusable(
+                root,
+                _runtime_token_file(root),
+                timeout_seconds=min(SESSION_HEALTH_REQUEST_SECONDS, remaining),
+            )
+            else "stopped"
+        )
+
+
+def _list(args: argparse.Namespace) -> dict[str, object]:
+    rows = _session_rows(args.repository_root, limit=SESSION_LIMIT)
+    _enrich_writer_status(rows)
+    return {
+        "status": "READY",
+        "repository_root": str(Path(args.repository_root).resolve()),
+        "goals": rows,
+    }
+
+
+def _manifest_has_runtime_binding(
+    goal_root: Path, *, kind: str, binding_id: str
+) -> bool:
+    try:
+        manifest = _load_json_file(Path(goal_root) / "goal.json", "goal")
+    except GoalProgressError:
+        return False
+    bindings = manifest.get("runtime_bindings", [])
+    return isinstance(bindings, list) and {"kind": kind, "id": binding_id} in bindings
+
+
+def _resolve_open_goal(
+    requested: Path,
+    *,
+    runtime_binding_kind: str | None = None,
+    runtime_binding_id: str | None = None,
+) -> Path:
+    candidate = Path(requested).resolve()
+    if (candidate / "goal.json").is_file() and (candidate / "state.json").is_file():
+        return GoalPaths.from_root(candidate).root
+    rows = _session_rows(candidate)
+    active = [row for row in rows if row.get("goal_state") not in TERMINAL_GOAL_STATES]
+    if runtime_binding_kind is not None and runtime_binding_id is not None:
+        matches = [
+            row
+            for row in active
+            if _manifest_has_runtime_binding(
+                Path(str(row["goal_root"])),
+                kind=runtime_binding_kind,
+                binding_id=runtime_binding_id,
+            )
+        ]
+        if len(matches) == 1:
+            return GoalPaths.from_root(Path(str(matches[0]["goal_root"]))).root
+        if len(matches) > 1:
+            error = RuntimeBlocked(
+                "ambiguous active goals match the runtime binding; select one explicit goal root"
+            )
+            error.goals = matches[:SESSION_LIMIT]  # type: ignore[attr-defined]
+            raise error
+    if len(active) != 1:
+        error = RuntimeBlocked(
+            "ambiguous active goals; select one explicit goal root"
+            if len(active) > 1
+            else "no active goal matches; select one explicit goal root"
+        )
+        error.goals = rows[:SESSION_LIMIT]  # type: ignore[attr-defined]
+        raise error
+    return GoalPaths.from_root(Path(str(active[0]["goal_root"]))).root
+
+
+def _open_integration_details(
+    paths: GoalPaths,
+    view: str,
+    *,
+    server: dict[str, object],
+    integrations_ready: bool,
+) -> dict[str, object]:
+    if integrations_ready:
+        panel: dict[str, object] = {
+            "status": "READY",
+            "action": "host_panel_required",
+            "instruction": "The host agent opens the returned URL in a Codex panel when available.",
+        }
+        browser: dict[str, object] = {
+            "status": "READY",
+            "action": "manual_browser_open_required",
+            "automatic_opened": False,
+            "instruction": "Open the returned URL manually when a Codex panel is unavailable.",
+        }
+    else:
+        panel = {
+            "status": "BLOCKED",
+            "action": "wait_for_server",
+        }
+        browser = {
+            "status": "BLOCKED",
+            "action": "wait_for_server",
+            "automatic_opened": False,
+        }
+    return {
+        "goal_root": str(paths.root.resolve()),
+        "view": view,
+        "portable_state_available": paths.state.is_file(),
+        "server": server,
+        "panel": panel,
+        "browser": browser,
+    }
+
+
+def _blocked_open(
+    message: str,
+    paths: GoalPaths,
+    view: str,
+    *,
+    server: dict[str, object],
+) -> RuntimeBlocked:
+    return RuntimeBlocked(
+        message,
+        details=_open_integration_details(
+            paths,
+            view,
+            server=server,
+            integrations_ready=False,
+        ),
+    )
+
+
+def _open(args: argparse.Namespace) -> dict[str, object]:
+    if (args.runtime_binding_kind is None) != (args.runtime_binding_id is None):
+        raise CliUsageError(
+            "runtime binding kind and id must be provided together"
+        )
+    goal_root = _resolve_open_goal(
+        args.goal_root,
+        runtime_binding_kind=args.runtime_binding_kind,
+        runtime_binding_id=args.runtime_binding_id,
+    )
+    paths = GoalPaths.from_root(goal_root)
+    token_file = _runtime_token_file(paths.root)
+    if runtime_is_reusable(paths.root, token_file):
+        runtime = _load_json_file(paths.writer_info, "runtime metadata")
+        server_status = {"status": "READY", "action": "reused"}
+    else:
+        if not args.approve_service_control:
+            raise _blocked_open(
+                "service control approval is required before starting the dashboard runtime",
+                paths,
+                args.view,
+                server={
+                    "status": "BLOCKED",
+                    "action": "not_started",
+                    "reason": "service_control_approval_required",
+                },
+            )
+        try:
+            runtime = ensure_runtime(
+                paths.root,
+                runtime_token_file=token_file,
+            )
+        except GoalProgressError as exc:
+            raise _blocked_open(
+                _safe_reason(exc),
+                paths,
+                args.view,
+                server={
+                    "status": "BLOCKED",
+                    "action": "start_failed",
+                    "reason": "runtime_start_failed",
+                },
+            ) from exc
+        server_status = {
+            "status": "READY",
+            "action": (
+                "reused" if runtime.get("writer_status") == "reused" else "started"
+            ),
+        }
+    if runtime.get("goal_root") != str(paths.root.resolve()):
+        raise _blocked_open(
+            "dashboard runtime identity mismatch",
+            paths,
+            args.view,
+            server={
+                "status": "BLOCKED",
+                "action": server_status["action"],
+                "reason": "runtime_identity_mismatch",
+            },
+        )
+    try:
+        opened = _private_request(
+            runtime,
+            token_file,
+            "POST",
+            "/dashboard/open",
+            {"view": args.view},
+        )
+    except RuntimeBlocked as exc:
+        raise _blocked_open(
+            _safe_reason(exc),
+            paths,
+            args.view,
+            server=server_status,
+        ) from exc
+    url = opened.get("url")
+    if not isinstance(url, str) or not url:
+        raise _blocked_open(
+            "dashboard runtime did not return an open URL",
+            paths,
+            args.view,
+            server=server_status,
+        )
+    return {
+        "status": "READY",
+        **_open_integration_details(
+            paths,
+            args.view,
+            server=server_status,
+            integrations_ready=True,
+        ),
+        "url": url,
+    }
+
+
+def _stop(args: argparse.Namespace) -> dict[str, object]:
+    try:
+        return stop_runtime(
+            args.goal_root,
+            runtime_token_file=_runtime_token_file(args.goal_root),
+        )
+    except GoalProgressError as exc:
+        raise RuntimeBlocked(_safe_reason(exc)) from exc
+
+
+def _serve(args: argparse.Namespace) -> dict[str, object]:
+    serve_runtime(
+        args.goal_root,
+        args.runtime_token_file,
+        idle_timeout_seconds=args.idle_timeout_seconds,
+    )
+    return {"status": "READY", "writer_status": "stopped"}
+
+
+def _parser() -> JsonArgumentParser:
+    parser = JsonArgumentParser(prog="goal_progress.py")
+    subparsers = parser.add_subparsers(dest="command", required=True)
+
+    preflight = subparsers.add_parser("preflight")
+    preflight.add_argument("--manifest", type=Path, required=True)
+    preflight.add_argument("--goal-root", type=Path, required=True)
+    preflight.add_argument("--json", action="store_true", required=True)
+    preflight.set_defaults(handler=_preflight)
+
+    init = subparsers.add_parser("init")
+    init.add_argument("--manifest", type=Path, required=True)
+    init.add_argument("--goal-root", type=Path, required=True)
+    init.add_argument(
+        "--idle-timeout-seconds",
+        type=_positive_integer,
+        default=DEFAULT_IDLE_TIMEOUT_SECONDS,
+    )
+    init.add_argument("--json", action="store_true", required=True)
+    init.set_defaults(handler=_init)
+
+    emit = subparsers.add_parser("emit")
+    emit.add_argument("--goal-root", type=Path, required=True)
+    emit.add_argument("--candidate", type=Path, required=True)
+    emit.add_argument("--json", action="store_true", required=True)
+    emit.set_defaults(handler=_emit)
+
+    status = subparsers.add_parser("status")
+    status.add_argument("--goal-root", type=Path, required=True)
+    status.add_argument("--json", action="store_true", required=True)
+    status.set_defaults(handler=_status)
+
+    list_parser = subparsers.add_parser("list")
+    list_parser.add_argument("--repository-root", type=Path, required=True)
+    list_parser.add_argument("--json", action="store_true", required=True)
+    list_parser.set_defaults(handler=_list)
+
+    open_parser = subparsers.add_parser("open")
+    open_parser.add_argument("--goal-root", type=Path, required=True)
+    open_parser.add_argument(
+        "--runtime-binding-kind", choices=("codex_thread", "hermes_session")
+    )
+    open_parser.add_argument("--runtime-binding-id")
+    open_parser.add_argument("--approve-service-control", action="store_true")
+    open_parser.add_argument("--view", choices=("compact", "full"), required=True)
+    open_parser.add_argument("--json", action="store_true", required=True)
+    open_parser.set_defaults(handler=_open)
+
+    stop = subparsers.add_parser("stop-runtime")
+    stop.add_argument("--goal-root", type=Path, required=True)
+    stop.add_argument("--json", action="store_true", required=True)
+    stop.set_defaults(handler=_stop)
+
+    serve = subparsers.add_parser("serve")
+    serve.add_argument("--goal-root", type=Path, required=True)
+    serve.add_argument("--runtime-token-file", type=Path, required=True)
+    serve.add_argument(
+        "--idle-timeout-seconds", type=_positive_integer, required=True
+    )
+    serve.set_defaults(handler=_serve)
+    return parser
+
+
+def main(argv: list[str] | None = None) -> int:
+    try:
+        args = _parser().parse_args(argv)
+        result = args.handler(args)
+    except CliUsageError as exc:
+        _emit_json({"status": "FAIL", "reason": _safe_reason(exc)})
+        return 2
+    except RuntimeBlocked as exc:
+        payload: dict[str, object] = {
+            "status": "BLOCKED",
+            "reason": _safe_reason(exc),
+        }
+        goals = getattr(exc, "goals", None)
+        if isinstance(goals, list):
+            payload["goals"] = goals
+        writer_status = getattr(exc, "writer_status", None)
+        if isinstance(writer_status, str):
+            payload["writer_status"] = writer_status
+        details = getattr(exc, "details", None)
+        if isinstance(details, dict):
+            payload.update(
+                {
+                    key: value
+                    for key, value in details.items()
+                    if key not in {"status", "reason"}
+                }
+            )
+        _emit_json(payload)
+        return 2
+    except (GoalProgressError, OSError, ValueError) as exc:
+        _emit_json({"status": "FAIL", "reason": _safe_reason(exc)})
+        return 1
+    _emit_json(result)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())

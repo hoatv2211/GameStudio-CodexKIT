@@ -1,0 +1,8 @@
+{"jsonrpc":"2.0","method":"thread/started","params":{"thread":{"id":"thread-demo","status":"idle"}}}
+{"jsonrpc":"2.0","method":"thread/status/changed","params":{"threadId":"thread-demo","status":"working"}}
+{"jsonrpc":"2.0","method":"turn/started","params":{"threadId":"thread-demo","turn":{"id":"turn-demo","status":"inProgress"}}}
+{"jsonrpc":"2.0","method":"turn/plan/updated","params":{"threadId":"thread-demo","turnId":"turn-demo","plan":[{"step":"Run focused tests","status":"inProgress"}]}}
+{"jsonrpc":"2.0","method":"item/started","params":{"threadId":"thread-demo","turnId":"turn-demo","startedAtMs":10,"item":{"id":"item-command-1","type":"commandExecution","status":"inProgress","command":"python -m unittest"}}}
+{"jsonrpc":"2.0","method":"item/completed","params":{"threadId":"thread-demo","turnId":"turn-demo","completedAtMs":20,"item":{"id":"item-command-1","type":"commandExecution","status":"completed","aggregatedOutput":"secret payload 123"}}}
+{"jsonrpc":"2.0","method":"turn/completed","params":{"threadId":"thread-demo","turn":{"id":"turn-demo","status":"completed"}}}
+{"jsonrpc":"2.0","method":"thread/tokenUsage/updated","params":{"threadId":"thread-demo","turnId":"turn-demo","tokenUsage":{"inputTokens":120,"outputTokens":40}}}

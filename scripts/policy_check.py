@@ -14,13 +14,23 @@ except ModuleNotFoundError:
     from common import load_yaml
 
 
-NETWORK_MODULES = {"requests", "urllib", "http", "socket"}
+NETWORK_MODULES = {"requests", "socket"}
+NETWORK_IMPORT_PREFIXES = ("urllib.request", "http.client", "http.server")
 URL_PATTERN = re.compile(r"https?://[^'\"\s)]+")
 DYNAMIC_NETWORK_DECLARATION = "dynamic://declared-at-runtime"
 
 
-def _imports(path: Path) -> set[str]:
-    tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+def _is_network_import(name: str) -> bool:
+    return name.split(".", 1)[0] in NETWORK_MODULES or name.startswith(
+        NETWORK_IMPORT_PREFIXES
+    )
+
+
+def _tree(path: Path) -> ast.Module:
+    return ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+
+
+def _imports(tree: ast.AST) -> set[str]:
     imports: set[str] = set()
     for node in ast.walk(tree):
         if isinstance(node, ast.Import):
@@ -32,7 +42,22 @@ def _imports(path: Path) -> set[str]:
 
 def _uses_network(path: Path) -> bool:
     """Detect executable network imports without matching comments or string literals."""
-    return bool(_imports(path) & NETWORK_MODULES)
+    tree = _tree(path)
+    for node in ast.walk(tree):
+        if isinstance(node, ast.Import):
+            if any(_is_network_import(alias.name) for alias in node.names):
+                return True
+        elif isinstance(node, ast.ImportFrom) and node.module:
+            if _is_network_import(node.module) or (
+                node.module in {"urllib", "http"}
+                and any(
+                    alias.name == "*"
+                    or _is_network_import(f"{node.module}.{alias.name}")
+                    for alias in node.names
+                )
+            ):
+                return True
+    return False
 
 
 def check_policy(root: Path | str) -> dict[str, Any]:
@@ -54,7 +79,8 @@ def check_policy(root: Path | str) -> dict[str, Any]:
     network_violations: list[dict[str, object]] = []
     for path in sorted((root_path / "scripts").glob("*.py")):
         relative = path.relative_to(root_path).as_posix()
-        for module in sorted(_imports(path)):
+        tree = _tree(path)
+        for module in sorted(_imports(tree)):
             if (
                 module in sys.stdlib_module_names
                 or module == "scripts"
@@ -71,7 +97,7 @@ def check_policy(root: Path | str) -> dict[str, Any]:
         dynamic_network = not observed_urls
         if (
             relative not in network_access
-            or not observed_urls.issubset(declared_urls)
+            or (observed_urls and observed_urls != declared_urls)
             or (dynamic_network and DYNAMIC_NETWORK_DECLARATION not in declared_urls)
         ):
             network_violations.append(
