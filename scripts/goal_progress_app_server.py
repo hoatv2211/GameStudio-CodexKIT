@@ -1,0 +1,164 @@
+from __future__ import annotations
+
+import json
+from collections.abc import Iterable, Mapping
+
+
+SUPPORTED_METHODS = frozenset(
+    {
+        "thread/started",
+        "thread/status/changed",
+        "turn/started",
+        "turn/completed",
+        "turn/plan/updated",
+        "item/started",
+        "item/completed",
+        "thread/tokenUsage/updated",
+        "warning",
+        "configWarning",
+    }
+)
+
+_METHOD_REQUIRED_FIELDS = {
+    "thread/started": frozenset({"thread"}),
+    "thread/status/changed": frozenset({"threadId", "status"}),
+    "turn/started": frozenset({"threadId", "turn"}),
+    "turn/completed": frozenset({"threadId", "turn"}),
+    "turn/plan/updated": frozenset({"threadId", "turnId", "plan"}),
+    "item/started": frozenset({"threadId", "turnId", "startedAtMs", "item"}),
+    "item/completed": frozenset({"threadId", "turnId", "completedAtMs", "item"}),
+    "thread/tokenUsage/updated": frozenset({"threadId", "turnId", "tokenUsage"}),
+    "warning": frozenset({"message"}),
+    "configWarning": frozenset({"summary"}),
+}
+
+_METHOD_OPTIONAL_FIELDS = {
+    "turn/plan/updated": frozenset({"explanation"}),
+    "warning": frozenset({"threadId"}),
+    "configWarning": frozenset({"details", "path", "range"}),
+}
+
+_TRANSPORT_FIELDS = frozenset({"kind", "id", "initialized"})
+_TRANSPORT_KIND = "codex_app_server"
+
+
+def build_initialize_request(request_id: int, client_version: str) -> dict[str, object]:
+    return {
+        "jsonrpc": "2.0",
+        "id": request_id,
+        "method": "initialize",
+        "params": {
+            "clientInfo": {
+                "name": "gamestudio_codexkit",
+                "title": "GameStudio-CodexKIT Goal Progress",
+                "version": client_version,
+            },
+            "capabilities": {},
+        },
+    }
+
+
+def build_initialized_notification() -> dict[str, object]:
+    return {"jsonrpc": "2.0", "method": "initialized", "params": {}}
+
+
+def normalize_notification(
+    message: Mapping[str, object], binding: Mapping[str, object]
+) -> list[dict[str, object]]:
+    """Return sanitized observations; App Server events never change workflow state."""
+    if not _has_initialized_transport(binding) or _message_problem(message) is not None:
+        return []
+
+    method = str(message["method"])
+    return [
+        {
+            "source": "codex_app_server",
+            "informational": True,
+            "authority": None,
+            "event_type": "runtime.heartbeat",
+            "summary": f"Codex App Server observed {method}.",
+            "payload": {"method": method, "informational": True},
+        }
+    ]
+
+
+def consume_notifications(
+    lines: Iterable[str], binding: Mapping[str, object], *, runtime_version: str
+) -> tuple[list[dict[str, object]], dict[str, object]]:
+    if not _has_initialized_transport(binding):
+        return [], {
+            "status": "BLOCKED",
+            "reason": "desktop_transport_unavailable",
+            "portable_progress_available": True,
+        }
+
+    candidates: list[dict[str, object]] = []
+    recognized_methods: list[str] = []
+    for line in lines:
+        try:
+            message = json.loads(line)
+        except (TypeError, json.JSONDecodeError):
+            return candidates, _blocked_status(
+                "invalid_app_server_message", runtime_version, recognized_methods
+            )
+        if not isinstance(message, dict):
+            return candidates, _blocked_status(
+                "invalid_app_server_message", runtime_version, recognized_methods
+            )
+
+        problem = _message_problem(message)
+        if problem is not None:
+            return candidates, _blocked_status(problem, runtime_version, recognized_methods)
+
+        method = str(message["method"])
+        recognized_methods.append(method)
+        candidates.extend(normalize_notification(message, binding))
+
+    return candidates, {
+        "status": "READY",
+        "runtime_version": runtime_version,
+        "recognized_methods": recognized_methods,
+        "portable_progress_available": True,
+    }
+
+
+def _has_initialized_transport(binding: Mapping[str, object]) -> bool:
+    """Accept only {kind: codex_app_server, id: nonblank, initialized: true}."""
+    transport = binding.get("transport")
+    if not isinstance(transport, Mapping) or frozenset(transport) != _TRANSPORT_FIELDS:
+        return False
+    transport_id = transport.get("id")
+    return (
+        transport.get("kind") == _TRANSPORT_KIND
+        and isinstance(transport_id, str)
+        and bool(transport_id.strip())
+        and transport.get("initialized") is True
+    )
+
+
+def _message_problem(message: Mapping[str, object]) -> str | None:
+    if message.get("jsonrpc") != "2.0" or "id" in message:
+        return "invalid_app_server_message"
+    method = message.get("method")
+    if not isinstance(method, str) or method not in SUPPORTED_METHODS:
+        return "unsupported_app_server_message"
+    params = message.get("params")
+    if not isinstance(params, dict):
+        return "unsupported_app_server_message"
+    required = _METHOD_REQUIRED_FIELDS[method]
+    allowed = required | _METHOD_OPTIONAL_FIELDS.get(method, frozenset())
+    if not required.issubset(params) or not frozenset(params).issubset(allowed):
+        return "unsupported_app_server_message"
+    return None
+
+
+def _blocked_status(
+    reason: str, runtime_version: str, recognized_methods: list[str]
+) -> dict[str, object]:
+    return {
+        "status": "BLOCKED",
+        "reason": reason,
+        "runtime_version": runtime_version,
+        "recognized_methods": recognized_methods,
+        "portable_progress_available": True,
+    }

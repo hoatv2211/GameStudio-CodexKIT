@@ -1,5 +1,11 @@
 schema_version: 2
 bundled:
+  code-intelligence-contract:
+  - code_intelligence.py
+  - source: evals/schema/code-intelligence-evidence.schema.json
+    destination: schemas/code-intelligence-evidence.schema.json
+  - source: registry/code-intelligence-providers.yaml
+    destination: references/code-intelligence-providers.yaml
   balance-data-change-review:
   - balance_review.py
   cpp-server-crash-triage:
@@ -34,11 +40,14 @@ bundled:
   - project_scaffold.py
   - project_complexity.py
   - codegraph_adapter.py
+  - code_intelligence.py
   - project_skill_overlay.py
   - gamestudio_cli.py
   - studio_experience.py
   - safe_mutation.py
   - project_profile.py
+  - source: registry/code-intelligence-providers.yaml
+    destination: references/code-intelligence-providers.yaml
   - source: evals/schema/studio-task-packet.schema.json
     destination: schemas/studio-task-packet.schema.json
   - source: evals/schema/studio-evidence-card.schema.json
@@ -120,6 +129,30 @@ bundled:
     destination: schemas/showcase-deck.schema.json
   - source: evals/schema/store-export-manifest.schema.json
     destination: schemas/store-export-manifest.schema.json
+  studio-goal-progress:
+  - goal_progress.py
+  - goal_progress_core.py
+  - goal_progress_store.py
+  - goal_progress_server.py
+  - goal_progress_app_server.py
+  - source: evals/schema/studio-goal-manifest.schema.json
+    destination: schemas/studio-goal-manifest.schema.json
+  - source: evals/schema/studio-goal-event.schema.json
+    destination: schemas/studio-goal-event.schema.json
+  - source: evals/schema/studio-goal-state.schema.json
+    destination: schemas/studio-goal-state.schema.json
+  - source: resources/goal-progress/index.html
+    destination: assets/index.html
+  - source: resources/goal-progress/styles.css
+    destination: assets/styles.css
+  - source: resources/goal-progress/app.js
+    destination: assets/app.js
+  studio-context-brief:
+  - context_brief.py
+  - source: evals/schema/studio-goal-state.schema.json
+    destination: schemas/studio-goal-state.schema.json
+  - source: evals/schema/studio-context-projection.schema.json
+    destination: schemas/studio-context-projection.schema.json
   studio-workspace-routing:
   - project_profile.py
   using-game-studio-skills:
@@ -129,6 +162,8 @@ bundled:
   - source: evals/schema/studio-evidence-card.schema.json
     destination: schemas/studio-evidence-card.schema.json
 repository_only:
+  code-intelligence-contract:
+  - codegraph_adapter.py
   review-swarm:
   - secret_scan.py
   - validate.py

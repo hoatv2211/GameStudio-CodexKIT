@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: Producer
     maturity: beta
-    last_reviewed: 2026-08-07
+    last_reviewed: 2026-09-03
     provenance:
       derived_from: none
       patterns_from: [sanitized multi-project governance fixtures]
@@ -50,7 +50,7 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
    Completion criterion: detected subsystems and unknown areas are reported.
 3. Inventory existing `AGENTS.md`, `HANDOFF.md`, `.agents/`, local skills, and ignore rules.
    Completion criterion: every existing governance artifact is marked preserve, merge, or BLOCKED.
-4. Render the minimum scaffold with evidence, ownership, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
+4. Render the minimum scaffold with evidence, ownership, repeated-work tooling, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
    Completion criterion: `scaffold-report.json` lists exact proposed and preserved scaffold files without writes.
 5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
    Completion criterion: the reviewed adapter report identifies every proposed write and collision without mutation.
@@ -91,4 +91,4 @@ Record project path, detected subsystems, existing local skills and agents, crea
 - [ ] Runtime facts remain Unverified or BLOCKED until checked.
 
 ## References and scripts
-Use the bundled [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/studio_experience.py](scripts/studio_experience.py) for report-only role-aware Golden Path planning and [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.
+Use `code-intelligence-contract` with the bundled vendor-neutral [scripts/code_intelligence.py](scripts/code_intelligence.py) helper and legacy-compatible [scripts/codegraph_adapter.py](scripts/codegraph_adapter.py) adapter. Use [scripts/gamestudio_cli.py](scripts/gamestudio_cli.py) with [scripts/project_scaffold.py](scripts/project_scaffold.py), [scripts/project_complexity.py](scripts/project_complexity.py), and [scripts/project_skill_overlay.py](scripts/project_skill_overlay.py) with [scripts/project_profile.py](scripts/project_profile.py) and [scripts/safe_mutation.py](scripts/safe_mutation.py). Use [scripts/studio_experience.py](scripts/studio_experience.py) for report-only role-aware Golden Path planning and [scripts/agent_overlay.py](scripts/agent_overlay.py) as the pure planner for packaged generic roles, profile specialists, collisions, and inert activation operations. These references do not weaken report-only planning, approved plan digest, named reviewer, disjoint backup root, or restore requirements. Per-project apply and uninstall remain repository-root maintenance commands available only in a full clone. Sanitized golden fixtures are also full-clone-only resources.

@@ -178,11 +178,11 @@ agent_roles:
     reasoning_effort: xhigh
     kind: specialist
     discipline: Build and release engineering
-    required_skills: [release-candidate-preflight, unity-batchmode-build-verification, store-submission-checklist]
+    required_skills: [release-candidate-preflight, build-and-runtime-verification, unity-batchmode-build-verification, store-submission-checklist]
     owned_scope_patterns: [.github/**, .circleci/**, build/**, scripts/release/**]
     read_scope_patterns: [.github/**, .circleci/**, build/**, scripts/**, client/**, server/**]
     forbidden_actions: [publish releases, sign production artifacts, rotate signing credentials]
-    validation_commands: [release preflight, packaging tests, rollback verification]
+    validation_commands: [release preflight, packaging tests, rollback verification, GitHub Actions terminal matrix for exact commit and version]
     concurrency_group: build-release-writer
   - id: liveops-sre
     path: agents/liveops-sre.toml

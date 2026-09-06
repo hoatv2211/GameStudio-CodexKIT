@@ -48,15 +48,15 @@ Packet authoring is low-risk. Packets cannot grant destructive actions or overla
    Completion criterion: generated outputs and external dependencies are distinguished from editable sources.
 2. Build the dependency graph and identify immediate blockers versus parallel sidecars.
    Completion criterion: ordering is based on real interfaces, not team preference.
-3. Create packets with one objective, repository phase, exact owned files, excluded files, inputs, outputs, authority handoff, and risks.
-   Completion criterion: no two concurrent packets own the same path or generated target, and cross-project phases have one integration owner.
+3. Create packets with one objective, `workflow_id`, owner, repository phase, exact owned files, excluded files, inputs, outputs, authority handoff, and risks. For a progress-enabled KIT Goal, also require positive integer `progress_weight`, required evidence kinds, optional or null `estimate_seconds: {low, high}`, and timing policy `max_active_timed_packets: 1`.
+   Completion criterion: no two concurrent packets own the same path or generated target, cross-project phases have one integration owner, and every opted-in progress packet has complete fields without inferred equal weights.
 4. Attach focused and broader verification commands plus expected artifacts.
    Completion criterion: each packet has an objective completion check.
 5. Define integration and review packets owned by the orchestrator or reviewer.
    Completion criterion: shared registries and final verdict have a single owner.
 
 ## Evidence and output contract
-Produce `work-packets.yaml` with packet ID, objective, owner, paths, do-not-touch, dependencies, risk, steps, completion criteria, commands, artifacts, and handoff requirements.
+Produce `work-packets.yaml` with packet ID, objective, `workflow_id`, owner, paths, do-not-touch, dependencies, risk, steps, completion criteria, commands, artifacts, and handoff requirements. When the plan explicitly opts into KIT Goal progress, add positive integer `progress_weight`, required evidence kinds, optional or null `estimate_seconds` with low/high seconds, and `timing_policy.max_active_timed_packets: 1`. Existing plans without Goal opt-in remain valid without progress fields.
 
 ## Handoff contract
 Record packet status, dependency changes, ownership transfers, commands, artifacts, blockers, and the next runnable packet.
@@ -72,6 +72,7 @@ Record packet status, dependency changes, ownership transfers, commands, artifac
 - [ ] Dependencies and blockers are explicit.
 - [ ] Concurrent write scopes are disjoint.
 - [ ] Every packet has commands and artifacts.
+- [ ] Progress-enabled packets have workflow, owner, positive weight, evidence kinds, optional bounded estimates, and single active timing policy.
 - [ ] Integration and final review have owners.
 
 ## References and scripts

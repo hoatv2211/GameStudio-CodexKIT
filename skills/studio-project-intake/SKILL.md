@@ -38,7 +38,7 @@ Use for new repositories, new sessions, cross-subsystem work, unclear ownership,
 Do not repeat full intake when a current task packet already has verified scope and the request is a micro-change inside that scope.
 
 ## Required inputs and context discovery
-Collect goal, user-visible success, workspace and nested Git roots, branch and dirty state per repository, engine/version, runtime topology, exact subsystem, risk tier, owners, dependencies, generated and excluded paths, do-not-touch paths, available commands, and blocked capabilities.
+Collect goal, user-visible success, workspace and nested Git roots, branch and dirty state per repository, engine/version, runtime topology, exact subsystem, risk tier, owners, dependencies, generated and excluded paths, do-not-touch paths, available commands, optional code-intelligence provider/version/index freshness, and blocked capabilities. For that optional lane, record provider/version, repository/revision/worktree binding, index state, capability, required languages, artifacts, side effects, and blocker.
 
 ## Safety and risk level
 Intake is read-only. Inspect status and structure without starting services, opening editors, importing databases, or modifying project files.
@@ -54,9 +54,11 @@ Intake is read-only. Inspect status and structure without starting services, ope
    Completion criterion: snapshots are separated from hypotheses.
 5. Select the next workflow skill and, for verified multi-repository work, include a conservative project-profile draft with unknown owners and commands labeled.
    Completion criterion: the task packet is executable without rediscovery and routes through `studio-workspace-routing` when applicable.
+6. The graph lane is optional. Apply `code-intelligence-contract` only when graph context or capability is requested or materially useful for scoped intake; provider existence alone never triggers it. Pure intake remains intake, and the optional graph lane may stay absent or BLOCKED without failing intake; intake may still succeed when the graph lane is BLOCKED because intake owns scope discovery, not a graph verdict.
+   Completion criterion: the packet records provider/version, repository/revision/worktree binding, index state, capability, required languages, artifacts, side effects, and blocker while keeping graph extraction separate from source/runtime verification.
 
 ## Evidence and output contract
-Produce `task-packet.json` with goal, scope, risk, repository snapshot, owners, do-not-touch paths, dependencies, verification commands, expected artifacts, and BLOCKED items.
+Produce `task-packet.json` with goal, scope, risk, repository snapshot, owners, do-not-touch paths, dependencies, verification commands, expected artifacts, optional graph-lane state, and BLOCKED items.
 
 ## Handoff contract
 If intake cannot resolve a required fact, hand off the exact question, inspected paths, evidence label, and the safest next read-only action.

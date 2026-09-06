@@ -124,13 +124,19 @@ def _safe_project_path(
     return candidate
 
 
-def _has_generated_header(text: str) -> bool:
+def _has_generated_header(path: Path, text: str) -> bool:
     lines = text.splitlines()
-    if not lines:
-        return False
-    if lines[0] in {f"# {MARKER}", f"<!-- {MARKER} -->"}:
-        return True
-    return len(lines) > 1 and lines[0] == "---" and lines[1] == f"# {MARKER}"
+    if path.name == "SKILL.md":
+        return len(lines) > 1 and lines[0] == "---" and lines[1] == f"# {MARKER}"
+    if path.suffix.casefold() in {".py", ".sh", ".ps1", ".yaml", ".yml", ".toml"}:
+        return bool(lines) and lines[0] == f"# {MARKER}"
+    if path.suffix.casefold() in {".md", ".txt", ".html"}:
+        return bool(lines) and lines[0] == f"<!-- {MARKER} -->"
+    if path.suffix.casefold() == ".css":
+        return bool(lines) and lines[0] == f"/* {MARKER} */"
+    if path.suffix.casefold() == ".js":
+        return bool(lines) and lines[0] == f"// {MARKER}"
+    return False
 
 
 def _generated_skill(text: str) -> str:
@@ -185,7 +191,12 @@ def _generated_json(text: str, path: Path) -> str:
 def _generated_resource(source: Path | _CapturedSource) -> str:
     path = source.path if isinstance(source, _CapturedSource) else source
     data = source.data if isinstance(source, _CapturedSource) else path.read_bytes()
-    text = data.decode("utf-8")
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"binary or non-UTF-8 resource: {path}") from error
+    if "\x00" in text:
+        raise ValueError(f"binary or non-UTF-8 resource: {path}")
     if path.name == "SKILL.md":
         return _generated_skill(text)
     if path.suffix.casefold() == ".json":
@@ -194,6 +205,12 @@ def _generated_resource(source: Path | _CapturedSource) -> str:
         return f"# {MARKER}\n\n{text}"
     if path.suffix.casefold() in {".md", ".txt"}:
         return f"<!-- {MARKER} -->\n{text}"
+    if path.suffix.casefold() == ".html":
+        return f"<!-- {MARKER} -->\n\n{text}"
+    if path.suffix.casefold() == ".css":
+        return f"/* {MARKER} */\n\n{text}"
+    if path.suffix.casefold() == ".js":
+        return f"// {MARKER}\n\n{text}"
     raise ValueError(f"unsupported skill resource type: {path}")
 
 
@@ -450,7 +467,7 @@ def _is_standard_generated_artifact(path: Path, text: str) -> bool:
         except ValueError:
             return False
         return resource.get("$comment") == MARKER
-    return _has_generated_header(text)
+    return _has_generated_header(path, text)
 
 
 def _standard_tree_snapshot(path: Path) -> _TreeSnapshot:
@@ -1337,7 +1354,7 @@ def _project_adapter_plan(root: Path, project: Path) -> dict[str, object]:
                 and hashlib.sha256(destination.read_bytes()).hexdigest() == previous["sha256"]
             )
             if destination.exists() and not (
-                _has_generated_header(existing_text) or previous_hash_matches
+                _has_generated_header(destination, existing_text) or previous_hash_matches
             ):
                 preserved.append(destination.relative_to(project).as_posix())
                 continue

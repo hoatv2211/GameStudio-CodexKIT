@@ -88,6 +88,50 @@ class SpecialistAgentCatalogTests(unittest.TestCase):
         )
         self.assertEqual("screenshot-showcase-writer", role["concurrency_group"])
 
+    def test_build_release_engineer_checks_actions_after_version_changes(self) -> None:
+        role = self.roles["build-release-engineer"]
+        template = tomllib.loads(
+            (self.root / role["path"]).read_text(encoding="utf-8")
+        )
+        instructions = template["developer_instructions"].casefold()
+
+        self.assertIn("build-and-runtime-verification", role["required_skills"])
+        validation_commands = [
+            command.casefold() for command in role["validation_commands"]
+        ]
+        self.assertIn(
+            "github actions terminal matrix for exact commit and version",
+            validation_commands,
+        )
+        for phrase in (
+            "plugin, package, or release version changes",
+            "github actions",
+            "exact commit and version",
+            "terminal pass",
+            "local pass is not a substitute",
+            "blocked",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, instructions)
+
+    def test_codexkit_maintainer_checks_actions_after_plugin_version_bump(self) -> None:
+        maintainer = tomllib.loads(
+            (self.root / ".codex" / "agents" / "codexkit-maintainer.toml").read_text(
+                encoding="utf-8"
+            )
+        )
+        instructions = maintainer["developer_instructions"].casefold()
+
+        for phrase in (
+            "plugin version",
+            "github actions",
+            "exact commit and version",
+            "terminal pass",
+            "blocked",
+        ):
+            with self.subTest(phrase=phrase):
+                self.assertIn(phrase, instructions)
+
     def test_specialist_metadata_and_templates_match(self) -> None:
         for role_id in SPECIALIST_IDS:
             role = self.roles[role_id]

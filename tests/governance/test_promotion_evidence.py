@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import datetime as dt
 import hashlib
 import json
 import tempfile
@@ -889,7 +890,14 @@ class PromotionEvidenceTests(unittest.TestCase):
             record = self.valid_record(root)
             result_path = root / record["evidence"][0]["path"]
             payload = json.loads(result_path.read_text(encoding="utf-8"))
-            old_timestamp = "2026-08-01T12:00:00+00:00"
+            reviewed_at = dt.datetime.now(dt.timezone.utc).date()
+            old_timestamp = dt.datetime.combine(
+                reviewed_at - dt.timedelta(days=8),
+                dt.time(hour=12),
+                tzinfo=dt.timezone.utc,
+            ).isoformat()
+            record["reviewed_at"] = reviewed_at.isoformat()
+            record["expires_at"] = (reviewed_at + dt.timedelta(days=30)).isoformat()
             for result in payload["results"]:
                 result["timestamp"] = old_timestamp
                 for artifact in result["artifacts"]:

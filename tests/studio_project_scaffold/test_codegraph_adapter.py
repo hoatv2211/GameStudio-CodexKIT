@@ -91,6 +91,276 @@ class CodeGraphAdapterTests(unittest.TestCase):
         self.assertFalse(stale.blocking)
         self.assertFalse(broken.blocking)
 
+    def test_legacy_status_maps_to_blocked_graph_lane_without_blocking_core_init(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph, to_code_intelligence_status
+
+        payload = {
+            "initialized": True,
+            "version": "1.5.0",
+            "index": {"state": "stale", "reindexRecommended": True},
+            "worktree": {},
+        }
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / ".codegraph").mkdir()
+            legacy = inspect_codegraph(
+                root,
+                runner=FakeRunner(FakeResult(stdout=json.dumps(payload))),
+            )
+            normalized = to_code_intelligence_status(
+                legacy,
+                repository=root.resolve().as_posix(),
+                revision="abc",
+                worktree_identity="sha256:current",
+                required_languages=("csharp",),
+            )
+
+        self.assertFalse(legacy.blocking)
+        self.assertEqual("codegraph", normalized.provider)
+        self.assertEqual("STALE_HEAD", normalized.index_state)
+
+    def test_legacy_bridge_never_executes_payload_actions(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph
+
+        action_values = (
+            "powershell -Command Write-Host unsafe",
+            {"argv": ["powershell", "-Command", "Write-Host unsafe"]},
+            None,
+            [{"action": {"argv": ["cmd", "/c", "echo unsafe"]}}],
+        )
+        with temporary_directory() as temp:
+            root = Path(temp)
+            expected_argv = [
+                "codegraph",
+                "status",
+                str(root.resolve()),
+                "--json",
+                "--no-color",
+            ]
+            for actions in action_values:
+                with self.subTest(actions=actions):
+                    payload = {
+                        "initialized": True,
+                        "version": "1.5.0",
+                        "index": {"state": "complete"},
+                        "worktree": {},
+                        "actions": actions,
+                    }
+                    runner = FakeRunner(FakeResult(stdout=json.dumps(payload)))
+                    inspect_codegraph(root, runner=runner)
+
+                    self.assertEqual(1, len(runner.calls))
+                    self.assertEqual(expected_argv, runner.calls[0][0])
+
+    def test_legacy_healthy_status_without_language_evidence_is_partial(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph, to_code_intelligence_status
+
+        payload = {
+            "initialized": True,
+            "version": "1.5.0",
+            "revision": "abc",
+            "worktreeIdentity": "sha256:current",
+            "index": {"state": "complete"},
+            "worktree": {},
+        }
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / ".codegraph").mkdir()
+            legacy = inspect_codegraph(
+                root,
+                runner=FakeRunner(FakeResult(stdout=json.dumps(payload))),
+            )
+            normalized = to_code_intelligence_status(
+                legacy,
+                repository=root.resolve().as_posix(),
+                revision="abc",
+                worktree_identity="sha256:current",
+                required_languages=("csharp",),
+            )
+
+        self.assertEqual("PARTIAL_LANGUAGE", normalized.index_state)
+        self.assertEqual(("csharp",), normalized.missing_languages)
+
+    def test_legacy_complete_identity_mismatches_fail_closed(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph, to_code_intelligence_status
+
+        cases = (
+            (
+                {
+                    "index": {"state": "complete", "revision": "old"},
+                    "worktree": {"identity": "sha256:current"},
+                },
+                "STALE_HEAD",
+                "revision",
+            ),
+            (
+                {
+                    "index": {"state": "complete", "revision": "abc"},
+                    "worktree": {"digest": "sha256:old"},
+                },
+                "STALE_WORKTREE",
+                "worktree",
+            ),
+        )
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / ".codegraph").mkdir()
+            for identity_fields, expected, limitation in cases:
+                with self.subTest(expected=expected):
+                    payload = {
+                        "initialized": True,
+                        "version": "1.5.0",
+                        **identity_fields,
+                        "languages": ["CSharp"],
+                    }
+                    legacy = inspect_codegraph(
+                        root,
+                        runner=FakeRunner(FakeResult(stdout=json.dumps(payload))),
+                    )
+                    normalized = to_code_intelligence_status(
+                        legacy,
+                        repository=root.resolve().as_posix(),
+                        revision="abc",
+                        worktree_identity="sha256:current",
+                        required_languages=("csharp",),
+                    )
+
+                    self.assertEqual(expected, normalized.index_state)
+                    self.assertIn(
+                        limitation,
+                        " ".join(normalized.limitations).casefold(),
+                    )
+
+    def test_legacy_languages_normalize_or_fail_closed(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph, to_code_intelligence_status
+
+        invalid_languages = (
+            "csharp",
+            {"csharp": True},
+            [],
+            ["   "],
+            ["csharp", 1],
+        )
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / ".codegraph").mkdir()
+            base = {
+                "initialized": True,
+                "version": "1.5.0",
+                "revision": "abc",
+                "worktreeIdentity": "sha256:current",
+                "index": {"state": "complete"},
+                "worktree": {},
+            }
+            for languages in invalid_languages:
+                with self.subTest(languages=languages):
+                    legacy = inspect_codegraph(
+                        root,
+                        runner=FakeRunner(
+                            FakeResult(stdout=json.dumps({**base, "languages": languages}))
+                        ),
+                    )
+                    normalized = to_code_intelligence_status(
+                        legacy,
+                        repository=root.resolve().as_posix(),
+                        revision="abc",
+                        worktree_identity="sha256:current",
+                        required_languages=(" CSharp ",),
+                    )
+                    self.assertEqual("PARTIAL_LANGUAGE", normalized.index_state)
+                    self.assertEqual((), normalized.supported_languages)
+                    self.assertEqual(("csharp",), normalized.missing_languages)
+
+            valid = inspect_codegraph(
+                root,
+                runner=FakeRunner(
+                    FakeResult(
+                        stdout=json.dumps(
+                            {**base, "languages": [" CSharp ", "csharp", "LUA"]}
+                        )
+                    )
+                ),
+            )
+            normalized = to_code_intelligence_status(
+                valid,
+                repository=root.resolve().as_posix(),
+                revision="abc",
+                worktree_identity="sha256:current",
+                required_languages=("Lua", " csharp ", "LUA"),
+            )
+
+        self.assertEqual("FRESH", normalized.index_state)
+        self.assertEqual(("csharp", "lua"), normalized.supported_languages)
+        self.assertEqual(("lua", "csharp"), normalized.required_languages)
+        self.assertEqual((), normalized.missing_languages)
+
+    def test_legacy_invalid_identity_types_fail_closed_without_crashing(self) -> None:
+        from scripts.codegraph_adapter import inspect_codegraph, to_code_intelligence_status
+
+        cases = (
+            ({"revision": ["abc"], "worktreeIdentity": "sha256:current"}, "STALE_HEAD"),
+            ({"revision": "abc", "worktreeIdentity": {"digest": "sha256:current"}}, "STALE_WORKTREE"),
+        )
+        with temporary_directory() as temp:
+            root = Path(temp)
+            (root / ".codegraph").mkdir()
+            for identity, expected in cases:
+                with self.subTest(identity=identity):
+                    payload = {
+                        "initialized": True,
+                        "version": "1.5.0",
+                        "index": {"state": "complete"},
+                        "worktree": {},
+                        "languages": ["csharp"],
+                        **identity,
+                    }
+                    legacy = inspect_codegraph(
+                        root,
+                        runner=FakeRunner(FakeResult(stdout=json.dumps(payload))),
+                    )
+                    normalized = to_code_intelligence_status(
+                        legacy,
+                        repository=root.resolve().as_posix(),
+                        revision="abc",
+                        worktree_identity="sha256:current",
+                        required_languages=("csharp",),
+                    )
+
+                    self.assertEqual(expected, normalized.index_state)
+                    self.assertNotEqual("FRESH", normalized.index_state)
+
+    def test_legacy_fresh_status_requires_version_and_existing_index_artifact(self) -> None:
+        from scripts.codegraph_adapter import CodeGraphStatus, to_code_intelligence_status
+
+        base = {
+            "state": "INITIALIZED_HEALTHY",
+            "blocking": False,
+            "detail": "healthy",
+            "index_ownership": "USER_OWNED",
+            "status_argv": ("codegraph", "status"),
+            "raw_status": {
+                "revision": "abc",
+                "worktreeIdentity": "sha256:current",
+                "languages": ["csharp"],
+            },
+        }
+        cases = (
+            ({"version": None, "existing_index": True}, "BROKEN"),
+            ({"version": "1.5.0", "existing_index": False}, "NOT_INITIALIZED"),
+        )
+        for overrides, expected in cases:
+            with self.subTest(overrides=overrides):
+                normalized = to_code_intelligence_status(
+                    CodeGraphStatus(**{**base, **overrides}),
+                    repository="repo://game",
+                    revision="abc",
+                    worktree_identity="sha256:current",
+                    required_languages=("csharp",),
+                )
+
+                self.assertEqual(expected, normalized.index_state)
+                self.assertNotEqual("FRESH", normalized.index_state)
+
     def test_invalid_json_and_failed_status_are_broken_not_exceptions(self) -> None:
         from scripts.codegraph_adapter import inspect_codegraph
 

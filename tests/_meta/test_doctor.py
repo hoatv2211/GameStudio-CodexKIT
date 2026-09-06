@@ -34,7 +34,7 @@ class DoctorTests(unittest.TestCase):
         with temporary_directory() as temp:
             root = Path(temp)
             ignore_generated = shutil.ignore_patterns("__pycache__", "*.pyc", "*.pyo")
-            for directory in ("scripts", "skills", "agents", "registry", "personas", "evals"):
+            for directory in ("scripts", "skills", "agents", "registry", "personas", "evals", "resources"):
                 shutil.copytree(
                     source_root / directory,
                     root / directory,

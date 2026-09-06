@@ -4,15 +4,20 @@ import argparse
 import json
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Any
+from typing import Any, Callable
 
 from jsonschema import Draft202012Validator
 from jsonschema.exceptions import SchemaError
+from referencing import Registry, Resource
 from referencing.exceptions import Unresolvable
 
 try:
+    from scripts.context_brief import ContextProjectionError, validate_projection
+    from scripts.goal_progress_core import GoalProgressError, validate_accepted_event
     from scripts.studio_experience import task_packet_semantic_errors
 except ModuleNotFoundError:  # direct execution from the scripts directory
+    from context_brief import ContextProjectionError, validate_projection
+    from goal_progress_core import GoalProgressError, validate_accepted_event
     from studio_experience import task_packet_semantic_errors
 
 
@@ -25,7 +30,13 @@ ARTIFACT_SCHEMA_FILES = {
     "ui-asset-manifest": "ui-asset-manifest.schema.json",
     "ui-motion-manifest": "ui-motion-manifest.schema.json",
     "ui-art-qc-report": "ui-art-qc-report.schema.json",
+    "studio-context-projection": "studio-context-projection.schema.json",
+    "studio-goal-event": "studio-goal-event.schema.json",
+    "studio-goal-progress-pressure": "studio-goal-progress-pressure.schema.json",
 }
+SEMANTIC_ARTIFACT_SCHEMAS = frozenset(
+    {"studio-context-projection", "studio-goal-event"}
+)
 DEFAULT_ARTIFACT_SCHEMA_ROOT = Path(__file__).resolve().parents[1] / "evals" / "schema"
 RESULT_COMMON_REQUIRED_FIELDS = {
     "id",
@@ -83,6 +94,167 @@ def _failure(verdict: str, total: int, failures: list[str], passed: int = 0) -> 
 
 def _is_null_or_blank(value: object) -> bool:
     return value is None or (isinstance(value, str) and not value.strip())
+
+
+def _json_exact_mismatch(expected: object, actual: object, path: str) -> str | None:
+    if type(expected) is not type(actual):
+        return path
+    if isinstance(expected, dict):
+        if set(expected) != set(actual):
+            return path
+        for key, expected_value in expected.items():
+            mismatch = _json_exact_mismatch(
+                expected_value,
+                actual[key],
+                f"{path}.{key}",
+            )
+            if mismatch is not None:
+                return mismatch
+        return None
+    if isinstance(expected, list):
+        if len(expected) != len(actual):
+            return path
+        for index, expected_value in enumerate(expected):
+            mismatch = _json_exact_mismatch(
+                expected_value,
+                actual[index],
+                f"{path}[{index}]",
+            )
+            if mismatch is not None:
+                return mismatch
+        return None
+    return None if expected == actual else path
+
+
+def _artifact_schema_validator(
+    schema_root: Path,
+    contract_name: str,
+) -> Draft202012Validator:
+    schema_path = schema_root / ARTIFACT_SCHEMA_FILES[contract_name]
+    schema = json.loads(schema_path.read_text(encoding="utf-8"))
+    Draft202012Validator.check_schema(schema)
+    registry = Registry()
+    for filename in sorted(set(ARTIFACT_SCHEMA_FILES.values())):
+        candidate_path = schema_root / filename
+        if not candidate_path.exists():
+            continue
+        candidate = json.loads(candidate_path.read_text(encoding="utf-8"))
+        if "$id" in candidate:
+            registry = registry.with_resource(
+                candidate["$id"],
+                Resource.from_contents(candidate),
+            )
+    return Draft202012Validator(schema, registry=registry)
+
+
+def _validate_known_artifact_semantics(
+    case_id: str,
+    contract_name: str,
+    artifact: dict[str, Any],
+    *,
+    projection_tokenizer: Callable[[str], int] | None,
+) -> list[str]:
+    if contract_name == "studio-goal-event":
+        try:
+            validate_accepted_event(artifact)
+        except GoalProgressError as error:
+            return [
+                f"{case_id}: studio-goal-event semantic contract failed: {error}"
+            ]
+        return []
+    if contract_name == "studio-context-projection":
+        tokenizer = None
+        if artifact.get("count_kind") == "exact_tokenizer":
+            if projection_tokenizer is None:
+                return [
+                    f"{case_id}: studio-context-projection semantic contract "
+                    "requires an explicit tokenizer for exact_tokenizer measurement"
+                ]
+            tokenizer = projection_tokenizer
+        try:
+            validate_projection(artifact, tokenizer=tokenizer)
+        except ContextProjectionError as error:
+            return [
+                f"{case_id}: studio-context-projection semantic contract failed: {error}"
+            ]
+        return []
+    return [f"{case_id}: unknown semantic artifact contract {contract_name!r}"]
+
+
+def _validate_root_artifact_contract(
+    case_id: str,
+    case: dict[str, Any],
+    artifact: dict[str, Any],
+    schema_root: Path,
+    *,
+    projection_tokenizer: Callable[[str], int] | None,
+) -> list[str]:
+    failures: list[str] = []
+    expected = case.get("expected_artifact_subset")
+    if expected is not None:
+        if not isinstance(expected, dict) or not expected:
+            failures.append(
+                f"{case_id}: expected_artifact_subset must be a non-empty object"
+            )
+        else:
+            for field, expected_value in expected.items():
+                if field not in artifact:
+                    failures.append(f"{case_id}: artifact {field} mismatch")
+                    continue
+                mismatch = _json_exact_mismatch(
+                    expected_value,
+                    artifact[field],
+                    field,
+                )
+                if mismatch is not None:
+                    failures.append(f"{case_id}: artifact {mismatch} mismatch")
+
+    contract_name = case.get("artifact_schema")
+    if contract_name is None:
+        return failures
+    if not isinstance(contract_name, str) or not contract_name.strip():
+        failures.append(f"{case_id}: artifact_schema must name a non-blank string")
+        return failures
+    if contract_name not in ARTIFACT_SCHEMA_FILES:
+        failures.append(f"{case_id}: unknown artifact schema {contract_name!r}")
+        return failures
+    try:
+        validator = _artifact_schema_validator(schema_root, contract_name)
+        validation_errors = sorted(
+            validator.iter_errors(artifact),
+            key=lambda error: tuple(str(part) for part in error.absolute_path),
+        )
+    except SchemaError as error:
+        failures.append(
+            f"{case_id}: invalid artifact schema {contract_name}: {error.message}"
+        )
+        return failures
+    except (OSError, json.JSONDecodeError) as error:
+        failures.append(
+            f"{case_id}: cannot load artifact schema {contract_name}: {error}"
+        )
+        return failures
+    except Unresolvable as error:
+        failures.append(
+            f"{case_id}: unresolvable artifact schema {contract_name}: {error}"
+        )
+        return failures
+    if validation_errors:
+        failures.append(
+            f"{case_id}: artifact violates {contract_name}: "
+            f"{validation_errors[0].message}"
+        )
+        return failures
+    if contract_name in SEMANTIC_ARTIFACT_SCHEMAS:
+        failures.extend(
+            _validate_known_artifact_semantics(
+                case_id,
+                contract_name,
+                artifact,
+                projection_tokenizer=projection_tokenizer,
+            )
+        )
+    return failures
 
 
 def _validate_ui_art_motion_artifacts(
@@ -508,6 +680,8 @@ def validate_runner_results(
     cases: list[dict[str, Any]],
     results: list[Any],
     schema_root: Path | str | None = None,
+    *,
+    projection_tokenizer: Callable[[str], int] | None = None,
 ) -> dict[str, Any]:
     case_ids = [str(case.get("id", "")) for case in cases]
     if not case_ids or any(not case_id for case_id in case_ids):
@@ -530,6 +704,67 @@ def validate_runner_results(
                 f"{case_id}: required_artifact_fields must be a non-empty list "
                 "of unique nonblank strings"
             )
+            continue
+        expected_subset = case.get("expected_artifact_subset")
+        if expected_subset is not None and (
+            not isinstance(expected_subset, dict)
+            or not expected_subset
+            or any(not isinstance(field, str) or not field.strip() for field in expected_subset)
+        ):
+            metadata_failures.append(
+                f"{case_id}: expected_artifact_subset must be a non-empty object "
+                "with nonblank string fields"
+            )
+        expected_labels = case.get("expected_evidence_labels")
+        if expected_labels is not None:
+            if (
+                not isinstance(expected_labels, list)
+                or not expected_labels
+                or any(label not in EVIDENCE_LABELS for label in expected_labels)
+                or len(expected_labels) != len(set(expected_labels))
+            ):
+                metadata_failures.append(
+                    f"{case_id}: expected_evidence_labels must be a non-empty list "
+                    "of unique evidence labels"
+                )
+            elif (
+                case.get("expected_verdict") == "BLOCKED"
+                and "BLOCKED" not in expected_labels
+            ):
+                metadata_failures.append(
+                    f"{case_id}: BLOCKED verdict requires BLOCKED evidence"
+                )
+        artifact_schema = case.get("artifact_schema")
+        if artifact_schema is not None and (
+            not isinstance(artifact_schema, str)
+            or not artifact_schema.strip()
+            or artifact_schema not in ARTIFACT_SCHEMA_FILES
+        ):
+            metadata_failures.append(
+                f"{case_id}: artifact_schema must name a known artifact schema"
+            )
+        allow_empty = case.get("allow_empty_artifact_fields")
+        if allow_empty is not None:
+            if (
+                not isinstance(allow_empty, list)
+                or any(not isinstance(field, str) or not field.strip() for field in allow_empty)
+                or len(allow_empty) != len(set(allow_empty))
+            ):
+                metadata_failures.append(
+                    f"{case_id}: allow_empty_artifact_fields must be a list of "
+                    "unique nonblank strings"
+                )
+            elif artifact_schema is None:
+                metadata_failures.append(
+                    f"{case_id}: allow_empty_artifact_fields requires artifact_schema"
+                )
+            else:
+                unknown_empty = sorted(set(allow_empty) - set(required_fields))
+                if unknown_empty:
+                    metadata_failures.append(
+                        f"{case_id}: allow-empty artifact fields are not required "
+                        f"{unknown_empty}"
+                    )
     if metadata_failures:
         return _failure("FAIL", len(cases), metadata_failures)
     if not results:
@@ -605,6 +840,9 @@ def validate_runner_results(
             failures.append(f"{case_id}: artifact must be an object")
         else:
             required_artifact_fields = case["required_artifact_fields"]
+            allowed_empty_artifact_fields = set(
+                case.get("allow_empty_artifact_fields", [])
+            )
             missing_artifacts = sorted(
                 set(required_artifact_fields) - set(artifact)
             )
@@ -613,7 +851,9 @@ def validate_runner_results(
             blank_artifacts = sorted(
                 field
                 for field in required_artifact_fields
-                if field in artifact and _is_null_or_blank(artifact[field])
+                if field in artifact
+                and _is_null_or_blank(artifact[field])
+                and field not in allowed_empty_artifact_fields
             )
             if blank_artifacts:
                 failures.append(
@@ -632,6 +872,19 @@ def validate_runner_results(
                     ),
                 )
             )
+            failures.extend(
+                _validate_root_artifact_contract(
+                    case_id,
+                    case,
+                    artifact,
+                    (
+                        Path(schema_root)
+                        if schema_root is not None
+                        else DEFAULT_ARTIFACT_SCHEMA_ROOT
+                    ),
+                    projection_tokenizer=projection_tokenizer,
+                )
+            )
         labels = result.get("evidence_labels")
         if (
             not isinstance(labels, list)
@@ -639,6 +892,14 @@ def validate_runner_results(
             or any(label not in EVIDENCE_LABELS for label in labels)
         ):
             failures.append(f"{case_id}: invalid evidence_labels")
+        else:
+            expected_labels = case.get("expected_evidence_labels")
+            if expected_labels is not None and labels != expected_labels:
+                failures.append(f"{case_id}: evidence_labels mismatch")
+            if result.get("verdict") == "BLOCKED" and "BLOCKED" not in labels:
+                failures.append(
+                    f"{case_id}: BLOCKED verdict requires BLOCKED evidence"
+                )
         if not any(failure.startswith(f"{case_id}:") for failure in failures):
             passed += 1
     return _failure("PASS" if not failures else "FAIL", len(cases), failures, passed)

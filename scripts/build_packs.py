@@ -157,7 +157,12 @@ def _generated_json(text: str, path: Path) -> str:
 def _generated_resource(source: Path | _CapturedSource) -> str:
     path = source.path if isinstance(source, _CapturedSource) else source
     data = source.data if isinstance(source, _CapturedSource) else path.read_bytes()
-    text = data.decode("utf-8")
+    try:
+        text = data.decode("utf-8")
+    except UnicodeDecodeError as error:
+        raise ValueError(f"binary or non-UTF-8 resource: {path}") from error
+    if "\x00" in text:
+        raise ValueError(f"binary or non-UTF-8 resource: {path}")
     if path.name == "SKILL.md":
         return _generated_skill(text)
     if path.suffix.casefold() == ".json":
@@ -166,6 +171,12 @@ def _generated_resource(source: Path | _CapturedSource) -> str:
         return f"# {MARKER}\n\n{text}"
     if path.suffix.casefold() in {".md", ".txt"}:
         return f"<!-- {MARKER} -->\n{text}"
+    if path.suffix.casefold() == ".html":
+        return f"<!-- {MARKER} -->\n\n{text}"
+    if path.suffix.casefold() == ".css":
+        return f"/* {MARKER} */\n\n{text}"
+    if path.suffix.casefold() == ".js":
+        return f"// {MARKER}\n\n{text}"
     raise ValueError(f"unsupported skill resource type: {path}")
 
 
@@ -189,6 +200,12 @@ def _is_generated_artifact(path: Path, text: str) -> bool:
         return bool(lines) and lines[0] == f"# {MARKER}"
     if path.suffix.casefold() in {".md", ".txt"}:
         return bool(lines) and lines[0] == f"<!-- {MARKER} -->"
+    if path.suffix.casefold() == ".html":
+        return bool(lines) and lines[0] == f"<!-- {MARKER} -->"
+    if path.suffix.casefold() == ".css":
+        return bool(lines) and lines[0] == f"/* {MARKER} */"
+    if path.suffix.casefold() == ".js":
+        return bool(lines) and lines[0] == f"// {MARKER}"
     return False
 
 

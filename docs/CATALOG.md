@@ -1,6 +1,6 @@
 # Skill Catalog
 
-49 canonical skills across seven additive packs. Every row links to the canonical `SKILL.md`.
+52 canonical skills across seven additive packs. Every row links to the canonical `SKILL.md`.
 
 - **Use when** is the routing trigger. The agent selects by matching this, so scan this column first.
 - **Type** is the library layer: `root`, `router`, `workflow`, `diagnostic`, `gate`, `safety`, `governance`, `interactive`.
@@ -19,6 +19,13 @@
 | Need to claim something works | [`build-and-runtime-verification`](../skills/build-and-runtime-verification/SKILL.md) |
 | Pausing or transferring work | [`studio-handoff`](../skills/studio-handoff/SKILL.md) |
 
+Direct Goal usage:
+
+```text
+$studio-goal-progress Open Progress for the active KIT-managed Goal.
+$studio-context-brief Build the working projection without replacing studio-handoff.
+```
+
 ## Catalog
 
 ### Studio core — routing, safety, evidence, handoff (`studio-core`)
@@ -28,6 +35,7 @@
 | [`bug-hunt-swarm`](../skills/bug-hunt-swarm/SKILL.md) | An unknown crash, intermittent failure, or cross-subsystem bug needs parallel read-only reproduction lanes, ranked hypotheses, suspect paths, and an... | workflow | read-only | `bug-packets.json` |
 | [`build-and-runtime-verification`](../skills/build-and-runtime-verification/SKILL.md) | Running build, compile, test, launch, or runtime checks and producing a verdict tied to exact commands, exit codes, artifact paths, limitations, and... | gate | read-only | `verdict.md` |
 | [`evidence-first-debugging`](../skills/evidence-first-debugging/SKILL.md) | Debugging a crash, lỗi, failing game, tool, build, service, script, or reproducible local code failure requires repro or reproduction, giả thuyết or... | workflow | low | `debug-verdict.md` |
+| [`code-intelligence-contract`](../skills/code-intelligence-contract/SKILL.md) * | Optional provider-neutral dependency, call-chain, blast-radius, architecture, and domain-flow evidence. | gate | read-only | `code-intelligence-evidence.json` |
 | [`feature-to-work-packets`](../skills/feature-to-work-packets/SKILL.md) | Decomposing an approved specification into ordered work packets with a file owner, exact paths, single-writer ownership, dependencies, risks, evidence,... | workflow | low | `work-packets.yaml` |
 | [`game-feature-brainstorming`](../skills/game-feature-brainstorming/SKILL.md) | Exploring a game feature, mechanic, player experience, or production approach and the team needs two or three options with trade-offs before choosing a... | interactive | read-only | `design-options.md` |
 | [`game-feature-to-spec`](../skills/game-feature-to-spec/SKILL.md) | An approved, chosen, or selected game mechanic direction must become a testable specification with acceptance criteria, state transitions, inputs,... | workflow | low | `feature-spec.md` |
@@ -35,6 +43,8 @@
 | [`safe-project-mutation`](../skills/safe-project-mutation/SKILL.md) | Changing project files or generated state requires a report-only dry run, exact scope, backup manifest, apply verification, and a tested restore path. | safety | medium | `mutation-manifest.json` |
 | [`skill-authoring-and-audit`](../skills/skill-authoring-and-audit/SKILL.md) | Creating or revising a GameStudio-CodexKIT skill, resolving ambiguous skill triggers, auditing provenance or lifecycle maturity, or deriving reusable... | governance | low | `skill-audit.json` |
 | [`studio-agent-orchestration`](../skills/studio-agent-orchestration/SKILL.md) | Selecting project investigator, implementer, independent verifier, or profile specialist roles with expected output, do-not-touch scope, critical-path... | workflow | read-only | `agent-plan.yaml` |
+| [`studio-context-brief`](../skills/studio-context-brief/SKILL.md) * | An active KIT-managed Goal needs bounded brief, working, or resume context projections while preserving exact technical literals and handoff authority. | workflow | low | `context/working.json` |
+| [`studio-goal-progress`](../skills/studio-goal-progress/SKILL.md) * | A KIT-managed Goal needs evidence-backed percentage, ETA range, read-only progress views, or append-only recovery. | interactive | low | `progress.jsonl` |
 | [`studio-handoff`](../skills/studio-handoff/SKILL.md) | Pausing, transferring, or reactivating game-studio work and a durable handoff must capture branch, goal, scope, files, commands, Verified Snapshot... | workflow | low | `HANDOFF.md` |
 | [`studio-project-intake`](../skills/studio-project-intake/SKILL.md) | Collecting a game project goal, scope, risk tier, engine and version, subsystem ownership, constraints, and do-not-touch paths into an actionable... | router | read-only | `task-packet.json` |
 | [`studio-project-scaffold`](../skills/studio-project-scaffold/SKILL.md) | Running gamestudio init, status, or uninit, or bootstrapping a new or adopted game repository with AGENTS.md, HANDOFF.md, .agents/CONTRACT.md, project... | workflow | medium | `scaffold-report.json` |
@@ -115,6 +125,8 @@ Some skills ship progressively loaded references with concrete, platform-specifi
 | `cpp-server-crash-triage` | [symbolization on Windows and Linux](../skills/cpp-server-crash-triage/references/commands.md) |
 | `game-database-migration-safety` | [credential-safe inspection, backup, restore](../skills/game-database-migration-safety/references/commands.md) |
 | `game-screenshot-showcase-and-store-packaging` | [capture and packaging commands](../skills/game-screenshot-showcase-and-store-packaging/references/commands.md) |
+| `studio-context-brief` | [projection commands and interpretation](../skills/studio-context-brief/references/commands.md) |
+| `studio-goal-progress` | [Goal progress commands and interpretation](../skills/studio-goal-progress/references/commands.md) |
 | `liveops-incident-response` | [read-only incident observation and blocked-action table](../skills/liveops-incident-response/references/commands.md) |
 | `multi-service-local-environment-doctor` | [port, process, and configuration snapshots](../skills/multi-service-local-environment-doctor/references/commands.md) |
 | `unity-batchmode-build-verification` | [batchmode invocation and log parsing](../skills/unity-batchmode-build-verification/references/commands.md) |

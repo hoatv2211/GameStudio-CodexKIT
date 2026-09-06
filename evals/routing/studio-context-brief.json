@@ -1,0 +1,8 @@
+{"target_skill":"studio-context-brief","cases":[
+  {"prompt":"Generate compact working context for the active KIT-managed Goal from trusted structured state","expected_skill":"studio-context-brief","type":"positive"},
+  {"prompt":"Compress active Goal context while preserving exact paths commands symbols numbers units negations and decisive errors","expected_skill":"studio-context-brief","type":"positive"},
+  {"prompt":"Emit the brief working and resume context projections with declared budgets and measurement status","expected_skill":"studio-context-brief","type":"positive"},
+  {"prompt":"Collect initial game project goals scope engine version owners risks and missing repository facts","expected_skill":"studio-project-intake","type":"negative","owner":"studio-project-intake"},
+  {"prompt":"Create the authoritative durable handoff with refreshed git state restore information and reactivation prompt","expected_skill":"studio-handoff","type":"negative","owner":"studio-handoff"},
+  {"prompt":"Create compact working context for the active Goal while keeping durable handoff authority in studio-handoff","expected_skill":"studio-context-brief","type":"collision"}
+]}

@@ -1,0 +1,3 @@
+{"jsonrpc":"2.0","method":"thread/started","params":{"thread":{"id":"thread-demo","status":"idle"}}}
+{"jsonrpc":"2.0","method":"thread/status/changed","params":{"threadId":"thread-demo","status":"working","newRequiredShape":{"phase":"unknown"}}}
+{"jsonrpc":"2.0","method":"thread/renamed","params":{"threadId":"thread-demo","title":"Unexpected"}}

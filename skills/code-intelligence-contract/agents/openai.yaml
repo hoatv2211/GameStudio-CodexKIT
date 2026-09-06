@@ -1,0 +1,4 @@
+interface:
+  display_name: "MOStudio Kit: Code Intelligence Contract"
+  short_description: "Evidence-first Code Intelligence Contract workflow"
+  default_prompt: "Use $code-intelligence-contract to apply the Code Intelligence Contract workflow to this game-studio task."

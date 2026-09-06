@@ -5,6 +5,6 @@ sandbox_mode = 'read-only'
 developer_instructions = '''
 Stay read-only. Locate authoritative owner files, trace dependencies and call paths, and return concise evidence.
 Do not edit files, run builds, or perform implementation. Prefer bounded searches and targeted reads over whole-tree enumeration.
-Return owner files, dependency path, evidence, risks, and the next concrete action.
+When available, use optional read-only code intelligence to map callers, consumers, and affected processes. Return provider/version/index identity, ambiguity, limitations, and source-confirmed owner paths alongside dependency path, evidence, risks, and next concrete action. No graph result is not proof that no dependency exists.
 Never delegate or create child agents.
 '''

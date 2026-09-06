@@ -57,6 +57,16 @@ Files under the ignored local `.archive/` are optional historical context only a
 - Never mutate `.research/` repositories, private studio projects, or external repositories during kit development.
 - Never patch generated adapters or packs by hand.
 
+## Repeated Work And Tooling
+
+- Before repeating the same action across records, files, or assets, assess an existing tool, workflow, or batch pipeline before manual processing.
+- Three or more similar targets, or any high-volume set, requires an explicit choice among manual, reuse, extend, or create-tool. The threshold requires assessment, not automatic tool creation.
+- Reuse or extend an existing tool before creating a new one. Do not over-engineer a small one-off task when direct handling is clearer and lower risk.
+- A mutating tool requires report-only or dry-run mode, bounded scope and output, a manifest or structured log, validation, and a safe rerun contract. Long-running pipelines must be resumable; repeated operations must be idempotent or detect completed state.
+- Quarantine recoverable per-item failures when the remaining set can continue safely; fail fast when a failure invalidates shared integrity.
+- Group failures by cause and repair the owning rule, converter, or pipeline before rerunning the affected cluster. Do not default to one-off edits for every failed item.
+- Automation does not expand authority. Commit, service control, database actions, Unity mutation, publishing, credentials, and destructive actions retain their existing approval gates.
+
 ## Ownership
 
 - One writer owns a file, scene, prefab, generated output, or shared registry at a time.

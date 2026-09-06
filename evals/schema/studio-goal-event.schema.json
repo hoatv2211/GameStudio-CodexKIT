@@ -1,0 +1,845 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gamestudio-codexkit.local/schema/studio-goal-event.schema.json",
+  "title": "GameStudio goal progress event",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "event_id",
+    "goal_id",
+    "plan_version",
+    "sequence",
+    "emitted_at",
+    "writer_epoch_id",
+    "monotonic_offset_ms",
+    "source",
+    "event_type",
+    "packet_id",
+    "payload",
+    "authority",
+    "summary",
+    "evidence",
+    "raw_log_ref",
+    "record_hash"
+  ],
+  "properties": {
+    "schema_version": {
+      "const": 1
+    },
+    "event_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "goal_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "plan_version": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "sequence": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "emitted_at": {
+      "type": "string",
+      "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}Z$"
+    },
+    "writer_epoch_id": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "monotonic_offset_ms": {
+      "type": "integer",
+      "minimum": 0
+    },
+    "source": {
+      "enum": ["kit_workflow", "codex_app_server", "operator_note"]
+    },
+    "event_type": {
+      "enum": [
+        "goal.started",
+        "plan.revised",
+        "packet.started",
+        "packet.waiting_input",
+        "packet.blocked",
+        "packet.failed",
+        "packet.retry_started",
+        "packet.resumed",
+        "evidence.observed",
+        "packet.verified",
+        "context.refreshed",
+        "runtime.heartbeat",
+        "goal.completed",
+        "goal.cancelled"
+      ]
+    },
+    "packet_id": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "payload": {
+      "type": "object"
+    },
+    "authority": {
+      "$ref": "#/$defs/authority_any"
+    },
+    "summary": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "evidence": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/evidence_record"
+      }
+    },
+    "raw_log_ref": {
+      "type": ["string", "null"],
+      "minLength": 1,
+      "pattern": "\\S"
+    },
+    "record_hash": {
+      "type": "string",
+      "pattern": "^[a-f0-9]{64}$"
+    }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "goal.started"
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "packet_id": {
+            "const": null
+          },
+          "authority": {
+            "const": null
+          },
+          "payload": {
+            "$ref": "#/$defs/goal_started_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "const": "plan.revised"
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "packet_id": {
+            "const": null
+          },
+          "payload": {
+            "$ref": "#/$defs/plan_revised_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": [
+              "packet.started",
+              "packet.waiting_input",
+              "packet.blocked",
+              "packet.failed",
+              "packet.retry_started",
+              "packet.resumed",
+              "packet.verified"
+            ]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "packet_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "context.refreshed"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "packet_id": {"const": null},
+          "authority": {"const": null},
+          "payload": {"$ref": "#/$defs/context_refreshed_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {
+            "enum": ["goal.completed", "goal.cancelled"]
+          }
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "packet_id": {"const": null},
+          "payload": {
+            "$ref": "#/$defs/goal_terminal_payload"
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "evidence.observed"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "packet_id": {
+            "type": "string",
+            "minLength": 1,
+            "pattern": "\\S"
+          },
+          "payload": {"$ref": "#/$defs/evidence_observed_payload"},
+          "evidence": {"minItems": 1}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {
+            "enum": [
+              "plan.revised",
+              "packet.started",
+              "packet.waiting_input",
+              "packet.resumed",
+              "packet.blocked",
+              "packet.failed",
+              "packet.retry_started",
+              "packet.verified",
+              "goal.completed",
+              "goal.cancelled"
+            ]
+          }
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/full_authority"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {"const": "plan.revised"}
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "allOf": [
+              {"$ref": "#/$defs/full_authority"},
+              {
+                "properties": {
+                  "workflow_id": {"const": "studio-goal-progress"},
+                  "owner": {"const": "main-thread"},
+                  "packet_id": {"const": "plan"}
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {
+            "enum": ["goal.completed", "goal.cancelled"]
+          }
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {
+            "allOf": [
+              {"$ref": "#/$defs/full_authority"},
+              {
+                "properties": {
+                  "workflow_id": {"const": "studio-goal-progress"},
+                  "owner": {"const": "main-thread"},
+                  "packet_id": {"const": "goal"}
+                }
+              }
+            ]
+          }
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.started"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_running_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.waiting_input"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_waiting_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.resumed"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_running_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.blocked"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_blocked_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.failed"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_failed_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.retry_started"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_running_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "event_type": {"const": "packet.verified"}
+        },
+        "required": ["event_type"]
+      },
+      "then": {
+        "properties": {
+          "payload": {"$ref": "#/$defs/packet_verified_payload"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {"const": "packet.started"}
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/authority_prior_queued"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {
+            "enum": ["packet.waiting_input", "packet.failed", "packet.verified"]
+          }
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/authority_prior_running"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {"const": "packet.resumed"}
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/authority_prior_waiting"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {"const": "packet.blocked"}
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/authority_prior_blockable"}
+        }
+      }
+    },
+    {
+      "if": {
+        "properties": {
+          "source": {"const": "kit_workflow"},
+          "event_type": {"const": "packet.retry_started"}
+        },
+        "required": ["source", "event_type"]
+      },
+      "then": {
+        "properties": {
+          "authority": {"$ref": "#/$defs/authority_prior_retryable"}
+        }
+      }
+    }
+  ],
+  "$defs": {
+    "runtime_binding": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["kind", "id"],
+      "properties": {
+        "kind": {
+          "enum": ["codex_thread", "hermes_session"]
+        },
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        }
+      }
+    },
+    "simple_authority": {
+      "$ref": "#/$defs/runtime_binding"
+    },
+    "full_authority": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "kind",
+        "id",
+        "workflow_id",
+        "owner",
+        "runtime_binding",
+        "packet_id",
+        "expected_prior_state"
+      ],
+      "properties": {
+        "kind": {"enum": ["codex_thread", "hermes_session"]},
+        "id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "workflow_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "owner": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "runtime_binding": {"$ref": "#/$defs/runtime_binding"},
+        "packet_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "expected_prior_state": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      }
+    },
+    "authority_any": {
+      "anyOf": [
+        {"type": "null"},
+        {"$ref": "#/$defs/simple_authority"},
+        {"$ref": "#/$defs/full_authority"}
+      ]
+    },
+    "authority_prior_queued": {
+      "allOf": [
+        {"$ref": "#/$defs/full_authority"},
+        {"properties": {"expected_prior_state": {"const": "queued"}}}
+      ]
+    },
+    "authority_prior_running": {
+      "allOf": [
+        {"$ref": "#/$defs/full_authority"},
+        {"properties": {"expected_prior_state": {"const": "running"}}}
+      ]
+    },
+    "authority_prior_waiting": {
+      "allOf": [
+        {"$ref": "#/$defs/full_authority"},
+        {"properties": {"expected_prior_state": {"const": "waiting_input"}}}
+      ]
+    },
+    "authority_prior_blockable": {
+      "allOf": [
+        {"$ref": "#/$defs/full_authority"},
+        {"properties": {"expected_prior_state": {"enum": ["running", "waiting_input"]}}}
+      ]
+    },
+    "authority_prior_retryable": {
+      "allOf": [
+        {"$ref": "#/$defs/full_authority"},
+        {"properties": {"expected_prior_state": {"enum": ["blocked", "failed"]}}}
+      ]
+    },
+    "evidence_record": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "id",
+        "label",
+        "kind",
+        "summary",
+        "command",
+        "exit_code",
+        "artifact_path",
+        "sha256"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "label": {
+          "enum": ["Verified", "Snapshot", "Unverified", "BLOCKED"]
+        },
+        "kind": {
+          "enum": ["command", "artifact"]
+        },
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "command": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "exit_code": {
+          "type": ["integer", "null"]
+        },
+        "artifact_path": {
+          "type": ["string", "null"],
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "sha256": {
+          "type": ["string", "null"],
+          "pattern": "^[a-f0-9]{64}$"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "command"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "exit_code": {
+                "type": "integer"
+              },
+              "artifact_path": {
+                "const": null
+              },
+              "sha256": {
+                "const": null
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "kind": {
+                "const": "artifact"
+              }
+            },
+            "required": ["kind"]
+          },
+          "then": {
+            "properties": {
+              "command": {
+                "const": null
+              },
+              "exit_code": {
+                "const": null
+              },
+              "artifact_path": {
+                "type": "string",
+                "minLength": 1,
+                "pattern": "\\S"
+              },
+              "sha256": {
+                "type": "string",
+                "pattern": "^[a-f0-9]{64}$"
+              }
+            }
+          }
+        }
+      ]
+    },
+    "goal_started_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest"],
+      "properties": {
+        "manifest": {
+          "$ref": "studio-goal-manifest.schema.json"
+        }
+      }
+    },
+    "plan_revised_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["manifest", "previous_manifest_hash", "new_manifest_hash"],
+      "properties": {
+        "manifest": {
+          "$ref": "studio-goal-manifest.schema.json"
+        },
+        "previous_manifest_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "new_manifest_hash": {"type": "string", "pattern": "^[a-f0-9]{64}$"},
+        "revision_reason": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "approval_ref": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      }
+    },
+    "packet_transition_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packet_id", "state"],
+      "properties": {
+        "packet_id": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "state": {"type": "string"}
+      }
+    },
+    "packet_running_payload": {
+      "allOf": [
+        {"$ref": "#/$defs/packet_transition_payload"},
+        {"properties": {"state": {"const": "running"}}}
+      ]
+    },
+    "packet_waiting_payload": {
+      "allOf": [
+        {"$ref": "#/$defs/packet_transition_payload"},
+        {"properties": {"state": {"const": "waiting_input"}}}
+      ]
+    },
+    "packet_blocked_payload": {
+      "allOf": [
+        {"$ref": "#/$defs/packet_transition_payload"},
+        {"properties": {"state": {"const": "blocked"}}}
+      ]
+    },
+    "packet_failed_payload": {
+      "allOf": [
+        {"$ref": "#/$defs/packet_transition_payload"},
+        {"properties": {"state": {"const": "failed"}}}
+      ]
+    },
+    "packet_verified_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["packet_id", "state", "evidence_ids"],
+      "properties": {
+        "packet_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "state": {"const": "verified"},
+        "evidence_ids": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+        }
+      }
+    },
+    "evidence_observed_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["workflow_id", "packet_id", "runtime_binding", "required_evidence_kind"],
+      "properties": {
+        "workflow_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "packet_id": {"type": "string", "minLength": 1, "pattern": "\\S"},
+        "runtime_binding": {"$ref": "#/$defs/runtime_binding"},
+        "required_evidence_kind": {"type": "string", "minLength": 1, "pattern": "\\S"}
+      }
+    },
+    "bounded_context_text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 500,
+      "pattern": "\\S"
+    },
+    "bounded_context_text_list": {
+      "type": "array",
+      "maxItems": 20,
+      "items": {"$ref": "#/$defs/bounded_context_text"}
+    },
+    "context_failure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary"],
+      "properties": {
+        "summary": {"$ref": "#/$defs/bounded_context_text"},
+        "command": {"$ref": "#/$defs/bounded_context_text"},
+        "artifact_path": {"$ref": "#/$defs/bounded_context_text"}
+      }
+    },
+    "context_refreshed_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "blockers",
+        "failures",
+        "changed_files",
+        "decisions",
+        "commands",
+        "timing",
+        "evidence_labels",
+        "indivisible_paths"
+      ],
+      "properties": {
+        "blockers": {"$ref": "#/$defs/bounded_context_text_list"},
+        "failures": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {"$ref": "#/$defs/context_failure"}
+        },
+        "changed_files": {"$ref": "#/$defs/bounded_context_text_list"},
+        "decisions": {"$ref": "#/$defs/bounded_context_text_list"},
+        "commands": {"$ref": "#/$defs/bounded_context_text_list"},
+        "timing": {"$ref": "#/$defs/bounded_context_text_list"},
+        "evidence_labels": {
+          "type": "array",
+          "maxItems": 20,
+          "items": {"enum": ["Verified", "Snapshot", "Unverified", "BLOCKED"]}
+        },
+        "indivisible_paths": {"$ref": "#/$defs/bounded_context_text_list"}
+      }
+    },
+    "goal_terminal_payload": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["summary"],
+      "properties": {
+        "summary": {
+          "type": "string",
+          "minLength": 1,
+          "pattern": "\\S"
+        },
+        "final_verification_evidence_ids": {
+          "type": "array",
+          "uniqueItems": true,
+          "items": {"type": "string", "minLength": 1, "pattern": "\\S"}
+        }
+      }
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "event_type": {"const": "goal.completed"},
+        "payload": {
+          "allOf": [
+            {"$ref": "#/$defs/goal_terminal_payload"},
+            {"required": ["final_verification_evidence_ids"]}
+          ]
+        }
+      },
+      "required": ["event_type", "payload"]
+    },
+    {
+      "properties": {
+        "event_type": {"not": {"const": "goal.completed"}}
+      },
+      "required": ["event_type"]
+    }
+  ]
+}

@@ -2,4 +2,7 @@ allowed_third_party_modules:
   - jsonschema
   - referencing
   - yaml
-network_access: {}
+network_access:
+  scripts/goal_progress_server.py:
+    - 'http://127.0.0.1:{port}{route}'
+    - 'http://127.0.0.1:{self.runtime_info['

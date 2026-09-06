@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: null
     maturity: beta
-    last_reviewed: 2026-08-07
+    last_reviewed: 2026-09-03
     provenance:
       derived_from: none
       patterns_from: [AGENTS.md evidence labels, sanitized studio operating contract]
@@ -43,6 +43,13 @@ Collect the workspace and repository paths, current branch or snapshot, user goa
 ## Safety and risk level
 This skill is read-only. It classifies work and routes it; it never authorizes mutation, service control, database changes, publishing, credentials, or destructive cleanup.
 
+## Repeated work strategy gate
+Before execution, assess whether the selected workflow repeats the same action across records, files, or assets. Three or more similar records, files, or assets, or any high-volume set, requires an explicit choice among manual, reuse, extend, or create-tool. This threshold requires assessment; it does not justify a new tool by itself.
+
+Prefer reuse or extension of an existing tool, converter, validator, or batch workflow. Keep a small one-off task manual when direct handling is clearer and lower risk. A new or extended tool must be deterministic, use bounded scope and bounded output, emit a manifest or structured log, validate results, and quarantine recoverable per-item failures. Mutating tools require report-only or dry-run behavior. Long-running pipelines must be resumable, and repeated operations must be idempotent or detect already completed state. Fail fast instead of quarantining when a failure invalidates shared integrity.
+
+Group failures into a failure cluster by common cause. Repair the owning rule, converter, or pipeline and rerun the affected cluster instead of defaulting to individual record edits. Tool use does not expand authority: commit, service control, database actions, Unity mutation, publishing, credentials, and destructive actions retain the selected workflow's approval gates.
+
 ## Three-stage output contract
 
 ### Stage 1 - task packet
@@ -56,16 +63,23 @@ When the packet is `READY`, only the selected canonical workflow executes or rev
 ### Stage 3 - normalized evidence card
 After the workflow acts, its observed result is summarized by a normalized evidence card with a runtime verdict of `PASS`, `BLOCKED`, or `FAIL` as applicable. For an unsupported router outcome, the root skill may issue a normalized `BLOCKED` evidence card without a workflow artifact. The router cannot fabricate the final runtime verdict.
 
+## Explicit KIT Goal participation
+Ordinary tasks keep the three-stage contract unchanged and do not acquire progress files. When the operator explicitly opts the current long-running task into a KIT-managed Goal, route Goal preflight and initialization, meaningful-boundary event submission, state recovery, and `Open Progress` to `studio-goal-progress`. The active workflow remains authority for packet completion and evidence truth. If that capability is absent, invalid, or unavailable, Goal progress is `BLOCKED`; never simulate percentage, ETA, events, or a GUI from commentary or elapsed wall time.
+
 ## Workflow
 1. Collect the repository path, project profile, goal, constraints, available tools, do-not-touch paths, and any explicit role, intent, or mode.
    Completion criterion: request context is bounded and unknowns are labeled.
 2. When role or mode is absent, use the project profile's `studio_experience` defaults. Infer one intent from Diagnose, Verify, Plan Change, Ship, or Handle Incident; if the top Golden Paths remain ambiguous, ask one question.
    Completion criterion: role, intent, mode, and candidate Golden Paths are explicit.
-3. Select the narrowest canonical workflow. A role preset is advisory and cannot override repository evidence, missing capabilities, or risk gates.
+3. Assess repeated work and record the strategy as manual, reuse, extend, or create-tool before item-by-item processing begins.
+   Completion criterion: three-or-more or high-volume scopes have an explicit tool assessment, tool contracts match the repeated work strategy gate, and one-off work is not over-engineered.
+4. Select the narrowest canonical workflow. A role preset is advisory and cannot override repository evidence, missing capabilities, or risk gates.
    Completion criterion: the normalized task packet names the selected workflow or reports `BLOCKED` with the missing prerequisite.
-4. Preserve the selected workflow's evidence and mutation contracts without weakening them in Basic mode; the selected workflow, not this router, executes or authorizes its work.
+5. If the task explicitly opted into a KIT-managed Goal, require `studio-goal-progress` preflight before initialization and emit only start, packet transition, evidence observation, plan revision, context refresh, terminal, or explicitly bounded heartbeat events.
+   Completion criterion: ordinary tasks remain unchanged, ordinary commentary and raw tool output do not become progress events, and missing progress capability remains `BLOCKED`.
+6. Preserve the selected workflow's evidence and mutation contracts without weakening them in Basic mode; the selected workflow, not this router, executes or authorizes its work.
    Completion criterion: Basic and Advanced modes differ only in presentation and explicit controls.
-5. If a workflow was selected, require it to return its workflow-specific artifact, a normalized evidence card, and one next action. If routing is unsupported, return no workflow artifact and preserve the task-packet and evidence-card `BLOCKED` state.
+7. If a workflow was selected, require it to return its workflow-specific artifact, a normalized evidence card, and one next action. If routing is unsupported, return no workflow artifact and preserve the task-packet and evidence-card `BLOCKED` state.
    Completion criterion: commands, exit codes, artifacts, limitations, restore information, and blockers remain available without an invented workflow result.
 
 ## Evidence and output contract
@@ -79,9 +93,12 @@ Record repository/path, branch, goal, owned scope, do-not-touch paths, files tou
 - “It compiled” does not prove runtime or regression safety.
 - “The runner is unavailable” means `BLOCKED`, never PASS.
 - “Another project uses this pattern” is a snapshot until this repository is inspected.
+- “Automation is faster” does not justify a new tool or waive mutation and approval gates.
 
 ## Verification checklist
 - [ ] The primary workflow skill is explicit.
+- [ ] KIT Goal participation is explicit or ordinary task behavior remains unchanged.
+- [ ] Repeated work has an explicit manual, reuse, extend, or create-tool decision.
 - [ ] Every material claim has an evidence label.
 - [ ] Side effects match the declared risk gate.
 - [ ] Unavailable live operations are `BLOCKED`.

@@ -19,3 +19,4 @@ evidence/**/changed-files.txt
 
 dist/
 adapters/
+/.superpowers

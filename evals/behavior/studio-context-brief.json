@@ -1,0 +1,114 @@
+{
+  "cases": [
+    {
+      "id": "context-priority-preserved",
+      "prompt": "Generate only the canonical working projection from these complete trusted facts: manifest={goal_id:goal-eval-001,scope:[scripts/goal_progress.py],do_not_touch:['do not start server'],commands:['python -B scripts/goal_progress.py status --goal-root D:/goals/demo --json'],timing:'60 seconds'}; state={goal_id:goal-eval-001,packets:[{id:packet-a,status:blocked,objective:'Preserve exact literals'}],blockers:['do not infer PASS'],next_action:'Run python -B scripts/validate.py .',failures:[{error:'FAIL: 2 tests',path:'D:/goals/demo/state.json'}],latest_evidence:[{label:BLOCKED,summary:'runner unavailable'}]}. With no tokenizer, expect exactly projection=working, status=READY, count_kind=utf8_byte_fallback, count=433, target=800, hard_cap=1200, evidence_label=Unverified, and required_fact_refs=[manifest#scope,state#blockers[0],goal-eval-001#packet-a,state#next_action,manifest#paths[0],manifest#commands[0],manifest#timing,state#failures[0],state#evidence[0]#label,state#evidence[0]]. Preserve every quoted literal exactly.",
+      "target_skill": "studio-context-brief",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schema_version", "goal_id", "projection", "status", "count_kind", "count", "target", "hard_cap", "text", "required_fact_refs", "evidence_label"],
+      "artifact_schema": "studio-context-projection",
+      "expected_artifact_subset": {
+        "schema_version": 1,
+        "goal_id": "goal-eval-001",
+        "projection": "working",
+        "status": "READY",
+        "count_kind": "utf8_byte_fallback",
+        "count": 433,
+        "target": 800,
+        "hard_cap": 1200,
+        "text": "Safety/scope: scripts/goal_progress.py | do not start server\nBlocker: do not infer PASS\nActive packet: packet-a | blocked | Preserve exact literals\nNext action: Run python -B scripts/validate.py .\nPath: scripts/goal_progress.py\nCommand: python -B scripts/goal_progress.py status --goal-root D:/goals/demo --json\nTiming: 60 seconds\nFailure: FAIL: 2 tests | D:/goals/demo/state.json\nEvidence label: BLOCKED\nEvidence: runner unavailable",
+        "required_fact_refs": ["manifest#scope", "state#blockers[0]", "goal-eval-001#packet-a", "state#next_action", "manifest#paths[0]", "manifest#commands[0]", "manifest#timing", "state#failures[0]", "state#evidence[0]#label", "state#evidence[0]"],
+        "evidence_label": "Unverified"
+      }
+    },
+    {
+      "id": "context-three-projections",
+      "prompt": "Generate three separate canonical projections from complete trusted inputs manifest={goal_id:goal-eval-002,scope:[Assets/Production]} and state={goal_id:goal-eval-002,next_action:'Run tests.'}, with no tokenizer. All text must equal 'Safety/scope: Assets/Production\\nNext action: Run tests.\\nPath: Assets/Production', count_kind=utf8_byte_fallback, count=79, status=READY, required_fact_refs=[manifest#scope,state#next_action,manifest#paths[0]], evidence_label=Unverified. Exact projection target/hard_cap pairs are brief 150/300, working 800/1200, resume 1600/2400. Return the canonical resume projection JSON as the evaluator artifact; do not invent a summary report schema.",
+      "target_skill": "studio-context-brief",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schema_version", "goal_id", "projection", "status", "count_kind", "count", "target", "hard_cap", "text", "required_fact_refs", "evidence_label"],
+      "artifact_schema": "studio-context-projection",
+      "expected_artifact_subset": {
+        "schema_version": 1,
+        "goal_id": "goal-eval-002",
+        "projection": "resume",
+        "status": "READY",
+        "count_kind": "utf8_byte_fallback",
+        "count": 79,
+        "target": 1600,
+        "hard_cap": 2400,
+        "text": "Safety/scope: Assets/Production\nNext action: Run tests.\nPath: Assets/Production",
+        "required_fact_refs": ["manifest#scope", "state#next_action", "manifest#paths[0]"],
+        "evidence_label": "Unverified"
+      }
+    },
+    {
+      "id": "context-fallback-labeled",
+      "prompt": "Generate only the canonical working projection from complete trusted inputs manifest={goal_id:goal-eval-002,scope:[Assets/Production]} and state={goal_id:goal-eval-002,next_action:'Run tests.'}. No supported tokenizer is available. Expect exactly status=READY, count_kind=utf8_byte_fallback, count=79, target=800, hard_cap=1200, text='Safety/scope: Assets/Production\\nNext action: Run tests.\\nPath: Assets/Production', required_fact_refs=[manifest#scope,state#next_action,manifest#paths[0]], and evidence_label=Unverified.",
+      "target_skill": "studio-context-brief",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schema_version", "goal_id", "projection", "status", "count_kind", "count", "target", "hard_cap", "text", "required_fact_refs", "evidence_label"],
+      "artifact_schema": "studio-context-projection",
+      "expected_artifact_subset": {
+        "schema_version": 1,
+        "goal_id": "goal-eval-002",
+        "projection": "working",
+        "status": "READY",
+        "count_kind": "utf8_byte_fallback",
+        "count": 79,
+        "target": 800,
+        "hard_cap": 1200,
+        "text": "Safety/scope: Assets/Production\nNext action: Run tests.\nPath: Assets/Production",
+        "required_fact_refs": ["manifest#scope", "state#next_action", "manifest#paths[0]"],
+        "evidence_label": "Unverified"
+      }
+    },
+    {
+      "id": "context-overflow-blocked",
+      "prompt": "Generate only the canonical working projection for goal_id=goal-eval-overflow. Trusted manifest indivisible_paths contains one exact string formed by 'D:/' followed by exactly 1,201 lowercase x characters; trusted state has the same goal_id and next_action='Preserve the full path.'; no tokenizer is available. Expect exactly status=BLOCKED, projection=working, count_kind=utf8_byte_fallback, count=0, target=800, hard_cap=1200, text='', required_fact_refs containing that complete unshortened path, and evidence_label=BLOCKED. Do not truncate or add a report artifact.",
+      "target_skill": "studio-context-brief",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schema_version", "goal_id", "projection", "status", "count_kind", "count", "target", "hard_cap", "text", "required_fact_refs", "evidence_label"],
+      "allow_empty_artifact_fields": ["text"],
+      "artifact_schema": "studio-context-projection",
+      "expected_artifact_subset": {
+        "schema_version": 1,
+        "goal_id": "goal-eval-overflow",
+        "projection": "working",
+        "status": "BLOCKED",
+        "count_kind": "utf8_byte_fallback",
+        "count": 0,
+        "target": 800,
+        "hard_cap": 1200,
+        "text": "",
+        "evidence_label": "BLOCKED"
+      }
+    },
+    {
+      "id": "context-handoff-authority",
+      "prompt": "Generate only the canonical resume projection from complete trusted inputs manifest={goal_id:goal-eval-003,scope:['studio-handoff remains durable-transfer authority']} and state={goal_id:goal-eval-003,next_action:'Refresh Git state before durable transfer.'}, with no tokenizer. Expect exactly status=READY, count_kind=utf8_byte_fallback, count=119, target=1600, hard_cap=2400, text='Safety/scope: studio-handoff remains durable-transfer authority\\nNext action: Refresh Git state before durable transfer.', required_fact_refs=[manifest#scope,state#next_action], and evidence_label=Unverified. Do not claim the resume projection itself is an authoritative handoff.",
+      "target_skill": "studio-context-brief",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["schema_version", "goal_id", "projection", "status", "count_kind", "count", "target", "hard_cap", "text", "required_fact_refs", "evidence_label"],
+      "artifact_schema": "studio-context-projection",
+      "expected_artifact_subset": {
+        "schema_version": 1,
+        "goal_id": "goal-eval-003",
+        "projection": "resume",
+        "status": "READY",
+        "count_kind": "utf8_byte_fallback",
+        "count": 119,
+        "target": 1600,
+        "hard_cap": 2400,
+        "text": "Safety/scope: studio-handoff remains durable-transfer authority\nNext action: Refresh Git state before durable transfer.",
+        "required_fact_refs": ["manifest#scope", "state#next_action"],
+        "evidence_label": "Unverified"
+      }
+    }
+  ]
+}

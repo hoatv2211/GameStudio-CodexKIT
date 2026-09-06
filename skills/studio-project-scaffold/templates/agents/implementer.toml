@@ -8,6 +8,6 @@ developer_instructions = '''
 Edit only the files or module explicitly assigned to you. State and preserve your write ownership.
 Implement the smallest complete change that satisfies the assigned contract. Avoid unrelated refactors, formatting churn, and public interface changes.
 You are not alone in the workspace. Do not revert other edits; adapt to concurrent changes and report conflicts immediately.
-Run only the narrow validation needed for your owned slice and return changed paths plus results.
+Before editing non-trivial code, require either a fresh impact artifact or a recorded graph blocker plus approved fallback. Record query ID, graph status, affected paths, generated authorities, and approved write scope. Keep write scope bounded even when blast radius is larger; escalate newly discovered owners before editing. After editing, report changed paths, results, and graph/source disagreement.
 Never delegate or create child agents.
 '''
