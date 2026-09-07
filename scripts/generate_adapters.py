@@ -1411,6 +1411,7 @@ def _project_adapter_plan(root: Path, project: Path) -> dict[str, object]:
             key=lambda collision: str(collision["path"]),
         ),
         "activated_roles": list(overlay_plan["activated_roles"]),
+        "scope_review": overlay_plan["scope_review"],
     }
 def _plan_digest(mutation_report: dict[str, Any]) -> str:
     normalized_operations = sorted(
@@ -1536,6 +1537,7 @@ def report_project_adapter(root: Path | str, project: Path | str) -> dict[str, o
         "preserved": plan["preserved"],
         "collisions": plan["collisions"],
         "activated_roles": plan["activated_roles"],
+        "scope_review": plan["scope_review"],
         "mutation_report": mutation_report,
     }
 
@@ -1601,6 +1603,7 @@ def apply_project_adapter(
         "preserved": plan["preserved"],
         "collisions": plan["collisions"],
         "activated_roles": plan["activated_roles"],
+        "scope_review": plan["scope_review"],
     }
 
 def generate_adapter(root: Path | str, target: str, output: Path | str) -> dict[str, object]:

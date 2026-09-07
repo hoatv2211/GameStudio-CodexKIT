@@ -221,7 +221,7 @@ class OfflineEvalTests(unittest.TestCase):
         self.assertEqual(2, result.returncode, result.stdout + result.stderr)
         report = json.loads(result.stdout)
         self.assertEqual("BLOCKED", report["verdict"])
-        self.assertEqual(48, report["total"])
+        self.assertEqual(49, report["total"])
         self.assertEqual(0, report["passed"])
 
     def test_ui_art_motion_behavior_and_pressure_contracts_are_explicit(self) -> None:
@@ -234,8 +234,8 @@ class OfflineEvalTests(unittest.TestCase):
             case["id"]: case
             for case in __import__("scripts.runner_eval", fromlist=["load_cases"]).load_cases(root, "pressure")
         }
-        self.assertEqual(48, len(behavior))
-        self.assertEqual(38, len(pressure))
+        self.assertEqual(49, len(behavior))
+        self.assertEqual(39, len(pressure))
         self.assertEqual(
             {"ui-art-motion-tools-blocked", "ui-art-motion-dry-run", "ui-art-motion-approval-blocked", "ui-art-motion-runtime-blocked", "ui-art-motion-decomposition-dry-run"},
             {case_id for case_id in behavior if case_id.startswith("ui-art-motion-")},

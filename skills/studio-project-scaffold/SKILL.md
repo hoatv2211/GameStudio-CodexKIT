@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: Producer
     maturity: beta
-    last_reviewed: 2026-09-03
+    last_reviewed: 2026-09-07
     provenance:
       derived_from: none
       patterns_from: [sanitized multi-project governance fixtures]
@@ -52,12 +52,12 @@ Scaffolding and the per-project adapter are medium-risk because they write gover
    Completion criterion: every existing governance artifact is marked preserve, merge, or BLOCKED.
 4. Render the minimum scaffold with evidence, ownership, repeated-work tooling, mutation, generated-file, no-touch rules, project profile, workspace map, validation matrix, and adapter references.
    Completion criterion: `scaffold-report.json` lists exact proposed and preserved scaffold files without writes.
-5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, preserved paths, and the action/hash details under `mutation_report.operations`.
+5. Run the per-project adapter report-only first. Review `plan_digest`, `proposed` planned paths, `collisions`, `activated_roles`, `scope_review`, preserved paths, and the action/hash details under `mutation_report.operations`. Broad resolved capability intersections are advisory; only out-of-scope or duplicate exact active write assignments block orchestration.
    Completion criterion: the reviewed adapter report identifies every proposed write and collision without mutation.
 6. Apply only that reviewed adapter plan with a named reviewer, a disjoint project-local backup root, and the approved plan digest. Generate and review a new report when the digest is stale.
    Completion criterion: apply uses all three gates and returns its manifest and restore command.
-7. Materialize roles from packaged generic agent templates plus profile specialists under `.codex/agents/`. The generated `.codex/agents.generated.toml` file remains inert until manual merge, and the adapter leaves `.codex/config.toml` untouched.
-   Completion criterion: unmanaged agents and active configuration remain preserved.
+7. Materialize roles from packaged generic agent templates plus profile and inferred specialists under `.codex/agents/`, preserving an explicit project `reasoning_effort` over the template default. The generated `.codex/agents.generated.toml` file remains inert until manual merge, and the adapter leaves `.codex/config.toml` untouched.
+   Completion criterion: unmanaged agents and active configuration remain preserved, and effective scopes are reviewed only after role resolution.
 8. Record per-file ownership hashes under `.agents/registry.json`, then run project-local validation and inspect the generated handoff snapshot.
    Completion criterion: scaffold output is parseable and unresolved runtime facts remain Unverified or BLOCKED.
 9. Run uninstall report-only first and review its `plan_digest`, `proposed`, `preserved_drift`, and `remaining_owned` paths. Apply only with a named reviewer, a disjoint backup root, and that matching digest. Use hash-safe uninstall: remove only files matching recorded ownership hashes. Preserve drift and return `PARTIAL` with `preserved_drift` and `remaining_owned` for manual recovery when safe cleanup cannot finish.
@@ -84,6 +84,8 @@ Record project path, detected subsystems, existing local skills and agents, crea
 - [ ] Backup root is project-local and does not overlap any proposed scaffold output.
 - [ ] Existing governance and local skills were preserved.
 - [ ] Generic templates and profile specialists were collision-checked.
+- [ ] `scope_review` separates advisory capability overlap from exact simultaneous assignment conflicts.
+- [ ] Explicit project reasoning effort is preserved in generated specialist agents.
 - [ ] Activation stayed inert and `.codex/config.toml` stayed untouched.
 - [ ] Per-file ownership and uninstall recovery fields were recorded.
 - [ ] Detected subsystems are evidence-backed.

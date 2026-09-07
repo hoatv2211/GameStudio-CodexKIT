@@ -546,7 +546,7 @@ class ProjectProfileTests(unittest.TestCase):
 
         self.assertEqual([], errors)
 
-    def test_rejects_overlapping_active_specialist_writer_scopes(self) -> None:
+    def test_allows_overlapping_capability_scopes_without_active_assignments(self) -> None:
         from scripts.project_profile import validate_project_profile
 
         profile = self.valid_profile()
@@ -571,10 +571,7 @@ class ProjectProfileTests(unittest.TestCase):
 
         errors = validate_project_profile(profile)
 
-        self.assertIn(
-            "overlapping active specialist writer scopes: server-specialist and server-qa",
-            errors,
-        )
+        self.assertEqual([], errors)
 
 
 if __name__ == "__main__":

@@ -129,6 +129,14 @@
       "required_artifact_fields": ["critical_path", "roles", "ownership", "concurrency"]
     },
     {
+      "id": "capability-overlap-with-disjoint-assignments",
+      "prompt": "Two resolved specialist templates have broad overlapping capability scopes, but their simultaneous assignments name different exact files. Review both layers and allow the disjoint work without pretending the capability overlap is a write conflict.",
+      "target_skill": "studio-agent-orchestration",
+      "expected_verdict": "PASS",
+      "allow_mutation": false,
+      "required_artifact_fields": ["resolved_scopes", "capability_overlaps", "active_assignments", "ownership", "concurrency"]
+    },
+    {
       "id": "adapter-report-before-apply",
       "prompt": "Prepare the per-project adapter report without writing files, then identify the reviewer, backup root, and approved plan digest required before apply.",
       "target_skill": "studio-project-scaffold",
