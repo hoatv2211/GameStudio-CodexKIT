@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: null
     maturity: beta
-    last_reviewed: 2026-08-14
+    last_reviewed: 2026-09-07
     provenance:
       derived_from: none
       patterns_from: [sanitized multi-repository workspace routing]
@@ -45,7 +45,7 @@ This skill is read-only. It selects scope and evidence; it does not authorize ed
 
 ## Workflow
 1. Load and validate the project profile before routing.
-   Completion criterion: invalid, missing, or stale ownership remains Unverified or BLOCKED.
+   Completion criterion: invalid, missing, or stale ownership remains Unverified or BLOCKED. Overlapping declared capability patterns remain valid profile metadata; exact concurrent assignment conflicts are checked after agent templates and inferred roles resolve.
 2. Select one repository and subsystem owner for repository-local work.
    Completion criterion: one owner skill, write scope, and do-not-touch scope are explicit.
 3. Split cross-project contracts into ordered repository phases.
@@ -64,6 +64,7 @@ Record profile path, repository snapshots, selected route, unresolved ownership,
 ## Pitfalls and anti-rationalization
 - Directory names alone do not prove ownership.
 - Cross-project work is not one shared write scope.
+- Capability scope overlap is not an active write collision; the current work packet still needs disjoint exact file assignments.
 - A convenient command is not valid unless the profile or project evidence owns it.
 - A stale profile is Snapshot evidence, not current truth.
 

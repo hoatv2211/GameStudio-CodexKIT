@@ -24,6 +24,12 @@ Prefer reuse or extension. Keep small one-off work direct when that is clearer a
 
 Author workflows so agents repair the owning rule, converter, or pipeline for a failure cluster and rerun that cluster instead of hand-editing each failed item. Tooling never changes the underlying approval class for commit, service control, databases, Unity mutation, publishing, credentials, or destructive actions.
 
+## Governed runner evidence binding
+
+Tier-B, behavior, and pressure results are valid only for the exact catalog and evaluator inputs used by the run. Immediately before invoking a governed model runner, execute `python -B scripts/catalog_audit.py . --input-digest` and retain the returned digest. The resulting status artifact records that value as `input_digest` together with a timezone-aware `timestamp`, runner identity, validation command, exit code, observed and passed counts, pass rate, unique IDs, and covered skills. Run `scripts/catalog_audit.py` after the runner completes; it recomputes the digest instead of trusting the status filename or directory order.
+
+The audit selects the uniquely newest embedded timestamp. A tie, unreadable candidate, missing or mismatched digest, naive or future timestamp, or evidence older than 90 days remains `BLOCKED`. Do not add a current digest to an old result or otherwise bind evidence retroactively; rerun against the current inputs instead.
+
 ## Project adapter contract
 
 Keep project adapter documentation and tests aligned with its safety boundary: report-only by default; apply requires a named reviewer, disjoint backup root, and approved plan digest. The overlay combines packaged generic agent templates with the profile specialist overlay, emits inert activation for manual review, and leaves `.codex/config.toml` untouched. Record per-file ownership so unmanaged local agents survive regeneration and hash-safe uninstall can return `PARTIAL` recovery with remaining owned paths instead of deleting drifted content.

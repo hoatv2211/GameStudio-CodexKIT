@@ -3,6 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 import unittest
+from datetime import datetime, timezone
 from pathlib import Path
 
 import yaml
@@ -25,6 +26,11 @@ class GovernanceTests(unittest.TestCase):
         *,
         verdict: str = "PASS",
     ) -> None:
+        from scripts.catalog_audit import runner_input_digest
+
+        root = evidence
+        while root.parent != root and not (root / "registry" / "capabilities.yaml").is_file():
+            root = root.parent
         observed_cases = max(1, len(skills) * 6)
         (evidence / f"{kind}-status.json").write_text(
             json.dumps(
@@ -38,7 +44,8 @@ class GovernanceTests(unittest.TestCase):
                     "pass_rate": 1.0 if verdict == "PASS" else None,
                     "unique_ids": observed_cases if verdict == "PASS" else 0,
                     "covered_skills": skills if verdict == "PASS" else [],
-                    "timestamp": "2026-08-08T12:00:00+07:00",
+                    "timestamp": datetime.now(timezone.utc).isoformat(),
+                    "input_digest": runner_input_digest(root),
                 }
             ),
             encoding="utf-8",

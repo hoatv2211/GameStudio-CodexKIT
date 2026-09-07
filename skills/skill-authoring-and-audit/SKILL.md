@@ -20,7 +20,7 @@ metadata:
     owner: HoaTV Studio
     reviewer: null
     maturity: beta
-    last_reviewed: 2026-09-03
+    last_reviewed: 2026-09-07
     provenance:
       derived_from:
         repo: Dimillian/Skills
@@ -55,7 +55,8 @@ Writes are limited to owned skill, eval, registry, and documentation paths. Neve
 3. Write the smallest complete skill with closed schema, provenance, safety, evidence, workflow criteria, and concise triggers.
    Completion criterion: structural validation passes for the skill.
 4. Run deterministic routing, behavior, pressure, originality, and safety checks.
-   Completion criterion: failures are repaired without weakening cases.
+   For a governed Tier-B, behavior, or pressure run, capture `python -B scripts/catalog_audit.py . --input-digest` immediately before invoking the model and store that value as `input_digest` in the runner status. Run the catalog audit afterward so it compares the recorded digest with the then-current inputs.
+   Completion criterion: failures are repaired without weakening cases, and accepted runner evidence has one uniquely newest timezone-aware timestamp, is no older than 90 days, and matches current catalog, shipped-skill, evaluator, and eval inputs.
 5. In `audit` mode, scan catalog, project overlays, agent-role IDs, and session history for stale skills, repeated manual workflows, trigger or role collisions, missing owners, and observed-versus-target KPI gaps.
    Completion criterion: findings have evidence, owner, severity, and update-first recommendation.
 6. Apply lifecycle promotion or demotion only when prerequisites are observed.
@@ -74,6 +75,7 @@ Record requested mode, preflight decision, skill/eval files, provenance source, 
 - High overlap with undeclared provenance is a Gate 10 failure.
 - Target metrics are never observed metrics.
 - Missing live dogfood is BLOCKED, not a maturity PASS.
+- Never add a current digest to historical runner output after the fact. Missing, stale, future-dated, tied, unreadable, or input-drifted evidence remains `BLOCKED`.
 
 ## Verification checklist
 - [ ] Update-first preflight was performed.
@@ -81,6 +83,7 @@ Record requested mode, preflight decision, skill/eval files, provenance source, 
 - [ ] New behavior had a failing case first.
 - [ ] Provenance and license are complete.
 - [ ] Routing, behavior, pressure, and safety gates ran.
+- [ ] Governed runner status was bound before execution and rechecked afterward; no historical result was retroactively bound.
 - [ ] Lifecycle uses observed evidence.
 
 ## References and scripts

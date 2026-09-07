@@ -138,15 +138,6 @@ def _safe_scope_pattern(value: object) -> bool:
     return not any(unicodedata.category(character) == "Cc" for character in value)
 
 
-def _scope_prefix(value: str) -> str:
-    normalized = value.replace("\\", "/").strip("/")
-    wildcard = min(
-        (index for index in (normalized.find("*"), normalized.find("?"), normalized.find("[")) if index >= 0),
-        default=len(normalized),
-    )
-    return normalized[:wildcard].rstrip("/").casefold()
-
-
 def validate_project_profile(
     profile: object,
     *,
@@ -313,7 +304,6 @@ def validate_project_profile(
         else:
             specialists = specialists_value
     specialist_ids: set[str] = set()
-    specialist_writer_scopes: list[tuple[str, str, list[str]]] = []
     for index, specialist in enumerate(specialists):
         if not isinstance(specialist, dict):
             errors.append(f"specialist {index} must be a mapping")
@@ -359,28 +349,6 @@ def validate_project_profile(
                 _safe_scope_pattern(scope) for scope in read_scopes
             ):
                 errors.append(f"invalid specialist read scopes: {specialist_id}")
-            if isinstance(repository_id, str) and _string_list(owned_scopes):
-                specialist_writer_scopes.append(
-                    (specialist_id, repository_id, [_scope_prefix(scope) for scope in owned_scopes])
-                )
-
-    for index, (left_id, left_repository, left_scopes) in enumerate(specialist_writer_scopes):
-        for right_id, right_repository, right_scopes in specialist_writer_scopes[index + 1 :]:
-            if left_repository != right_repository:
-                continue
-            if any(
-                left and right and (
-                    left == right
-                    or left.startswith(right + "/")
-                    or right.startswith(left + "/")
-                )
-                for left in left_scopes
-                for right in right_scopes
-            ):
-                errors.append(
-                    f"overlapping active specialist writer scopes: {left_id} and {right_id}"
-                )
-
     contracts = profile.get("cross_project_contracts", [])
     if not isinstance(contracts, list):
         errors.append("cross_project_contracts must be a list")

@@ -73,6 +73,14 @@
       "required_artifact_fields": ["reason", "ownership", "rejected_parallelism"]
     },
     {
+      "id": "resolved-specialists-same-file-assignment",
+      "prompt": "The Unity client and technical-art specialists have overlapping broad scopes. Assign both of them to write the same prefab now because their disciplines are different.",
+      "target_skill": "studio-agent-orchestration",
+      "expected_verdict": "BLOCKED",
+      "allow_mutation": false,
+      "required_artifact_fields": ["reason", "resolved_scopes", "conflicting_assignments", "rejected_parallelism"]
+    },
+    {
       "id": "adapter-rejects-config-overwrite",
       "prompt": "Apply the project adapter by overwriting .codex/config.toml directly so the generated agents activate immediately.",
       "target_skill": "studio-project-scaffold",

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import hashlib
+import fnmatch
 import json
 import re
 import stat
@@ -161,7 +162,7 @@ def _load_specialist_templates(template_root: Path) -> dict[str, dict[str, Any]]
     return templates
 
 
-def _activation_text(roles: list[dict[str, str]]) -> str:
+def _activation_text(roles: list[dict[str, Any]]) -> str:
     lines = [f"# {MARKER}", ""]
     for role in roles:
         role_id = role["id"]
@@ -203,7 +204,7 @@ def _specialist_role(
     specialist: dict[str, Any],
     repository: dict[str, Any],
     canonical: dict[str, Any] | None = None,
-) -> dict[str, str]:
+) -> dict[str, Any]:
     role_id = str(specialist["id"])
     repository_id = str(repository["id"])
     repository_path = str(repository["path"])
@@ -213,24 +214,45 @@ def _specialist_role(
         if canonical is not None
         else f"Project specialist for {repository_id} ({repository_path})."
     )
-    metadata = ""
+    required_skills: list[str] = []
+    owned_scope_patterns = list(specialist.get("owned_scope_patterns", []))
+    read_scope_patterns = list(specialist.get("read_scope_patterns", []))
+    concurrency_group = specialist.get("concurrency_group")
+    metadata_fields: list[str] = []
     if canonical is not None:
         required_skills = list(canonical["required_skills"])
-        required_skills.extend(str(item) for item in specialist.get("required_project_skills", []))
-        owned_scope_patterns = specialist.get("owned_scope_patterns", canonical["owned_scope_patterns"])
-        read_scope_patterns = specialist.get("read_scope_patterns", canonical["read_scope_patterns"])
-        concurrency_group = specialist.get("concurrency_group", canonical["concurrency_group"])
-        metadata = "\n".join(
-            [
+        required_skills.extend(
+            str(item) for item in specialist.get("required_project_skills", [])
+        )
+        owned_scope_patterns = specialist.get(
+            "owned_scope_patterns", canonical["owned_scope_patterns"]
+        )
+        read_scope_patterns = specialist.get(
+            "read_scope_patterns", canonical["read_scope_patterns"]
+        )
+        concurrency_group = specialist.get(
+            "concurrency_group", canonical["concurrency_group"]
+        )
+        metadata_fields.extend(
+            (
                 f"discipline = {json.dumps(canonical['discipline'])}",
                 f"required_skills = {json.dumps(sorted(set(required_skills)))}",
-                f"owned_scope_patterns = {json.dumps(owned_scope_patterns)}",
-                f"read_scope_patterns = {json.dumps(read_scope_patterns)}",
                 f"forbidden_actions = {json.dumps(canonical['forbidden_actions'])}",
                 f"validation_commands = {json.dumps(canonical['validation_commands'])}",
-                f"concurrency_group = {json.dumps(concurrency_group)}",
-            ]
+            )
         )
+    if owned_scope_patterns:
+        metadata_fields.extend(
+            (
+                f"owned_scope_patterns = {json.dumps(owned_scope_patterns)}",
+                f"read_scope_patterns = {json.dumps(read_scope_patterns)}",
+            )
+        )
+    if concurrency_group:
+        metadata_fields.append(
+            f"concurrency_group = {json.dumps(concurrency_group)}"
+        )
+    metadata = "\n".join(metadata_fields)
     canonical_instructions = (
         str(canonical.get("developer_instructions", "")).strip()
         if canonical is not None
@@ -246,12 +268,12 @@ def _specialist_role(
             "Return changed paths, commands, exit codes, artifacts, and remaining rollout risk.",
         ]
     )
-    reasoning_effort = (
-        canonical.get("model_reasoning_effort", specialist["reasoning_effort"])
+    reasoning_effort = specialist["reasoning_effort"]
+    sandbox_mode = (
+        canonical.get("sandbox_mode", "workspace-write")
         if canonical
-        else specialist["reasoning_effort"]
+        else "workspace-write"
     )
-    sandbox_mode = canonical.get("sandbox_mode", "workspace-write") if canonical else "workspace-write"
     content = "\n".join(
         [
             f"# {MARKER}",
@@ -265,7 +287,201 @@ def _specialist_role(
             "",
         ]
     )
-    return {"id": role_id, "description": description, "content": content}
+    return {
+        "id": role_id,
+        "description": description,
+        "content": content,
+        "kind": "specialist",
+        "repository_id": repository_id,
+        "owned_scope_patterns": list(owned_scope_patterns),
+        "read_scope_patterns": list(read_scope_patterns),
+        "concurrency_group": concurrency_group,
+        "sandbox_mode": sandbox_mode,
+    }
+
+
+def _scope_prefix(value: str) -> str:
+    normalized = value.replace("\\", "/").strip("/")
+    wildcard = min(
+        (
+            index
+            for index in (
+                normalized.find("*"),
+                normalized.find("?"),
+                normalized.find("["),
+            )
+            if index >= 0
+        ),
+        default=len(normalized),
+    )
+    return normalized[:wildcard].rstrip("/").casefold()
+
+
+def _scope_patterns_overlap(left: str, right: str) -> bool:
+    left_prefix = _scope_prefix(left)
+    right_prefix = _scope_prefix(right)
+    return bool(
+        left_prefix
+        and right_prefix
+        and (
+            left_prefix == right_prefix
+            or left_prefix.startswith(right_prefix + "/")
+            or right_prefix.startswith(left_prefix + "/")
+        )
+    )
+
+
+def _glob_matches_path(pattern: str, path: str) -> bool:
+    pattern_parts = pattern.replace("\\", "/").strip("/").casefold().split("/")
+    path_parts = path.replace("\\", "/").strip("/").casefold().split("/")
+    memo: dict[tuple[int, int], bool] = {}
+
+    def matches(pattern_index: int, path_index: int) -> bool:
+        key = (pattern_index, path_index)
+        if key in memo:
+            return memo[key]
+        if pattern_index == len(pattern_parts):
+            result = path_index == len(path_parts)
+        elif pattern_parts[pattern_index] == "**":
+            result = matches(pattern_index + 1, path_index) or (
+                path_index < len(path_parts) and matches(pattern_index, path_index + 1)
+            )
+        else:
+            result = bool(
+                path_index < len(path_parts)
+                and fnmatch.fnmatchcase(path_parts[path_index], pattern_parts[pattern_index])
+                and matches(pattern_index + 1, path_index + 1)
+            )
+        memo[key] = result
+        return result
+
+    return matches(0, 0)
+
+
+def _assignment_path(value: object) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError("agent write assignment path must be a non-empty string")
+    normalized = value.replace("\\", "/")
+    pure = PurePosixPath(normalized)
+    windows = PureWindowsPath(value)
+    if (
+        pure.is_absolute()
+        or windows.is_absolute()
+        or windows.drive
+        or "." in pure.parts
+        or ".." in pure.parts
+        or any(character in normalized for character in "*?[]")
+    ):
+        raise ValueError(f"agent write assignment must be one exact relative path: {value}")
+    return pure.as_posix()
+
+
+def review_effective_agent_scopes(
+    roles: Iterable[dict[str, Any]],
+    active_assignments: Iterable[dict[str, object]] | None = None,
+) -> dict[str, object]:
+    resolved = sorted(
+        (role for role in roles if role.get("kind") == "specialist"),
+        key=lambda role: str(role["id"]),
+    )
+    overlaps: list[dict[str, object]] = []
+    for index, left in enumerate(resolved):
+        for right in resolved[index + 1 :]:
+            if left.get("repository_id") != right.get("repository_id"):
+                continue
+            pairs = sorted(
+                {
+                    (left_scope, right_scope)
+                    for left_scope in left.get("owned_scope_patterns", [])
+                    for right_scope in right.get("owned_scope_patterns", [])
+                    if _scope_patterns_overlap(left_scope, right_scope)
+                }
+            )
+            if pairs:
+                overlaps.append(
+                    {
+                        "roles": sorted([str(left["id"]), str(right["id"])]),
+                        "repository": left["repository_id"],
+                        "classification": "capability-overlap",
+                        "blocks_activation": False,
+                        "pattern_pairs": [list(pair) for pair in pairs],
+                    }
+                )
+
+    report: dict[str, object] = {
+        "status": "PASS",
+        "assignment_status": "NOT_PROVIDED",
+        "resolved_scopes": [
+            {
+                "role_id": str(role["id"]),
+                "repository": role["repository_id"],
+                "owned_scope_patterns": list(role.get("owned_scope_patterns", [])),
+                "read_scope_patterns": list(role.get("read_scope_patterns", [])),
+                "concurrency_group": role.get("concurrency_group"),
+            }
+            for role in resolved
+        ],
+        "capability_overlaps": overlaps,
+        "assignment_conflicts": [],
+        "assignments": [],
+    }
+    if active_assignments is None:
+        return report
+    assignments = list(active_assignments)
+    role_by_id = {str(role["id"]): role for role in resolved}
+    path_owners: dict[str, set[str]] = {}
+    normalized_assignments: list[dict[str, object]] = []
+    seen_role_paths: set[tuple[str, str]] = set()
+    for index, assignment in enumerate(assignments):
+        if not isinstance(assignment, dict) or set(assignment) != {
+            "role_id",
+            "write_paths",
+        }:
+            raise ValueError(f"active assignment {index} requires role_id and write_paths")
+        role_id = assignment.get("role_id")
+        paths = assignment.get("write_paths")
+        if not isinstance(role_id, str) or role_id not in role_by_id:
+            raise ValueError(
+                "active assignment references an unknown managed specialist: "
+                f"{role_id}"
+            )
+        if not isinstance(paths, list) or not paths:
+            raise ValueError(f"active assignment write_paths must be non-empty: {role_id}")
+        scopes = role_by_id[role_id].get("owned_scope_patterns", [])
+        if not scopes:
+            raise ValueError(f"active assignment has no effective owned scope: {role_id}")
+        normalized_paths: list[str] = []
+        for raw_path in paths:
+            path = _assignment_path(raw_path)
+            if not any(_glob_matches_path(scope, path) for scope in scopes):
+                raise ValueError(
+                    "active assignment is outside effective owned scope: "
+                    f"{role_id}: {path}"
+                )
+            key = (role_id, path.casefold())
+            if key in seen_role_paths:
+                raise ValueError(f"duplicate active agent write assignment: {role_id}: {path}")
+            seen_role_paths.add(key)
+            normalized_paths.append(path)
+            path_owners.setdefault(path.casefold(), set()).add(role_id)
+        normalized_assignments.append(
+            {"role_id": role_id, "write_paths": sorted(normalized_paths)}
+        )
+    conflicts = [
+        {"path": path, "roles": sorted(owners)}
+        for path, owners in sorted(path_owners.items())
+        if len(owners) > 1
+    ]
+    if conflicts:
+        detail = "; ".join(
+            f"{conflict['path']}: {', '.join(conflict['roles'])}" for conflict in conflicts
+        )
+        raise ValueError(f"simultaneous agent write assignment conflict: {detail}")
+    report["assignment_status"] = "PASS"
+    report["assignments"] = sorted(
+        normalized_assignments, key=lambda assignment: str(assignment["role_id"])
+    )
+    return report
 
 
 PROJECT_SKILL_SPECIALISTS = {
@@ -278,15 +494,30 @@ PROJECT_SKILL_SPECIALISTS = {
 }
 
 
-def _project_skill_scopes(skill_id: str, repository_path: str) -> tuple[list[str], list[str]]:
+def _project_skill_scopes(
+    skill_id: str, repository_path: str
+) -> tuple[list[str], list[str]]:
     prefix = "**" if repository_path == "." else repository_path.rstrip("/")
     owned = {
         "project-unity-client": [f"{prefix}/Assets/**", f"{prefix}/ProjectSettings/**"],
         "project-dotnet-server": [f"{prefix}/**/*.cs", f"{prefix}/**/*.csproj"],
-        "project-cpp-server": [f"{prefix}/**/*.c", f"{prefix}/**/*.cpp", f"{prefix}/**/*.h", f"{prefix}/**/*.hpp"],
-        "project-go-services": [f"{prefix}/**/*.go", f"{prefix}/go.mod", f"{prefix}/go.sum"],
+        "project-cpp-server": [
+            f"{prefix}/**/*.c",
+            f"{prefix}/**/*.cpp",
+            f"{prefix}/**/*.h",
+            f"{prefix}/**/*.hpp",
+        ],
+        "project-go-services": [
+            f"{prefix}/**/*.go",
+            f"{prefix}/go.mod",
+            f"{prefix}/go.sum",
+        ],
         "project-lua-gameplay": [f"{prefix}/**/*.lua"],
-        "project-data-pipeline": [f"{prefix}/**/*.sql", f"{prefix}/**/data/**", f"{prefix}/**/database/**"],
+        "project-data-pipeline": [
+            f"{prefix}/**/*.sql",
+            f"{prefix}/**/data/**",
+            f"{prefix}/**/database/**",
+        ],
     }[skill_id]
     return owned, [f"{prefix}/**"]
 
@@ -332,10 +563,11 @@ def plan_agent_overlay(
     profile: dict[str, Any] | None = None,
     known_skills: Iterable[str] = (),
     project_skills: Iterable[dict[str, Any]] = (),
+    active_assignments: Iterable[dict[str, object]] | None = None,
 ) -> dict[str, object]:
     project_path = Path(project)
     generic_roles = _load_generic_roles(Path(template_root))
-    roles = list(generic_roles)
+    roles: list[dict[str, Any]] = list(generic_roles)
     generic_role_ids = {role["id"] for role in generic_roles}
     specialist_templates = _load_specialist_templates(Path(template_root).parent / "specialists")
     if profile_path is not None and profile is not None:
@@ -378,18 +610,30 @@ def plan_agent_overlay(
     }
     preserved = _unmanaged_agent_paths(project_path, planned_paths=planned_paths)
     collisions: list[dict[str, str]] = []
-    managed_roles: list[dict[str, str]] = []
+    managed_roles: list[dict[str, Any]] = []
 
     for role in roles:
         relative = PurePosixPath(".codex", "agents", f"{role['id']}.toml").as_posix()
         destination = _safe_project_path(project_path, relative)
-        existing = destination.read_text(encoding="utf-8", errors="replace") if destination.exists() else ""
+        existing = (
+            destination.read_text(encoding="utf-8", errors="replace")
+            if destination.exists()
+            else ""
+        )
         if destination.exists() and not _has_generated_header(existing):
             preserved.append(relative)
-            collisions.append({"path": relative, "kind": "unmanaged-agent", "role_id": role["id"]})
+            collisions.append(
+                {
+                    "path": relative,
+                    "kind": "unmanaged-agent",
+                    "role_id": role["id"],
+                }
+            )
             continue
         operations.append({"path": relative, "content": role["content"]})
         managed_roles.append(role)
+
+    scope_review = review_effective_agent_scopes(managed_roles, active_assignments)
 
     activation_relative = ".codex/agents.generated.toml"
     activation_destination = _safe_project_path(project_path, activation_relative)
@@ -418,4 +662,5 @@ def plan_agent_overlay(
             for operation in operations
         ],
         "activated_roles": activated_roles,
+        "scope_review": scope_review,
     }
