@@ -106,8 +106,8 @@ class CodexPluginPackagingTests(unittest.TestCase):
 
         manifest_version = manifest["version"]
         pyproject_version = pyproject["project"]["version"]
-        self.assertEqual("1.8.1", manifest_version)
-        self.assertEqual("1.8.1", pyproject_version)
+        self.assertEqual("1.9.0", manifest_version)
+        self.assertEqual("1.9.0", pyproject_version)
         self.assertEqual(manifest_version, pyproject_version)
 
     def test_root_manifest_packages_the_canonical_skill_catalog(self) -> None:
@@ -116,7 +116,7 @@ class CodexPluginPackagingTests(unittest.TestCase):
         manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
 
         self.assertEqual(PLUGIN_NAME, manifest["name"])
-        self.assertEqual("1.8.1", manifest["version"])
+        self.assertEqual("1.9.0", manifest["version"])
         self.assertEqual("./skills/", manifest["skills"])
         self.assertEqual(REPOSITORY_URL.removesuffix(".git"), manifest["repository"])
         self.assertEqual("MIT", manifest["license"])

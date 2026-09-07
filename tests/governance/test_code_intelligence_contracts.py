@@ -13,6 +13,15 @@ def read(relative: str) -> str:
 
 
 class CodeIntelligenceContractTests(unittest.TestCase):
+    def test_contract_exposes_reproducible_graph_export_diagnostics(self) -> None:
+        skill = read("skills/code-intelligence-contract/SKILL.md")
+
+        self.assertIn("code_intelligence_graph.py", skill)
+        self.assertIn("low-connectivity", skill)
+        self.assertIn("duplicate callable", skill)
+        self.assertIn("ambiguous callsite", skill)
+        self.assertIn("INFERRED", skill)
+
     def test_one_provider_neutral_skill_owns_the_contract(self) -> None:
         self.assertTrue((SKILLS / "code-intelligence-contract" / "SKILL.md").is_file())
         for vendor_id in ("graphify", "gitnexus", "understand-anything", "codegraph"):

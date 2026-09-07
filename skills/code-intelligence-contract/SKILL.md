@@ -1,7 +1,7 @@
 ---
 name: code-intelligence-contract
 description: Use when dependency, call-chain, blast-radius, architecture, domain-flow, or unfamiliar-codebase analysis needs an optional vendor-neutral code-intelligence provider.
-version: 0.1.0
+version: 0.2.0
 author: GameStudio-CodexKIT
 license: MIT
 compatibility:
@@ -52,11 +52,13 @@ The graph lane is read-only. Provider installation, index creation or refresh, h
    Completion criterion: only a fresh, read-only, language-complete result proceeds; every other state records a source/test fallback.
 4. Run the smallest provider-neutral capability query: context, dependency path, impact, cross-repository contract, architecture, onboarding, or domain flow.
    Completion criterion: query ID, subject, affected paths, artifacts, limitations, and exact provider output are recorded without widening write ownership.
-5. Resolve exactly one query subject before classifying edges. Only source-derived `EXTRACTED` edges may be `Verified`, and only for extraction at the bound snapshot. `confidence=INFERRED` and semantic/LLM evidence stay `Snapshot` or `Unverified`; zero or multiple resolved subjects and other unresolved ambiguity are `BLOCKED`.
+5. When a provider exposes a whole-graph JSON artifact, run `code_intelligence_graph.py` before interpreting bridge or connectivity counts. Use its explicit low-connectivity definition, duplicate callable labels, ambiguous callsite targets, endpoint integrity, and cross-community bridge ranking. Carry every warning into the owning evidence limitations; the diagnostic never upgrades `INFERRED` relationships.
+   Completion criterion: reported counts are reproducible from the bound artifact, symbol collisions use qualified identities, and ambiguous callsites remain unresolved rather than being counted as confirmed dependencies.
+6. Resolve exactly one query subject before classifying edges. Only source-derived `EXTRACTED` edges may be `Verified`, and only for extraction at the bound snapshot. `confidence=INFERRED` and semantic/LLM evidence stay `Snapshot` or `Unverified`; zero or multiple resolved subjects and other unresolved ambiguity are `BLOCKED`.
    Completion criterion: extraction, inference, semantic interpretation, and runtime behavior have separate labels.
-6. Confirm material paths against source owners, generated authorities, tests, logs, or runtime evidence. The implementer runs pre-change impact before editing. The verifier independently runs a fresh post-change query with the same query ID and compares pre/post affected paths.
+7. Confirm material paths against source owners, generated authorities, tests, logs, or runtime evidence. The implementer runs pre-change impact before editing. The verifier independently runs a fresh post-change query with the same query ID and compares pre/post affected paths.
    Completion criterion: source disagreements, dynamic dispatch, reflection, generated paths, and post-change freshness limits are explicit.
-7. For mutation without usable graph evidence, record Decision: `REVIEWER_ACKNOWLEDGED_FALLBACK`; explicit missing graph coverage/blocker; authoritative source owners; known callers/consumers; generated authorities or exact `NOT_APPLICABLE`; focused test commands; named reviewer; and residual risk. Preserve existing risk, approval, backup, and restore gates. Any unresolved generated, cross-repository, or dynamic boundary remains BLOCKED, and graph verdict stays BLOCKED. Inspect every generated-source, dynamic-dispatch, language, repository, security, database, service, or release boundary; if source/tests cannot cover any unresolved boundary, the owning workflow remains BLOCKED.
+8. For mutation without usable graph evidence, record Decision: `REVIEWER_ACKNOWLEDGED_FALLBACK`; explicit missing graph coverage/blocker; authoritative source owners; known callers/consumers; generated authorities or exact `NOT_APPLICABLE`; focused test commands; named reviewer; and residual risk. Preserve existing risk, approval, backup, and restore gates. Any unresolved generated, cross-repository, or dynamic boundary remains BLOCKED, and graph verdict stays BLOCKED. Inspect every generated-source, dynamic-dispatch, language, repository, security, database, service, or release boundary; if source/tests cannot cover any unresolved boundary, the owning workflow remains BLOCKED.
    Completion criterion: the full fallback record exists, approved write scope stays bounded, and Graph verdict remains BLOCKED.
 
 ## Provider roles
@@ -71,6 +73,8 @@ The graph lane is read-only. Provider installation, index creation or refresh, h
 ## Evidence and output contract
 Produce `code-intelligence-evidence.json` or embed the normalized object in the owning workflow artifact. Include query ID; provider/version/index identity; repository/revision/worktree binding; capability; required and supported languages; artifacts; affected paths; per-edge provenance, confidence, and evidence label; side effects; limitations; source/test fallback; reviewer; residual risk; and next action.
 
+For a whole-graph export, run `python -B scripts/code_intelligence_graph.py <graph.json> --expected-revision <commit> --subject <symbol> --output <ignored-evidence-path>` from a full clone, or the bundled helper from the installed skill. Attach the report hash and carry its snapshot, integrity, duplicate callable, ambiguous callsite, low-connectivity, and inference warnings into the normalized evidence. The helper accepts either a `links` or `edges` collection, uses valid endpoints only, defines low-connectivity as at most one distinct neighbor in the undirected projection, returns `STALE_HEAD` when the provider artifact was built at another revision, and returns `AMBIGUOUS`/`BLOCKED` when a requested symbol resolves to multiple graph nodes.
+
 No graph result is not proof that no dependency exists. `EMPTY_UNCERTAIN` preserves that exact warning. Graph `BLOCKED` is never a workflow or runtime PASS. A caller workflow may independently PASS only from its own source, test, log, or runtime evidence while the graph verdict remains `BLOCKED`.
 
 ## Handoff contract
@@ -80,6 +84,7 @@ Record query ID, repository/path, revision and worktree identity, provider/versi
 - Do not confuse a graph community with an authoritative subsystem owner.
 - Do not treat `STALE_HEAD`, `STALE_WORKTREE`, `PARTIAL_LANGUAGE`, `SIDE_EFFECT_VIOLATION`, or `EMPTY_UNCERTAIN` as a small blast radius.
 - Do not promote `confidence=INFERRED` or semantic/LLM evidence because it agrees with expectations.
+- Do not treat a duplicate callable label, ambiguous callsite target, or low-connectivity count as an authoritative dependency or subsystem boundary.
 - Do not expose absolute private paths or secrets in exported graph artifacts.
 - Do not let a graph provider silently widen the approved write scope.
 - Do not use `REVIEWER_ACKNOWLEDGED_FALLBACK` without all required source owners, known callers, known consumers, generated authorities, focused tests, reviewer acknowledgment, and residual risk fields.
@@ -90,13 +95,14 @@ Record query ID, repository/path, revision and worktree identity, provider/versi
 - [ ] Repository, revision, worktree identity, capability, required languages, and artifacts match.
 - [ ] Graph access produced no side effects.
 - [ ] `EXTRACTED`, `confidence=INFERRED`, semantic/LLM, ambiguity, and runtime evidence are separated.
+- [ ] Whole-graph counts use the bundled diagnostic definition and qualified symbol identities.
 - [ ] Empty results use `EMPTY_UNCERTAIN` and the exact no-proof warning.
 - [ ] Source owners, known callers, known consumers, generated authorities, tests, reviewer fallback, and residual risk are recorded when applicable.
 - [ ] Verifier used fresh post-change identity, the same query ID, and a deterministic pre/post comparison.
 - [ ] Every stale, broken, partial, unavailable, disabled, unsupported, ambiguous, or side-effect state remains BLOCKED.
 
 ## References and scripts
-Use the canonical `scripts/code_intelligence.py` normalization helper in a full kit clone or its bundled `studio-project-scaffold` copy. `scripts/codegraph_adapter.py` remains the legacy-compatible adapter. Provider-specific commands are optional, non-authoritative, and must be verified in the target project before use. Full-clone maintainers may inspect `docs/case-studies/graphify-code-intelligence-dogfood.md` when present; standalone skill installs do not require that repository-only case study. Raw evidence remains under ignored `evidence/local/`.
+Use the canonical `scripts/code_intelligence.py` normalization helper and `scripts/code_intelligence_graph.py` whole-graph diagnostic in a full kit clone. `scripts/codegraph_adapter.py` remains the legacy-compatible adapter. Provider-specific commands are optional, non-authoritative, and must be verified in the target project before use. Full-clone maintainers may inspect `docs/case-studies/graphify-code-intelligence-dogfood.md` when present; standalone skill installs do not require that repository-only case study. Raw evidence remains under ignored `evidence/local/`.
 
 ## Negative scope
 This skill does not implement code changes, authorize mutation, install or refresh providers, create hooks, clean indexes, widen ownership, claim runtime correctness, replace project intake, or replace build, test, security, database, service, and release gates.

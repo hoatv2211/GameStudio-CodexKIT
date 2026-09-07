@@ -84,6 +84,7 @@ class SkillResourcePackagingTests(unittest.TestCase):
         self.assertEqual(
             [
                 "code_intelligence.py",
+                "code_intelligence_graph.py",
                 {"source": "evals/schema/code-intelligence-evidence.schema.json", "destination": "schemas/code-intelligence-evidence.schema.json"},
                 {"source": "registry/code-intelligence-providers.yaml", "destination": "references/code-intelligence-providers.yaml"},
             ],

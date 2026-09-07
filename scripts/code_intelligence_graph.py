@@ -1,0 +1,518 @@
+from __future__ import annotations
+
+import argparse
+import hashlib
+import json
+import sys
+from collections import Counter, defaultdict, deque
+from collections.abc import Mapping, Sequence
+from pathlib import Path, PurePosixPath, PureWindowsPath
+
+
+SCHEMA_SUFFIXES = frozenset({".json", ".yaml", ".yml"})
+
+
+def _required_text(value: object, *, field: str) -> str:
+    if not isinstance(value, str) or not value.strip():
+        raise ValueError(f"graph {field} must be a nonblank string")
+    return value.strip()
+
+
+def _optional_text(value: object) -> str:
+    return value.strip() if isinstance(value, str) else ""
+
+
+def _normalized_label(node: Mapping[str, object]) -> str:
+    normalized = _optional_text(node.get("norm_label"))
+    if normalized:
+        return normalized.casefold()
+    return _optional_text(node.get("label")).casefold()
+
+
+def _source_suffix(node: Mapping[str, object]) -> str:
+    source_file = _optional_text(node.get("source_file")).replace("\\", "/")
+    return PurePosixPath(source_file).suffix.casefold() or "(none)"
+
+
+def _portable_source_file(value: object) -> str:
+    source_file = _optional_text(value).replace("\\", "/")
+    if not source_file:
+        return ""
+    if (
+        PurePosixPath(source_file).is_absolute()
+        or PureWindowsPath(source_file).is_absolute()
+    ):
+        return PurePosixPath(source_file).name
+    return source_file
+
+
+def _edge_collection(graph: Mapping[str, object]) -> Sequence[object]:
+    collections = [field for field in ("links", "edges") if field in graph]
+    if len(collections) != 1:
+        raise ValueError("graph export must contain exactly one edge collection")
+    edges = graph[collections[0]]
+    if isinstance(edges, (str, bytes, Mapping)) or not isinstance(edges, Sequence):
+        raise ValueError("graph edge collection must be an array")
+    return edges
+
+
+def _node_map(graph: Mapping[str, object]) -> dict[str, Mapping[str, object]]:
+    nodes = graph.get("nodes")
+    if isinstance(nodes, (str, bytes, Mapping)) or not isinstance(nodes, Sequence):
+        raise ValueError("graph nodes must be an array")
+    result: dict[str, Mapping[str, object]] = {}
+    for raw in nodes:
+        if not isinstance(raw, Mapping):
+            raise ValueError("graph node must be an object")
+        node_id = _required_text(raw.get("id"), field="node id")
+        if node_id in result:
+            raise ValueError(f"duplicate graph node id: {node_id}")
+        result[node_id] = raw
+    return result
+
+
+def _component_count(neighbors: Mapping[str, set[str]]) -> int:
+    unseen = set(neighbors)
+    count = 0
+    while unseen:
+        count += 1
+        pending = deque([unseen.pop()])
+        while pending:
+            current = pending.popleft()
+            connected = neighbors[current] & unseen
+            unseen.difference_update(connected)
+            pending.extend(connected)
+    return count
+
+
+def _callable_label_groups(
+    nodes: Mapping[str, Mapping[str, object]],
+) -> dict[str, list[Mapping[str, object]]]:
+    groups: dict[str, list[Mapping[str, object]]] = defaultdict(list)
+    for node in nodes.values():
+        if not (node.get("_callable") is True or node.get("_callable_class") is True):
+            continue
+        label = _normalized_label(node)
+        if label:
+            groups[label].append(node)
+    return {label: members for label, members in groups.items() if len(members) > 1}
+
+
+def diagnose_graph_export(
+    graph: Mapping[str, object],
+    *,
+    top_limit: int = 20,
+    subject: str | None = None,
+    expected_revision: str | None = None,
+) -> dict[str, object]:
+    """Diagnose identity and connectivity risks in a provider graph export."""
+
+    if not isinstance(graph, Mapping):
+        raise ValueError("graph export must be an object")
+    if (
+        not isinstance(top_limit, int)
+        or isinstance(top_limit, bool)
+        or not 1 <= top_limit <= 1000
+    ):
+        raise ValueError("top_limit must be an integer from 1 through 1000")
+    normalized_expected_revision = (
+        _required_text(expected_revision, field="expected revision")
+        if expected_revision is not None
+        else None
+    )
+    graph_revision = _optional_text(graph.get("built_at_commit")) or None
+    if normalized_expected_revision is None:
+        revision_state = "UNBOUND"
+        revision_evidence_label = "BLOCKED"
+        revision_limitations = [
+            "No expected repository revision was supplied for graph snapshot binding."
+        ]
+    elif graph_revision is None:
+        revision_state = "MISSING_REVISION"
+        revision_evidence_label = "BLOCKED"
+        revision_limitations = [
+            "The graph export does not declare the revision used to build it."
+        ]
+    elif graph_revision != normalized_expected_revision:
+        revision_state = "STALE_HEAD"
+        revision_evidence_label = "BLOCKED"
+        revision_limitations = [
+            "The graph export is stale relative to the expected repository revision."
+        ]
+    else:
+        revision_state = "MATCHED_HEAD"
+        revision_evidence_label = "Snapshot"
+        revision_limitations = [
+            "Head revision matches, but worktree identity and runtime behavior remain unbound."
+        ]
+
+    nodes = _node_map(graph)
+    raw_edges = _edge_collection(graph)
+    neighbors = {node_id: set() for node_id in nodes}
+    valid_edges: list[Mapping[str, object]] = []
+    missing_endpoint_edges = 0
+    self_loop_edges = 0
+    for raw in raw_edges:
+        if not isinstance(raw, Mapping):
+            raise ValueError("graph edge must be an object")
+        source = _required_text(raw.get("source"), field="edge source")
+        target = _required_text(raw.get("target"), field="edge target")
+        if source not in nodes or target not in nodes:
+            missing_endpoint_edges += 1
+            continue
+        valid_edges.append(raw)
+        if source == target:
+            self_loop_edges += 1
+            continue
+        neighbors[source].add(target)
+        neighbors[target].add(source)
+
+    low_connectivity_ids = sorted(
+        node_id for node_id, adjacent in neighbors.items() if len(adjacent) <= 1
+    )
+    low_connectivity_nodes = [nodes[node_id] for node_id in low_connectivity_ids]
+    suffix_counts = Counter(_source_suffix(node) for node in low_connectivity_nodes)
+    file_type_counts = Counter(
+        _optional_text(node.get("file_type")) or "(none)"
+        for node in low_connectivity_nodes
+    )
+    schema_low_connectivity = sum(
+        _source_suffix(node) in SCHEMA_SUFFIXES for node in low_connectivity_nodes
+    )
+
+    duplicate_labels = _callable_label_groups(nodes)
+    duplicate_label_rows = []
+    for label, members in duplicate_labels.items():
+        duplicate_label_rows.append(
+            {
+                "label": label,
+                "node_count": len(members),
+                "nodes": sorted(
+                    (
+                        {
+                            "id": _required_text(node.get("id"), field="node id"),
+                            "source_file": _portable_source_file(
+                                node.get("source_file")
+                            ),
+                            "source_location": _optional_text(
+                                node.get("source_location")
+                            ),
+                        }
+                        for node in members
+                    ),
+                    key=lambda item: item["id"],
+                ),
+            }
+        )
+    duplicate_label_rows.sort(key=lambda item: (-item["node_count"], item["label"]))
+
+    callsite_targets: dict[tuple[str, str, str, str, str], set[str]] = defaultdict(set)
+    callsite_confidences: dict[tuple[str, str, str, str, str], set[str]] = defaultdict(set)
+    inferred_edges = sum(
+        _optional_text(edge.get("confidence")).upper() == "INFERRED"
+        for edge in raw_edges
+        if isinstance(edge, Mapping)
+    )
+    inferred_to_duplicate_labels = 0
+    for edge in valid_edges:
+        source = _required_text(edge.get("source"), field="edge source")
+        target = _required_text(edge.get("target"), field="edge target")
+        target_label = _normalized_label(nodes[target])
+        relation = _optional_text(edge.get("relation")) or "(unknown)"
+        source_file = _portable_source_file(edge.get("source_file"))
+        source_location = _optional_text(edge.get("source_location"))
+        key = (source, relation, source_file, source_location, target_label)
+        callsite_targets[key].add(target)
+        confidence = _optional_text(edge.get("confidence")).upper() or "UNKNOWN"
+        callsite_confidences[key].add(confidence)
+        if confidence == "INFERRED" and target_label in duplicate_labels:
+            inferred_to_duplicate_labels += 1
+
+    ambiguous_rows = []
+    for key, target_ids in callsite_targets.items():
+        if not key[-1] or len(target_ids) <= 1:
+            continue
+        source, relation, source_file, source_location, target_label = key
+        ambiguous_rows.append(
+            {
+                "source_id": source,
+                "relation": relation,
+                "source_file": source_file,
+                "source_location": source_location,
+                "target_label": target_label,
+                "target_ids": sorted(target_ids),
+                "confidences": sorted(callsite_confidences[key]),
+            }
+        )
+    ambiguous_rows.sort(
+        key=lambda item: (
+            -len(item["target_ids"]),
+            item["source_id"],
+            item["source_file"],
+            item["source_location"],
+            item["target_label"],
+        )
+    )
+
+    bridge_rows = []
+    for node_id, adjacent in neighbors.items():
+        node = nodes[node_id]
+        own_community = node.get("community")
+        neighbor_communities = {
+            nodes[target].get("community")
+            for target in adjacent
+            if nodes[target].get("community") is not None
+        }
+        external_communities = {
+            community
+            for community in neighbor_communities
+            if community != own_community
+        }
+        if not external_communities:
+            continue
+        bridge_rows.append(
+            {
+                "id": node_id,
+                "label": _optional_text(node.get("label")),
+                "source_file": _portable_source_file(node.get("source_file")),
+                "degree": len(adjacent),
+                "neighbor_community_count": len(neighbor_communities),
+                "external_community_count": len(external_communities),
+            }
+        )
+    bridge_rows.sort(
+        key=lambda item: (
+            -item["external_community_count"],
+            -item["degree"],
+            item["id"],
+        )
+    )
+
+    warnings: list[str] = []
+    if missing_endpoint_edges:
+        warnings.append("Some edges reference node IDs absent from the export.")
+    if duplicate_labels:
+        warnings.append(
+            "Duplicate callable labels require qualified symbol identity before conclusions."
+        )
+    if ambiguous_rows:
+        warnings.append(
+            "Ambiguous callsites target multiple node IDs with the same normalized label."
+        )
+    if inferred_edges:
+        warnings.append(
+            "INFERRED edges remain UNVERIFIED and require source or runtime confirmation."
+        )
+    if revision_state != "MATCHED_HEAD":
+        warnings.extend(revision_limitations)
+
+    result: dict[str, object] = {
+        "schema_version": 1,
+        "read_only": True,
+        "definitions": {
+            "low_connectivity_node": (
+                "at most one distinct valid neighbor in the undirected projection"
+            ),
+            "component": "connected component in the undirected projection",
+            "ambiguous_callsite_target": (
+                "one source callsite and relation targeting multiple node IDs with "
+                "the same normalized label"
+            ),
+        },
+        "snapshot": {
+            "graph_revision": graph_revision,
+            "expected_revision": normalized_expected_revision,
+            "revision_state": revision_state,
+            "evidence_label": revision_evidence_label,
+            "limitations": revision_limitations,
+        },
+        "integrity": {
+            "node_count": len(nodes),
+            "edge_count": len(raw_edges),
+            "valid_endpoint_edge_count": len(valid_edges),
+            "missing_endpoint_edge_count": missing_endpoint_edges,
+            "self_loop_edge_count": self_loop_edges,
+        },
+        "connectivity": {
+            "component_count": _component_count(neighbors),
+            "isolated_node_count": sum(not adjacent for adjacent in neighbors.values()),
+            "low_connectivity_node_count": len(low_connectivity_nodes),
+            "schema_low_connectivity_node_count": schema_low_connectivity,
+            "low_connectivity_by_file_type": dict(sorted(file_type_counts.items())),
+            "low_connectivity_by_source_suffix": dict(sorted(suffix_counts.items())),
+        },
+        "identity": {
+            "duplicate_callable_label_count": len(duplicate_labels),
+            "duplicate_callable_node_count": sum(
+                len(members) for members in duplicate_labels.values()
+            ),
+            "duplicate_callable_labels": duplicate_label_rows[:top_limit],
+            "ambiguous_callsite_target_group_count": len(ambiguous_rows),
+            "ambiguous_callsite_target_edge_count": sum(
+                len(item["target_ids"]) for item in ambiguous_rows
+            ),
+            "ambiguous_callsite_targets": ambiguous_rows[:top_limit],
+        },
+        "inference": {
+            "inferred_edge_count": inferred_edges,
+            "inferred_edges_to_duplicate_callable_labels": (
+                inferred_to_duplicate_labels
+            ),
+            "evidence_label": "UNVERIFIED" if inferred_edges else "NOT_APPLICABLE",
+        },
+        "bridges": {
+            "top_cross_community_bridges": bridge_rows[:top_limit],
+        },
+        "warnings": warnings,
+    }
+    if subject is not None:
+        subject_text = _required_text(subject, field="subject")
+        subject_label = subject_text.casefold()
+        matched_ids = sorted(
+            node_id
+            for node_id, node in nodes.items()
+            if _normalized_label(node) == subject_label
+            or _optional_text(node.get("label")).casefold() == subject_label
+        )
+        incident = [
+            edge
+            for edge in valid_edges
+            if edge.get("source") in matched_ids or edge.get("target") in matched_ids
+        ]
+        confidence_counts = Counter(
+            _optional_text(edge.get("confidence")).upper() or "UNKNOWN"
+            for edge in incident
+        )
+        matched_rows = []
+        for node_id in matched_ids:
+            node = nodes[node_id]
+            node_incident = [
+                edge
+                for edge in incident
+                if edge.get("source") == node_id or edge.get("target") == node_id
+            ]
+            node_confidences = Counter(
+                _optional_text(edge.get("confidence")).upper() or "UNKNOWN"
+                for edge in node_incident
+            )
+            own_community = node.get("community")
+            external_communities = {
+                nodes[target].get("community")
+                for target in neighbors[node_id]
+                if nodes[target].get("community") is not None
+                and nodes[target].get("community") != own_community
+            }
+            matched_rows.append(
+                {
+                    "id": node_id,
+                    "label": _optional_text(node.get("label")),
+                    "source_file": _portable_source_file(node.get("source_file")),
+                    "source_location": _optional_text(node.get("source_location")),
+                    "degree": len(neighbors[node_id]),
+                    "external_community_count": len(external_communities),
+                    "incident_edge_count": len(node_incident),
+                    "incident_edges_by_confidence": dict(
+                        sorted(node_confidences.items())
+                    ),
+                }
+            )
+
+        if not matched_ids:
+            resolution_state = "EMPTY_UNCERTAIN"
+            evidence_label = "Unverified"
+            subject_limitations = [
+                "No matching graph node is not proof that the symbol is absent."
+            ]
+        elif len(matched_ids) > 1:
+            resolution_state = "AMBIGUOUS"
+            evidence_label = "BLOCKED"
+            subject_limitations = [
+                "Multiple graph nodes share the requested symbol identity; qualify by source path and location."
+            ]
+        else:
+            resolution_state = "RESOLVED"
+            evidence_label = "Snapshot"
+            subject_limitations = [
+                "Resolution is graph-local only and does not establish fresh index or runtime evidence."
+            ]
+        if confidence_counts.get("INFERRED", 0):
+            subject_limitations.append(
+                "Incident INFERRED edges remain UNVERIFIED."
+            )
+
+        result["subject"] = {
+            "query": subject_text,
+            "normalized_label": subject_label,
+            "resolution_state": resolution_state,
+            "evidence_label": evidence_label,
+            "matched_node_count": len(matched_ids),
+            "matched_nodes": matched_rows,
+            "incident_edge_count": len(incident),
+            "incident_edges_by_confidence": dict(sorted(confidence_counts.items())),
+            "ambiguous_callsite_target_group_count": sum(
+                row["target_label"] == subject_label for row in ambiguous_rows
+            ),
+            "limitations": subject_limitations,
+        }
+    return result
+
+
+def diagnose_graph_path(
+    path: Path | str,
+    *,
+    top_limit: int = 20,
+    subject: str | None = None,
+    expected_revision: str | None = None,
+) -> dict[str, object]:
+    graph_path = Path(path)
+    payload = graph_path.read_bytes()
+    try:
+        graph = json.loads(payload.decode("utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as error:
+        raise ValueError(f"invalid graph JSON: {error}") from error
+    result = diagnose_graph_export(
+        graph,
+        top_limit=top_limit,
+        subject=subject,
+        expected_revision=expected_revision,
+    )
+    result["source"] = {
+        "artifact": graph_path.name,
+        "sha256": hashlib.sha256(payload).hexdigest(),
+    }
+    return result
+
+
+def main(argv: list[str] | None = None) -> int:
+    parser = argparse.ArgumentParser(
+        description="Diagnose identity and connectivity risks in a graph JSON export."
+    )
+    parser.add_argument("graph")
+    parser.add_argument("--top", type=int, default=20)
+    parser.add_argument("--subject")
+    parser.add_argument("--expected-revision")
+    parser.add_argument("--output")
+    args = parser.parse_args(argv)
+    try:
+        report = diagnose_graph_path(
+            args.graph,
+            top_limit=args.top,
+            subject=args.subject,
+            expected_revision=args.expected_revision,
+        )
+    except (OSError, ValueError) as error:
+        parser.error(str(error))
+    rendered = json.dumps(report, indent=2, sort_keys=True) + "\n"
+    if args.output:
+        output = Path(args.output)
+        if output.resolve() == Path(args.graph).resolve():
+            parser.error("output must not replace the source graph")
+        output.parent.mkdir(parents=True, exist_ok=True)
+        output.write_text(rendered, encoding="utf-8")
+    else:
+        sys.stdout.write(rendered)
+    return 0
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
