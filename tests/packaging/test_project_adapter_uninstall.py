@@ -547,7 +547,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
             self.assertEqual("owned helper\n", second.read_text(encoding="utf-8"))
 
             with mock.patch(
-                "scripts.generate_adapters._write_registry_atomically",
+                "scripts.project_adapters._write_registry_atomically",
                 side_effect=OSError("stop after stale recovery"),
             ):
                 report = uninstall_project_adapter(project)
@@ -883,7 +883,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
             before_registry = registry_path.read_bytes()
 
             with mock.patch(
-                "scripts.generate_adapters._write_registry_atomically",
+                "scripts.project_adapters._write_registry_atomically",
                 side_effect=OSError("simulated registry commit failure"),
             ):
                 report = uninstall_project_adapter(project)
@@ -1370,7 +1370,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
             self.assertNotIn("recovery_manifest", report)
 
     def test_project_adapter_uninstall_replace_denial_interruption_keeps_old_journal(self) -> None:
-        from scripts import generate_adapters as adapters
+        from scripts import project_adapters as adapters
 
         with temporary_directory() as temp:
             project = Path(temp) / "project"
@@ -1446,7 +1446,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
             self.assertEqual(canonical_payload, json.loads(canonical.read_text(encoding="utf-8")))
 
     def test_project_adapter_uninstall_selects_newer_recovery_generation(self) -> None:
-        from scripts import generate_adapters as adapters
+        from scripts import project_adapters as adapters
 
         with temporary_directory() as temp:
             project = Path(temp) / "project"
@@ -1628,7 +1628,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
 
     def test_recovery_journal_writer_has_no_in_place_overwrite_fallback(self) -> None:
         import inspect
-        from scripts import generate_adapters as adapters
+        from scripts import project_adapters as adapters
 
         source = inspect.getsource(adapters._write_quarantine_recovery_manifest)
 
@@ -1636,7 +1636,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
         self.assertNotIn(".truncate()", source)
 
     def test_project_adapter_uninstall_records_missing_quarantine_after_registry_commit(self) -> None:
-        from scripts import generate_adapters as adapters
+        from scripts import project_adapters as adapters
 
         with temporary_directory() as temp:
             project = Path(temp) / "project"
@@ -1705,7 +1705,7 @@ class ProjectAdapterUninstallTests(PackagingTestCase):
             self.assertTrue(recovery_path.is_file())
 
     def test_project_adapter_uninstall_records_drifted_quarantine_after_registry_commit(self) -> None:
-        from scripts import generate_adapters as adapters
+        from scripts import project_adapters as adapters
 
         with temporary_directory() as temp:
             project = Path(temp) / "project"

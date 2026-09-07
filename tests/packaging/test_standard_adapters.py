@@ -179,7 +179,8 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual(before, tree_digest(skills_root))
 
     def test_standard_adapter_source_swap_after_walk_never_packages_external_content(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
+        from scripts import adapter_sources
 
         with temporary_directory() as temp:
             temp_root = Path(temp)
@@ -204,7 +205,7 @@ class StandardAdapterTests(PackagingTestCase):
             (external / "note.txt").write_text("external payload\n", encoding="utf-8")
             backup = skill / "resources.original"
             output = temp_root / "adapter"
-            original_walk = adapters._walk_adapter_files
+            original_walk = adapter_sources._walk_adapter_files
             swapped = False
 
             def swap_after_walk(path: Path, **kwargs: object) -> object:
@@ -218,7 +219,7 @@ class StandardAdapterTests(PackagingTestCase):
 
             try:
                 with mock.patch.object(
-                    adapters,
+                    adapter_sources,
                     "_walk_adapter_files",
                     side_effect=swap_after_walk,
                 ):
@@ -236,7 +237,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertNotIn("external payload", generated)
 
     def test_standard_adapter_rejects_nested_directory_replaced_after_parent_scan(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             temp_root = Path(temp)
@@ -303,7 +304,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual(external_before, tree_digest(external))
 
     def test_standard_adapter_rejects_directory_replaced_inside_scandir(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             temp_root = Path(temp)
@@ -387,7 +388,7 @@ class StandardAdapterTests(PackagingTestCase):
             )
 
     def test_standard_adapter_swap_failure_restores_previous_output(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -434,7 +435,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertTrue(Path(recovery["stage"]).is_dir())
 
     def test_standard_adapter_publication_journal_exists_before_stage_rename(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -473,7 +474,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertTrue(journal_seen)
 
     def test_standard_adapter_recovery_journal_tracks_prepared_and_output_moved_states(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -514,7 +515,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual(["prepared", "output-moved"], observed_states)
 
     def test_standard_adapter_prejournal_failure_keeps_output_visible_without_rename(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -557,7 +558,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual(1, len(list(output.parent.glob(".adapter.*.stage"))))
 
     def test_standard_adapter_first_swap_rename_failure_preserves_previous_output(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -604,7 +605,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertTrue(Path(recovery["stage"]).is_dir())
 
     def test_standard_adapter_concurrent_edit_before_old_output_rename_is_restored_visible(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -659,7 +660,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertTrue((output.parent / ".adapter.swap-recovery.json").is_file())
 
     def test_standard_adapter_cleanup_preserves_concurrent_stage_replacement(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -726,7 +727,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual("concurrent owner\n", foreign_path.read_text(encoding="utf-8"))
 
     def test_standard_adapter_failure_cleanup_preserves_snapshot_boundary_replacement(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -803,7 +804,7 @@ class StandardAdapterTests(PackagingTestCase):
             )
 
     def test_standard_adapter_publish_no_clobber_preserves_concurrent_output_and_stage(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -858,7 +859,7 @@ class StandardAdapterTests(PackagingTestCase):
             self.assertEqual("concurrent output\n", foreign_file.read_text(encoding="utf-8"))
 
     def test_standard_adapter_success_preserves_hash_bound_completion_without_duplicate_retry(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"
@@ -902,7 +903,7 @@ class StandardAdapterTests(PackagingTestCase):
             )
 
     def test_standard_adapter_double_swap_failure_persists_and_resumes_recovery(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             root = Path(temp) / "kit"

@@ -429,7 +429,7 @@ class ProjectAdapterTests(PackagingTestCase):
             self.assertEqual([], report["activated_roles"])
 
     def test_project_adapter_delegates_agent_overlay_planning(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.project_adapters as adapters
         from scripts.agent_overlay import plan_agent_overlay
 
         source_root = Path(__file__).resolve().parents[2]
@@ -578,7 +578,7 @@ class ProjectAdapterTests(PackagingTestCase):
                 self.assertTrue(resolved.is_file(), (role_id, resolved))
 
     def test_project_adapter_refuses_reparse_points_in_skill_destinations(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.project_adapters as adapters
 
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
@@ -775,12 +775,12 @@ class ProjectAdapterTests(PackagingTestCase):
             self.assertFalse((project / ".adapter-backup").exists())
 
     def test_project_adapter_rejects_target_race_after_digest_validation(self) -> None:
-        from scripts import generate_adapters, safe_mutation
+        from scripts import project_adapters, safe_mutation
 
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:
             project = Path(temp) / "project"
-            report = generate_adapters.report_project_adapter(source_root, project)
+            report = project_adapters.report_project_adapter(source_root, project)
             registry = project / ".agents" / "registry.json"
             real_apply = safe_mutation.apply_mutation
 
@@ -795,12 +795,12 @@ class ProjectAdapterTests(PackagingTestCase):
                 return real_apply(root, operations, backup_root, **kwargs)
 
             with mock.patch.object(
-                generate_adapters,
+                project_adapters,
                 "apply_mutation",
                 side_effect=race_before_safe_apply,
             ):
                 with self.assertRaisesRegex(ValueError, "approved mutation precondition"):
-                    generate_adapters.apply_project_adapter(
+                    project_adapters.apply_project_adapter(
                         source_root,
                         project,
                         reviewer="QA Lead",
@@ -882,7 +882,7 @@ class ProjectAdapterTests(PackagingTestCase):
             self.assertFalse((project / ".codex").exists())
 
     def test_project_adapter_apply_detects_source_change_after_report(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.project_adapters as adapters
 
         source_root = Path(__file__).resolve().parents[2]
         with temporary_directory() as temp:

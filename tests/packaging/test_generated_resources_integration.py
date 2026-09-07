@@ -23,7 +23,7 @@ from tests.packaging.packs_adapters_support import (
 class GeneratedResourcesIntegrationTests(PackagingTestCase):
     def test_json_resource_generation_is_valid_deterministic_and_replaces_sync_marker(self) -> None:
         import scripts.build_packs as packs
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             resource = Path(temp) / "schema.json"
@@ -47,7 +47,7 @@ class GeneratedResourcesIntegrationTests(PackagingTestCase):
                 self.assertTrue(first.endswith("\n"))
 
     def test_adapter_resource_generation_uses_syntax_safe_markers_for_web_assets(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             resource_root = Path(temp)
@@ -93,7 +93,7 @@ class GeneratedResourcesIntegrationTests(PackagingTestCase):
                     self.assertTrue(packs._is_generated_artifact(resource, first))
 
     def test_adapter_generated_ownership_rejects_web_marker_suffix_collisions(self) -> None:
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             resource_root = Path(temp)
@@ -118,7 +118,7 @@ class GeneratedResourcesIntegrationTests(PackagingTestCase):
 
     def test_pack_and_adapter_reject_binary_web_resources_without_mutation(self) -> None:
         import scripts.build_packs as packs
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             resource_root = Path(temp)
@@ -136,7 +136,7 @@ class GeneratedResourcesIntegrationTests(PackagingTestCase):
 
     def test_json_resource_generation_rejects_non_object_and_incompatible_comment(self) -> None:
         import scripts.build_packs as packs
-        import scripts.generate_adapters as adapters
+        import scripts.standard_adapters as adapters
 
         with temporary_directory() as temp:
             resource = Path(temp) / "schema.json"
