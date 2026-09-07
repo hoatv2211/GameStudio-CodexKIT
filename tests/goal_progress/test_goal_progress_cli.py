@@ -66,6 +66,34 @@ class GoalProgressCliTests(unittest.TestCase):
             time.sleep(0.01)
         return getattr(runtime, "active_request_count") == expected
 
+    def test_pid_probe_treats_windows_system_error_as_not_running(self) -> None:
+        with mock.patch(
+            "scripts.goal_progress_server.os.kill",
+            side_effect=SystemError("Windows process probe failed"),
+        ):
+            self.assertFalse(goal_progress_server._pid_is_running(24681357))
+
+    def test_runtime_uses_base_python_executable_on_windows(self) -> None:
+        with tempfile.TemporaryDirectory() as tmpdir:
+            base_executable = Path(tmpdir) / "python.exe"
+            base_executable.write_bytes(b"test executable")
+            with mock.patch(
+                "scripts.goal_progress_server.os.name", "nt"
+            ), mock.patch.object(
+                sys, "_base_executable", str(base_executable), create=True
+            ):
+                self.assertEqual(
+                    str(base_executable),
+                    goal_progress_server._runtime_python_executable(),
+                )
+
+    def test_runtime_uses_active_python_executable_off_windows(self) -> None:
+        with mock.patch("scripts.goal_progress_server.os.name", "posix"):
+            self.assertEqual(
+                sys.executable,
+                goal_progress_server._runtime_python_executable(),
+            )
+
     def initialize_with_runtime(
         self, base: Path
     ) -> tuple[Path, Path, object, Path, dict[str, object], object]:

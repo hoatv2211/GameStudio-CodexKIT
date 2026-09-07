@@ -455,7 +455,7 @@ def _pid_is_running(pid: object) -> bool:
         return True
     try:
         os.kill(pid, 0)
-    except OSError:
+    except (OSError, SystemError):
         return False
     return True
 
@@ -542,6 +542,14 @@ def detached_process_options() -> dict[str, Any]:
     else:
         options["start_new_session"] = True
     return options
+
+
+def _runtime_python_executable() -> str:
+    if os.name == "nt":
+        base_executable = getattr(sys, "_base_executable", None)
+        if isinstance(base_executable, str) and Path(base_executable).is_file():
+            return base_executable
+    return sys.executable
 
 
 def discover_dashboard_assets(script_path: Path | None = None) -> Path:
@@ -2927,7 +2935,7 @@ def ensure_runtime(
             try:
                 _remove_stale_descriptors(paths, stale_info)
                 command = [
-                    sys.executable,
+                    _runtime_python_executable(),
                     str(Path(__file__).with_name("goal_progress.py")),
                     "serve",
                     "--goal-root",
